@@ -30,15 +30,19 @@ def collecter_toutes_sources(config: Config) -> tuple[list[AnnonceBrute], dict[s
     """Interroge chaque source active ; une panne est loguée, jamais fatale."""
     brutes: list[AnnonceBrute] = []
     sante: dict[str, Any] = {}
-    for source in sources_actives(config):
+    for nom, fabrique in sources_actives(config):
         try:
+            source = fabrique()
             lot = source.collecter()
             brutes.extend(lot)
-            sante[source.nom] = {"statut": "ok", "annonces": len(lot)}
-            log.info("source %s : %d annonces", source.nom, len(lot))
+            sante[nom] = {"statut": "ok", "annonces": len(lot)}
+            if source.avertissements:
+                sante[nom]["avertissements"] = list(source.avertissements)
+                log.warning("source %s : %s", nom, "; ".join(source.avertissements))
+            log.info("source %s : %d annonces", nom, len(lot))
         except Exception as exc:  # noqa: BLE001 — tolérance aux pannes voulue
-            sante[source.nom] = {"statut": "erreur", "message": str(exc)}
-            log.exception("source %s en échec, on continue", source.nom)
+            sante[nom] = {"statut": "erreur", "message": str(exc)}
+            log.exception("source %s en échec, on continue", nom)
     return brutes, sante
 
 
@@ -115,6 +119,8 @@ def afficher_rapport(
     for nom, s in sante.items():
         if s["statut"] == "ok":
             print(f"  {nom} : ok ({s['annonces']} annonces)")
+            for avertissement in s.get("avertissements", []):
+                print(f"      avertissement : {avertissement}")
         else:
             print(f"  {nom} : ERREUR — {s.get('message', '?')}")
 

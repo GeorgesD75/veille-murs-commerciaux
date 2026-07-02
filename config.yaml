@@ -87,12 +87,13 @@ scoring:
     orange: 60
 
 sources:                      # activer/désactiver une source = une ligne
-  mock:            {actif: true}    # données de démonstration (Phase 1)
-  pointdevente:    {actif: false}   # Phase 2
-  murscommerciaux: {actif: false}   # Phase 2
-  iburoshop:       {actif: false}   # Phase 2
-  flagship:        {actif: false}   # Phase 2
-  century21:       {actif: false}   # Phase 2
+  mock:            {actif: false}   # données de démonstration (tests/démo Phase 1)
+  pointdevente:    {actif: true, max_pages: 2}   # 2 pages × 50 annonces, tri récentes d'abord
+  murscommerciaux: {actif: true}
+  iburoshop:       {actif: true}
+  flagship:        {actif: true}
+  # century21 : non implémenté en scraping (robots.txt restrictif, rubrique commerces
+  # non identifiable sans blocage) — couvert par les alertes email en Phase 4.
   imap:            {actif: false}   # Phase 4 (alertes email LeBonCoin, SeLoger, Geolocaux…)
 
 notifications:

@@ -12,7 +12,9 @@ les score, met à jour un dashboard GitHub Pages et envoie un email s'il y a du 
 
 - [x] **Phase 1** — structure, pipeline (normalisation → filtres → dédoublonnage →
   enrichissement → scoring), tests sur données mockées
-- [ ] **Phase 2** — parsers Niveau 1 (pointdevente.fr en premier)
+- [x] **Phase 2** — parsers Niveau 1 : pointdevente.fr, murscommerciaux.com,
+  iburoshop.fr, flagship.fr (century21.fr écarté : robots.txt restrictif, couvert
+  via les alertes email en Phase 4)
 - [ ] **Phase 3** — dashboard GitHub Pages
 - [ ] **Phase 4** — module IMAP (alertes email des portails) + notifications Resend
 - [ ] **Phase 5** — workflow GitHub Actions + README complet pas-à-pas
@@ -52,3 +54,7 @@ tests/                 Tests unitaires (pytest)
   fonds ou un droit au bail). Listes et planchers dans `config.yaml`.
 - **Le scoring est recalculé à chaque run** sur tout le stock : modifier `config.yaml` ou les
   benchmarks re-score toutes les annonces au run suivant.
+- **Scraping poli, vérifié source par source** (relevés robots.txt du 2026-07-02 documentés
+  en tête de chaque parser) : User-Agent honnête avec contact, 3-5 s entre requêtes, arrêt
+  propre sur 403/429, premières pages uniquement (les listings sont triés « plus récentes
+  d'abord », largement suffisant pour un run quotidien). ~7 requêtes par run au total.
