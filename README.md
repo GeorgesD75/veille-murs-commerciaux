@@ -15,7 +15,9 @@ les score, met à jour un dashboard GitHub Pages et envoie un email s'il y a du 
 - [x] **Phase 2** — parsers Niveau 1 : pointdevente.fr, murscommerciaux.com,
   iburoshop.fr, flagship.fr (century21.fr écarté : robots.txt restrictif, couvert
   via les alertes email en Phase 4)
-- [ ] **Phase 3** — dashboard GitHub Pages
+- [x] **Phase 3** — dashboard GitHub Pages (docs/index.html autonome, non référencé :
+  noindex + robots.txt ; filtres mémorisés, mode sombre, section « Exclues » repliée,
+  santé des sources en pied de page)
 - [ ] **Phase 4** — module IMAP (alertes email des portails) + notifications Resend
 - [ ] **Phase 5** — workflow GitHub Actions + README complet pas-à-pas
 
@@ -38,6 +40,8 @@ pipeline/              Normalisation, filtres, dédoublonnage, enrichissement, s
 data/benchmarks.json   Fourchettes de prix/m² et loyers médians par département — à affiner à la main
 data/trajets.json      Temps de trajet approximatifs depuis Paris 18e — à affiner à la main
 data/annonces.json     Mémoire du collecteur (générée, versionnée dans git pour le dédoublonnage)
+dashboard/generer.py   Génère docs/index.html (page autonome, aucune dépendance front)
+docs/                  Le site publié par GitHub Pages (index.html, robots.txt, .nojekyll)
 tests/                 Tests unitaires (pytest)
 ```
 

@@ -12,6 +12,7 @@ import logging
 import sys
 from typing import Any
 
+from dashboard.generer import generer_dashboard
 from pipeline.config import RACINE, Config
 from pipeline.dedoublonnage import fusionner, trouver_similaire
 from pipeline.enrichissement import Benchmarks, enrichir
@@ -103,6 +104,13 @@ def executer() -> dict[str, Any]:
         "nouvelles_ce_run": nouvelles,
     }
     stockage.sauvegarder(annonces, meta)
+
+    try:
+        cible = generer_dashboard(annonces, meta, config, RACINE / "docs")
+        log.info("dashboard généré : %s", cible)
+    except Exception:  # noqa: BLE001 — les données sont sauvées, le run reste utile
+        log.exception("génération du dashboard en échec")
+
     afficher_rapport(annonces, nouvelles, sante)
     return meta
 
