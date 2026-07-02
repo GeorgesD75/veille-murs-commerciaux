@@ -1,0 +1,26 @@
+{
+  "_note": "Temps de trajet approximatifs en transports en commun depuis Paris 18e (minutes). Table statique modifiable a la main : recherche par commune (nom en minuscules sans accents ni tirets), sinon valeur par defaut du departement. Approximation assumee : suffisante pour un filtre a 60 min, gratuite et sans API.",
+  "communes": {
+    "paris": 15,
+    "saint ouen": 10, "saint ouen sur seine": 10,
+    "clichy": 10, "levallois perret": 15, "neuilly sur seine": 20,
+    "asnieres sur seine": 20, "courbevoie": 25, "puteaux": 25, "nanterre": 25,
+    "boulogne billancourt": 30, "issy les moulineaux": 35, "montrouge": 30,
+    "saint denis": 15, "aubervilliers": 15, "pantin": 15, "la courneuve": 20,
+    "le bourget": 25, "bobigny": 25, "drancy": 30, "epinay sur seine": 25,
+    "villetaneuse": 25, "noisy le sec": 30, "rosny sous bois": 35, "aulnay sous bois": 35,
+    "montreuil": 25, "bagnolet": 25, "les lilas": 20,
+    "vincennes": 30, "charenton le pont": 30, "ivry sur seine": 30, "maisons alfort": 35,
+    "nogent sur marne": 35, "vitry sur seine": 40, "creteil": 40, "saint maur des fosses": 45,
+    "argenteuil": 25, "enghien les bains": 20, "ermont": 30, "sarcelles": 30,
+    "garges les gonesse": 30, "cergy": 45, "pontoise": 45,
+    "sartrouville": 30, "houilles": 25, "saint germain en laye": 40, "poissy": 45,
+    "versailles": 45, "mantes la jolie": 60, "rambouillet": 75,
+    "massy": 45, "evry courcouronnes": 55, "corbeil essonnes": 55, "etampes": 70,
+    "chelles": 30, "lagny sur marne": 40, "meaux": 50, "melun": 55,
+    "fontainebleau": 75, "provins": 95
+  },
+  "departements_defaut": {
+    "75": 15, "92": 25, "93": 25, "94": 35, "95": 45, "78": 50, "91": 55, "77": 55
+  }
+}

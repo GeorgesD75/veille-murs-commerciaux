@@ -1,0 +1,101 @@
+# =============================================================================
+# Configuration de la veille — tout est modifiable à la main.
+# Le scoring étant recalculé à chaque run, un changement ici re-score tout le stock.
+# =============================================================================
+
+budget:
+  prix_min: 150000            # budget cible net vendeur
+  prix_max: 400000
+  prix_min_filtre: 140000     # bornes élargies (~±7 %) : marge de négociation
+  prix_max_filtre: 420000
+
+zone:
+  temps_trajet_max_min: 60    # temps de transport max depuis Paris 18e
+
+filtres:
+  # Piège n°1 : fonds de commerce / droit au bail déguisés en vente de murs.
+  mots_toujours_eliminatoires:
+    - "fonds de commerce"
+    - "cession de fonds"
+    - "cession du fonds"
+    - "droit au bail"
+  # Éliminatoires SAUF si le mot « murs » apparaît explicitement dans l'annonce.
+  mots_eliminatoires_sauf_murs:
+    - "pas de porte"
+    - "pas-de-porte"
+    - "cause retraite"
+    - "licence iv"
+  # Contrôle de cohérence : un prix/m² anormalement bas trahit un fonds déguisé.
+  prix_m2_plancher_petite_couronne: 1500   # 75, 92, 93, 94
+  prix_m2_plancher_grande_couronne: 800    # 77, 78, 91, 95
+
+deduplication:
+  tolerance_surface_m2: 3     # même bien probable si surface ±3 m²…
+  tolerance_prix_pct: 5       # …et prix ±5 % (et même code postal)
+
+scoring:
+  rendement:                  # 40 pts max, linéaire entre plancher et plafond
+    points: 40
+    pct_plancher: 4           # ≤ 4 % de rendement brut -> 0 pt
+    pct_plafond: 9            # ≥ 9 % -> 40 pts
+  penalite_loyer_estime: 10   # murs libres (loyer estimé au benchmark) : incertitude + vacance
+  emplacement:                # 25 pts max
+    paris: 25
+    petite_couronne_dynamique: 20
+    petite_couronne: 15
+    grande_couronne_centre_ville: 10
+    autre: 5
+  communes_dynamiques:        # petite couronne « dynamique » (20 pts)
+    - Pantin
+    - Aubervilliers
+    - Saint-Ouen
+    - Saint-Ouen-sur-Seine
+    - Saint-Denis
+    - Montreuil
+    - Clichy
+    - Levallois-Perret
+    - Bagnolet
+    - Les Lilas
+    - Ivry-sur-Seine
+  prix_m2_vs_benchmark:       # 20 pts max, vs data/benchmarks.json
+    seuil_decote_pct: 20      # décote ≥ 20 % sous le prix médian -> 20 pts
+    decote_forte: 20
+    dans_fourchette: 10
+    surcote: 0
+    inconnu: 0
+  proximite:                  # 10 pts max, temps de trajet depuis Paris 18e
+    moins_de_20_min: 10
+    de_20_a_40_min: 6
+    de_40_a_60_min: 3
+  bonus_malus:                # somme bornée à [-3 ; +5]
+    - nom: bail_recent
+      points: 2
+      mots: ["bail récent", "nouveau bail", "bail neuf", "bail signé"]
+    - nom: taxe_fonciere_locataire
+      points: 2
+      mots: ["taxe foncière à la charge du locataire", "taxe foncière au locataire", "taxe foncière refacturée"]
+    - nom: enseigne_nationale
+      points: 1
+      mots: ["enseigne nationale", "locataire national", "franchise nationale"]
+    - nom: travaux
+      points: -3
+      mots: ["travaux à prévoir", "prévoir des travaux", "à rénover", "gros travaux"]
+  seuil_alerte_rendement_pct: 10   # au-delà : ⚠️ « vérifier locataire et quartier » (pas un bonus)
+  seuils:
+    pepite: 80                # score ≥ 80 -> email immédiat 🔥
+    vert: 75
+    orange: 60
+
+sources:                      # activer/désactiver une source = une ligne
+  mock:            {actif: true}    # données de démonstration (Phase 1)
+  pointdevente:    {actif: false}   # Phase 2
+  murscommerciaux: {actif: false}   # Phase 2
+  iburoshop:       {actif: false}   # Phase 2
+  flagship:        {actif: false}   # Phase 2
+  century21:       {actif: false}   # Phase 2
+  imap:            {actif: false}   # Phase 4 (alertes email LeBonCoin, SeLoger, Geolocaux…)
+
+notifications:
+  fournisseur: resend
+  email_quotidien: true       # uniquement s'il y a de nouvelles annonces retenues
+  max_annonces_email: 5

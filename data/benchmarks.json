@@ -1,0 +1,17 @@
+{
+  "_note": "Fourchettes indicatives de prix au m2 (murs commerciaux) et loyer median en euros/m2/an. Valeurs de depart prudentes, a affiner a la main au fil des observations (annonces constatees, etudes grand public des reseaux specialises, notaires du Grand Paris). Une entree 'communes' (par code postal) prime sur le departement.",
+  "departements": {
+    "75": {"prix_m2": [3000, 6500], "loyer_m2_annuel": 350},
+    "92": {"prix_m2": [2200, 4200], "loyer_m2_annuel": 220},
+    "93": {"prix_m2": [1500, 2800], "loyer_m2_annuel": 160},
+    "94": {"prix_m2": [1800, 3200], "loyer_m2_annuel": 180},
+    "95": {"prix_m2": [1300, 2200], "loyer_m2_annuel": 140},
+    "78": {"prix_m2": [1600, 2800], "loyer_m2_annuel": 160},
+    "91": {"prix_m2": [1200, 2100], "loyer_m2_annuel": 130},
+    "77": {"prix_m2": [1100, 2000], "loyer_m2_annuel": 120}
+  },
+  "communes": {
+    "75018": {"prix_m2": [2800, 5500], "loyer_m2_annuel": 300},
+    "93500": {"prix_m2": [1800, 3200], "loyer_m2_annuel": 180}
+  }
+}
