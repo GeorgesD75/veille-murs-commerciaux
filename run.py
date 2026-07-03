@@ -65,6 +65,12 @@ def integrer(
             existante.date_derniere_vue = quand
             existante.prix = a.prix  # suit les baisses de prix
             existante.loyer_mensuel = a.loyer_mensuel or existante.loyer_mensuel
+            # Les infos de présentation se rafraîchissent aussi (photos ajoutées
+            # par l'agence, description étoffée…)
+            existante.images = a.images or existante.images
+            existante.image_url = a.image_url or existante.image_url
+            if len(a.description) > len(existante.description):
+                existante.description = a.description
         else:
             similaire = trouver_similaire(a, annonces.values(), config)
             if similaire is not None:
