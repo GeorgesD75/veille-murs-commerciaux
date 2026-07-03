@@ -46,16 +46,30 @@ class ClientPoli:
             time.sleep(attente)
 
     def _robots_pour(self, url: str) -> urllib.robotparser.RobotFileParser | None:
+        """Charge robots.txt avec NOTRE session (UA honnête).
+
+        RobotFileParser.read() utilise urllib et son UA par défaut, que certains
+        sites (ex. papcommerces) refusent en 403 — le parseur conclurait alors,
+        à tort, « tout interdit ». Un robots.txt inaccessible (4xx/erreur) vaut
+        « pas de consigne » : les chemins de chaque source ont de toute façon
+        été validés manuellement (relevés documentés en tête des parsers).
+        """
         decoupe = urlparse(url)
         hote = f"{decoupe.scheme}://{decoupe.netloc}"
         if hote not in self._robots:
-            parseur = urllib.robotparser.RobotFileParser(f"{hote}/robots.txt")
+            parseur: urllib.robotparser.RobotFileParser | None = None
             try:
-                parseur.read()
-            except Exception as exc:  # noqa: BLE001 — robots inaccessible : on continue,
-                # les chemins de chaque source ont été validés manuellement.
+                reponse = self.session.get(f"{hote}/robots.txt", timeout=15)
+                if reponse.status_code == 200:
+                    parseur = urllib.robotparser.RobotFileParser()
+                    parseur.parse(reponse.text.splitlines())
+                else:
+                    log.warning(
+                        "robots.txt de %s en HTTP %s — consignes réputées absentes",
+                        hote, reponse.status_code,
+                    )
+            except Exception as exc:  # noqa: BLE001
                 log.warning("robots.txt illisible pour %s (%s)", hote, exc)
-                parseur = None
             self._robots[hote] = parseur
         return self._robots[hote]
 

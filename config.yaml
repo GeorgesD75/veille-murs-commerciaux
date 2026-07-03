@@ -83,8 +83,9 @@ scoring:
   seuil_alerte_rendement_pct: 10   # au-delà : ⚠️ « vérifier locataire et quartier » (pas un bonus)
   seuils:
     pepite: 80                # score ≥ 80 -> email immédiat 🔥
-    vert: 75
+    vert: 75                  # ≥ vert -> bandeau « à voir en priorité » du dashboard
     orange: 60
+    affichage: 60             # sous ce score, l'annonce est repliée dans « le reste du marché »
 
 sources:                      # activer/désactiver une source = une ligne
   mock:            {actif: false}   # données de démonstration (tests/démo Phase 1)
@@ -92,6 +93,8 @@ sources:                      # activer/désactiver une source = une ligne
   murscommerciaux: {actif: true}
   iburoshop:       {actif: true}
   flagship:        {actif: true}
+  papcommerces:    {actif: true}   # site commerces de PAP, listing IdF
+  bienici:         {actif: true, max_annonces: 100}   # API JSON, boutiques triées par date
   # century21 : non implémenté en scraping (robots.txt restrictif, rubrique commerces
   # non identifiable sans blocage) — couvert par les alertes email en Phase 4.
   imap:            {actif: false}   # Phase 4 (alertes email LeBonCoin, SeLoger, Geolocaux…)

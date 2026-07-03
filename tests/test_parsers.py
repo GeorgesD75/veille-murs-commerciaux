@@ -1,10 +1,13 @@
 """Parsers Niveau 1, testés sur des fixtures HTML réelles anonymisées."""
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from pipeline.modeles import TypeMurs
+from sources.bienici import SourceBienici
 from sources.extraction import (
+    deviner_type_murs,
     extraire_nombre,
     extraire_surface,
     loyer_mensuel_depuis_texte,
@@ -12,6 +15,7 @@ from sources.extraction import (
 )
 from sources.hektor import SourceFlagship, SourceIburoshop
 from sources.murscommerciaux import SourceMursCommerciaux
+from sources.papcommerces import SourcePapCommerces
 from sources.pointdevente import SourcePointDeVente
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -29,6 +33,9 @@ def test_extraire_nombre():
     assert extraire_nombre("Loyer : 2 334 € Hc/ht/mois") == 2_334
     assert extraire_nombre("8.7%") == 8.7
     assert extraire_nombre("2 333,83 €") == 2_333.83
+    assert extraire_nombre("515.000 €") == 515_000      # milliers à point (PAP)
+    assert extraire_nombre("1.250.000 €") == 1_250_000
+    assert extraire_nombre("2333.83") == 2_333.83       # décimale à point conservée
     assert extraire_nombre("aucun chiffre") is None
     assert extraire_nombre(None) is None
 
@@ -44,6 +51,22 @@ def test_loyer_annuel_depuis_description():
     assert loyer_mensuel_depuis_texte(texte, 500_000) == 3_622.5
     # Loyer annuel >= prix : donnée aberrante, ignorée
     assert loyer_mensuel_depuis_texte(texte, 40_000) is None
+
+
+def test_loyer_generique_vendu_loue():
+    # « Vendu loué : 2 087 € » sans précision = mensuel (rendement plausible)
+    assert loyer_mensuel_depuis_texte("**Vendu loué : 2087€** belle boutique", 415_000) == 2_087
+    # Un « loyer : 24 000 € » qui donnerait 96 %/an est réinterprété comme annuel
+    assert loyer_mensuel_depuis_texte("loyer : 24 000 €", 300_000) == 2_000
+    # Mention explicite « /an »
+    assert loyer_mensuel_depuis_texte("loyer 18 000 € /an", 230_000) == 1_500
+
+
+def test_deviner_type_murs():
+    assert deviner_type_murs("local vendu occupé, bail 3/6/9") is TypeMurs.MURS_OCCUPES
+    assert deviner_type_murs("vendus libres de toute occupation") is TypeMurs.MURS_LIBRES
+    assert deviner_type_murs("local vide, vitrine d'angle") is TypeMurs.MURS_LIBRES
+    assert deviner_type_murs("bail en cours, loyer 1 200 €") is TypeMurs.MURS_OCCUPES
 
 
 def test_rentabilite_depuis_description():
@@ -150,3 +173,55 @@ class TestHektor:
         assert libre.type_murs is TypeMurs.MURS_LIBRES     # « vendus libres de toute occupation »
         assert libre.surface_m2 == 38                      # depuis la description
         assert "murs" in libre.titre.lower()
+
+
+# --- papcommerces.fr ---
+
+
+class TestPapCommerces:
+    def test_extraction(self):
+        annonces = SourcePapCommerces().extraire(charger("papcommerces_liste.html"))
+        assert len(annonces) == 2
+
+        paris = next(a for a in annonces if a.id_source == "900100001")
+        assert paris.prix == 415_000                    # « 415.000 € »
+        assert paris.surface_m2 == 20
+        assert paris.code_postal == "75005"             # déduit de « Paris 5E »
+        assert paris.type_murs is TypeMurs.MURS_OCCUPES  # « Vendu loué »
+        assert paris.loyer_mensuel == 2_087
+        assert paris.image_url and "cdn.pap.fr" in paris.image_url
+        assert "murs" in paris.titre.lower()
+
+    def test_carte_sans_photo_et_cp_dans_url(self):
+        annonces = SourcePapCommerces().extraire(charger("papcommerces_liste.html"))
+        montreuil = next(a for a in annonces if a.id_source == "900100002")
+        assert montreuil.code_postal == "93100"          # depuis l'URL
+        assert montreuil.type_murs is TypeMurs.MURS_LIBRES  # « local vide »
+        assert montreuil.image_url is None               # visuel-nophoto ignoré
+        assert montreuil.prix == 260_000
+
+
+# --- bienici.com (API JSON) ---
+
+
+class TestBienici:
+    def test_conversion(self):
+        donnees = json.loads(charger("bienici_annonces.json"))
+        annonces = SourceBienici().convertir(donnees)
+        # La cession de fonds (adType businessTakeOver) est écartée à la source
+        assert len(annonces) == 2
+
+        occ = next(a for a in annonces if a.id_source == "agence-exemple-123456")
+        assert occ.type_murs is TypeMurs.MURS_OCCUPES
+        assert occ.code_postal == "93300"
+        assert occ.prix == 230_000
+        assert occ.loyer_mensuel == 1_500               # loyer annuel 18 000 € / 12
+        assert occ.image_url == "https://media.exemple.fr/photos/123456a.jpg"
+        assert occ.url == "https://www.bienici.com/annonce/agence-exemple-123456"
+
+    def test_photo_cle_alternative_et_type_libre(self):
+        donnees = json.loads(charger("bienici_annonces.json"))
+        annonces = SourceBienici().convertir(donnees)
+        libre = next(a for a in annonces if a.id_source == "agence-exemple-888888")
+        assert libre.type_murs is TypeMurs.MURS_LIBRES
+        assert libre.image_url == "https://media.exemple.fr/photos/888888a.jpg"

@@ -12,9 +12,11 @@ from typing import Callable
 
 from pipeline.config import Config
 from sources.base import Source
+from sources.bienici import SourceBienici
 from sources.hektor import SourceFlagship, SourceIburoshop
 from sources.mock import SourceMock
 from sources.murscommerciaux import SourceMursCommerciaux
+from sources.papcommerces import SourcePapCommerces
 from sources.pointdevente import SourcePointDeVente
 
 FABRIQUES: dict[str, Callable[..., Source]] = {
@@ -23,6 +25,8 @@ FABRIQUES: dict[str, Callable[..., Source]] = {
     "murscommerciaux": SourceMursCommerciaux,
     "iburoshop": SourceIburoshop,
     "flagship": SourceFlagship,
+    "papcommerces": SourcePapCommerces,
+    "bienici": SourceBienici,
     # Phase 4 : "imap"
 }
 

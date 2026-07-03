@@ -64,6 +64,27 @@ def test_position_benchmark_surcote(benchmarks):
     assert a.position_benchmark == "surcote"
 
 
+def test_decote_et_fourchette_marche_exposees(benchmarks):
+    # Dépt 93 : fourchette [1500, 2800], médiane 2150 ; 1 600 €/m² -> décote 25,6 %
+    a = faire_annonce(code_postal="93400", prix=160_000.0, surface_m2=100.0)
+    enrichir(a, benchmarks, SEUIL_DECOTE)
+    assert a.marche_prix_m2_bas == 1_500
+    assert a.marche_prix_m2_haut == 2_800
+    assert a.decote_pct == 25.6
+
+
+def test_loyer_estime_expose_pour_affichage(benchmarks):
+    from pipeline.modeles import TypeMurs
+
+    a = faire_annonce(
+        type_murs=TypeMurs.MURS_LIBRES, loyer_mensuel=None,
+        code_postal="95100", departement="95", prix=160_000.0, surface_m2=60.0,
+    )
+    enrichir(a, benchmarks, SEUIL_DECOTE)
+    assert a.loyer_mensuel is None          # la donnée source reste intacte
+    assert a.loyer_mensuel_estime == 700.0  # affichable avec la mention « est. »
+
+
 def test_position_benchmark_commune_prime_sur_departement(benchmarks):
     # 93500 (Pantin) a sa propre fourchette [1800, 3200] : 2 500 €/m² -> dans la fourchette.
     a = faire_annonce(code_postal="93500", prix=250_000.0, surface_m2=100.0)

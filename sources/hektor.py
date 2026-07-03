@@ -18,20 +18,15 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 
 from pipeline.modeles import AnnonceBrute, TypeMurs
-from pipeline.texte import normaliser_texte
 from sources.base import SourceHtml
 from sources.extraction import (
+    deviner_type_murs,
     extraire_nombre,
     extraire_surface,
     loyer_mensuel_depuis_texte,
     rentabilite_depuis_texte,
 )
 
-_MOTS_OCCUPES = (
-    "vendu occupe", "vendus occupes", "murs occupes", "vendu loue",
-    "locataire en place", "occupe par", "occupes par",
-)
-_MOTS_LIBRES = ("vendu libre", "vendus libres", "murs libres", "libre de toute occupation")
 _LIBELLES = {
     TypeMurs.MURS_OCCUPES: "Murs occupés",
     TypeMurs.MURS_LIBRES: "Murs libres",
@@ -44,18 +39,6 @@ def _premiere_ligne(element: Tag | None) -> str:
 
 def _texte(element: Tag | None) -> str:
     return element.get_text(" ", strip=True) if element else ""
-
-
-def _deviner_type(description: str) -> TypeMurs:
-    """Occupés ou libres, d'après le texte (pages mixtes, ex. flagship)."""
-    texte = normaliser_texte(description)
-    if any(mot in texte for mot in _MOTS_OCCUPES):
-        return TypeMurs.MURS_OCCUPES
-    if any(mot in texte for mot in _MOTS_LIBRES):
-        return TypeMurs.MURS_LIBRES
-    if "bail" in texte:  # un bail décrit sans autre précision = probablement loué
-        return TypeMurs.MURS_OCCUPES
-    return TypeMurs.MURS_LIBRES
 
 
 class SourceHektor(SourceHtml):
@@ -96,7 +79,7 @@ class SourceHektor(SourceHtml):
             return None
 
         description = _texte(carte.select_one(".propertyDescription"))
-        type_murs = type_defaut or _deviner_type(description)
+        type_murs = type_defaut or deviner_type_murs(description)
 
         # Surface : dans l'attribut alt des photos (« … 75018 43 m² ») ou la description.
         image_el = carte.select_one("img[itemprop=image]")

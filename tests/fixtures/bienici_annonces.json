@@ -1,0 +1,46 @@
+{
+  "total": 3,
+  "from": 0,
+  "perPage": 24,
+  "realEstateAds": [
+    {
+      "id": "agence-exemple-123456",
+      "adType": "buy",
+      "propertyType": "shop",
+      "title": "Local commercial avec locataire en place",
+      "city": "Aubervilliers",
+      "postalCode": "93300",
+      "price": 230000,
+      "surfaceArea": 78,
+      "description": "Murs de boutique occup&eacute;s par un commerce alimentaire.<br>Bail 3/6/9 en cours. Loyer annuel : 18 000 &euro; HT HC.<br>Id&eacute;al investisseur.",
+      "publicationDate": "2026-07-02T09:00:00.000Z",
+      "photos": [{"url_photo": "https://media.exemple.fr/photos/123456a.jpg"}]
+    },
+    {
+      "id": "agence-exemple-777777",
+      "adType": "businessTakeOver",
+      "propertyType": "shop",
+      "title": "Fonds de commerce restaurant",
+      "city": "Paris 11e",
+      "postalCode": "75011",
+      "price": 180000,
+      "surfaceArea": 60,
+      "description": "Cession de fonds, cause retraite.",
+      "publicationDate": "2026-07-02T08:00:00.000Z",
+      "photos": []
+    },
+    {
+      "id": "agence-exemple-888888",
+      "adType": "buy",
+      "propertyType": "shop",
+      "title": "Boutique en rez-de-chaussée",
+      "city": "Versailles",
+      "postalCode": "78000",
+      "price": 320000,
+      "surfaceArea": 95,
+      "description": "Local commercial vendu libre de toute occupation, vitrine sur rue passante.",
+      "publicationDate": "2026-07-01T10:00:00.000Z",
+      "photos": [{"url": "https://media.exemple.fr/photos/888888a.jpg"}]
+    }
+  ]
+}

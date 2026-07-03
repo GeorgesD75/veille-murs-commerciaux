@@ -77,6 +77,7 @@ def enrichir(annonce: Annonce, benchmarks: Benchmarks, seuil_decote_pct: float) 
 
     loyer, estime = loyer_mensuel_retenu(annonce, benchmarks)
     annonce.loyer_estime = estime
+    annonce.loyer_mensuel_estime = round(loyer, 2) if (estime and loyer) else None
     if loyer and annonce.prix:
         loyer_annuel = loyer * 12
         annonce.rendement_brut_pct = round(loyer_annuel / annonce.prix * 100, 2)
@@ -84,4 +85,14 @@ def enrichir(annonce: Annonce, benchmarks: Benchmarks, seuil_decote_pct: float) 
         annonce.rendement_acte_en_main_pct = round(loyer_annuel / cout_acte_en_main * 100, 2)
 
     annonce.position_benchmark = position_vs_benchmark(annonce, benchmarks, seuil_decote_pct)
+
+    # Comparaison au marché local, pour l'affichage (« ~12 % sous le marché »).
+    bench = benchmarks.pour(annonce.code_postal, annonce.departement)
+    if bench is not None:
+        annonce.marche_prix_m2_bas = bench.prix_m2_bas
+        annonce.marche_prix_m2_haut = bench.prix_m2_haut
+        if annonce.prix_m2 is not None:
+            annonce.decote_pct = round(
+                (bench.prix_m2_median - annonce.prix_m2) / bench.prix_m2_median * 100, 1
+            )
     return annonce

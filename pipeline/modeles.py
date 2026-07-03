@@ -62,9 +62,13 @@ class Annonce:
     # Enrichissement
     prix_m2: float | None = None
     loyer_estime: bool = False
+    loyer_mensuel_estime: float | None = None  # murs libres : loyer au benchmark local
     rendement_brut_pct: float | None = None
     rendement_acte_en_main_pct: float | None = None
     position_benchmark: str = "inconnu"
+    decote_pct: float | None = None            # >0 : sous le prix médian du marché local
+    marche_prix_m2_bas: float | None = None
+    marche_prix_m2_haut: float | None = None
     temps_trajet_min: int | None = None
 
     # Scoring
