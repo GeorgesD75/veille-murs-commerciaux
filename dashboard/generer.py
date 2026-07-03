@@ -813,8 +813,11 @@ function carteHtml(a, options) {
   const est = (a.loyer_mensuel == null && a.loyer_mensuel_estime != null) || a.loyer_estime
     ? " <small>est.</small>" : "";
   const cf = cashflowMensuel(a);
+  const suspect = (a.flags || []).includes("rendement_anormalement_eleve");
   const cfHtml = cf == null ? "—" :
     `<span style="color:${cf >= 0 ? "var(--vert-texte)" : "var(--alerte-texte)"}">${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois</span>` +
+    (suspect ? `<span title="Calculé sur le loyer PROMIS par le vendeur — un tel niveau est
+      presque toujours irréaliste : à prouver par un bail avant d'y croire."> ⚠</span>` : "") +
     `<span class="info-i" data-sim="${ech(a.id)}"
       title="Loyer − mensualité d'un crédit 100 % du coût acte en main (prix × 1,08) sur ${D.analyse.financement.duree_ans} ans à ${D.analyse.financement.taux_pct} % — hors taxe foncière, assurance et gestion. Cliquez pour simuler avec votre apport.">i</span>`;
   const metriques = [
@@ -1108,8 +1111,10 @@ function mensualite(capital, tauxPct, ans) {
   return capital * t / (1 - Math.pow(1 + t, -n));
 }
 
+// Apport 0 par défaut : le simulateur s'ouvre sur EXACTEMENT le même calcul
+// que la métrique « Cash-flow crédit » de la carte (crédit 100 %).
 let simId = null;
-let simEtat = {prix: 0, apport: 20, taux: D.analyse.financement.taux_pct,
+let simEtat = {prix: 0, apport: 0, taux: D.analyse.financement.taux_pct,
                duree: D.analyse.financement.duree_ans};
 
 function ouvrirSimulateur(id) {
@@ -1158,7 +1163,7 @@ function rendreSimulateur() {
     <h3>${IC.calc} Financer — ${ech(a.titre)}</h3>
     <div class="sim-champs">
       <label>Prix négocié (€)<input type="number" step="5000" min="0" value="${simEtat.prix}" data-sim-champ="prix"></label>
-      <label>Apport (%)<input type="number" step="5" min="0" max="100" value="${simEtat.apport}" data-sim-champ="apport"></label>
+      <label>Apport (%) — 0 = crédit 100 %<input type="number" step="5" min="0" max="100" value="${simEtat.apport}" data-sim-champ="apport"></label>
       <label>Taux (%)<input type="number" step="0.1" min="0.5" max="8" value="${simEtat.taux}" data-sim-champ="taux"></label>
       <label>Durée (ans)<input type="number" step="1" min="5" max="27" value="${simEtat.duree}" data-sim-champ="duree"></label>
     </div>
@@ -1287,22 +1292,51 @@ document.addEventListener("toggle", ev => {
   });
 }, true);
 
+function defilerCarrousel(boite, direction) {
+  const a = D.retenues.find(x => x.id === boite.dataset.id);
+  const photos = (a && a.images && a.images.length > 1) ? a.images : null;
+  if (!photos) return;
+  const i = ((parseInt(boite.dataset.idx || "0", 10) + direction)
+    % photos.length + photos.length) % photos.length;
+  boite.dataset.idx = i;
+  const image = boite.querySelector("img");
+  if (image) image.src = photos[i];
+  const compteur = boite.querySelector(".car-compteur");
+  if (compteur) compteur.textContent = `${i + 1}/${photos.length}`;
+}
+
+// Balayage du doigt (et de la souris) sur la photo pour faire défiler
+let glisseX = null, glisseBoite = null;
+document.addEventListener("touchstart", ev => {
+  const boite = ev.target.closest(".carte-img");
+  if (boite && boite.dataset.id) { glisseX = ev.touches[0].clientX; glisseBoite = boite; }
+}, {passive: true});
+document.addEventListener("touchend", ev => {
+  if (glisseBoite && glisseX != null) {
+    const dx = ev.changedTouches[0].clientX - glisseX;
+    if (Math.abs(dx) > 35) defilerCarrousel(glisseBoite, dx < 0 ? 1 : -1);
+  }
+  glisseX = glisseBoite = null;
+}, {passive: true});
+document.addEventListener("mousedown", ev => {
+  const boite = ev.target.closest(".carte-img");
+  if (boite && boite.dataset.id && !ev.target.closest(".car-btn")) {
+    glisseX = ev.clientX; glisseBoite = boite;
+  }
+});
+document.addEventListener("mouseup", ev => {
+  if (glisseBoite && glisseX != null) {
+    const dx = ev.clientX - glisseX;
+    if (Math.abs(dx) > 35) defilerCarrousel(glisseBoite, dx < 0 ? 1 : -1);
+  }
+  glisseX = glisseBoite = null;
+});
+
 document.addEventListener("click", ev => {
   // Carrousel photo
   const car = ev.target.closest(".car-btn");
   if (car) {
-    const boite = car.closest(".carte-img");
-    const a = D.retenues.find(x => x.id === boite.dataset.id);
-    const photos = (a && a.images && a.images.length) ? a.images : null;
-    if (photos) {
-      const i = ((parseInt(boite.dataset.idx || "0", 10) + parseInt(car.dataset.car, 10))
-        % photos.length + photos.length) % photos.length;
-      boite.dataset.idx = i;
-      const image = boite.querySelector("img");
-      if (image) image.src = photos[i];
-      const compteur = boite.querySelector(".car-compteur");
-      if (compteur) compteur.textContent = `${i + 1}/${photos.length}`;
-    }
+    defilerCarrousel(car.closest(".carte-img"), parseInt(car.dataset.car, 10));
     return;
   }
   // Encart d'explication d'un critère de score
