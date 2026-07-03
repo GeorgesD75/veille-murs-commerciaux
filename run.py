@@ -90,9 +90,10 @@ def executer() -> dict[str, Any]:
     # Canal spécial : enchères à venir (hors scoring — une mise à prix n'est
     # pas un prix de marché). Rafraîchi entièrement à chaque run.
     encheres: list = []
+    encheres_ecartees = 0
     if (config.sources.get("encheres_publiques") or {}).get("actif"):
         try:
-            encheres = scorer_lots(
+            encheres, encheres_ecartees = scorer_lots(
                 CollecteurEncheres(
                     mise_a_prix_max=config.budget["prix_max_filtre"]
                 ).collecter(),
@@ -101,7 +102,10 @@ def executer() -> dict[str, Any]:
                 config,
             )
             sante["encheres_publiques"] = {"statut": "ok", "annonces": len(encheres)}
-            log.info("enchères : %d lots IdF à venir", len(encheres))
+            log.info(
+                "enchères : %d lots IdF gardés, %d écartés (départ trop haut)",
+                len(encheres), encheres_ecartees,
+            )
         except Exception as exc:  # noqa: BLE001
             sante["encheres_publiques"] = {"statut": "erreur", "message": str(exc)}
             log.exception("collecte des enchères en échec, on continue")
@@ -125,6 +129,7 @@ def executer() -> dict[str, Any]:
         "sante_sources": sante,
         "nouvelles_ce_run": nouvelles,
         "encheres": encheres,
+        "encheres_ecartees": encheres_ecartees,
         # Mémoire anti-doublon des emails pépite (complétée par notifier)
         "pepites_notifiees": ancienne_meta.get("pepites_notifiees", []),
     }

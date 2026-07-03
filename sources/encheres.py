@@ -131,8 +131,12 @@ def scorer_lots(
     - temps de préparation /15 : ≥ 10 jours avant la vente (avocat, visite,
       financement) 15, ≥ 5 jours 8, moins 3.
 
+    Règle d'or ajoutée : une mise à prix DÉJÀ au-dessus du plafond de raison
+    (valeur basse du marché) ne peut jamais devenir une affaire — le lot est
+    écarté d'office (retourné en compteur, pas en liste).
+
     Seules les `max_haut_panier` meilleures ≥ `seuil_occasion` montent en haut
-    de page. Le plafond de raison affiché reste la valeur BASSE du marché.
+    de page. Retourne (lots gardés, nb écartés départ trop haut).
     """
     maintenant = maintenant or date.today()
     cfg = config["encheres"]
@@ -140,20 +144,27 @@ def scorer_lots(
     communes_dynamiques = config.scoring["communes_dynamiques"]
     bareme_emplacement = config.scoring["emplacement"]
 
+    gardes: list[dict[str, Any]] = []
+    nb_ecartes = 0
     for lot in lots:
         departement = lot.get("departement", "")
         surface = lot.get("surface_m2")
         bench = benchmarks.pour("", departement)
         detail: dict[str, float] = {}
 
-        valeur_mediane = None
+        valeur_basse = valeur_mediane = None
         if bench is not None and surface:
+            valeur_basse = bench.prix_m2_bas * surface
             valeur_mediane = bench.prix_m2_median * surface
-            lot["valeur_marche_basse"] = round(bench.prix_m2_bas * surface)
+            lot["valeur_marche_basse"] = round(valeur_basse)
             lot["valeur_marche_haute"] = round(bench.prix_m2_haut * surface)
             lot["prix_max_conseille"] = lot["valeur_marche_basse"]
             lot["marche_prix_m2_bas"] = bench.prix_m2_bas
             lot["marche_prix_m2_haut"] = bench.prix_m2_haut
+            if lot["mise_a_prix"] > valeur_basse:
+                # Départ déjà au-dessus du plafond de raison : jamais une affaire.
+                nb_ecartes += 1
+                continue
 
         categorie = categorie_emplacement(
             lot.get("ville", ""), departement,
@@ -164,16 +175,24 @@ def scorer_lots(
         if valeur_mediane is None:
             detail["gabarit"] = 0.0
         elif valeur_mediane <= budget["prix_max"]:
-            detail["gabarit"] = 25.0
+            detail["gabarit"] = 20.0
         elif valeur_mediane <= budget["prix_max"] * 1.35:
-            detail["gabarit"] = 12.0  # jouable si la salle est calme
+            detail["gabarit"] = 10.0  # jouable si la salle est calme
         else:
             detail["gabarit"] = 0.0
 
+        if valeur_basse is None:
+            detail["depart"] = 0.0
+        else:
+            # Marge AU DÉPART : plus la mise à prix part loin sous le plafond,
+            # plus il reste d'espace pour enchérir en restant une affaire.
+            espace = (valeur_basse - lot["mise_a_prix"]) / valeur_basse
+            detail["depart"] = round(min(1.0, espace / 0.60) * 15, 1)
+
         detail["dossier"] = (
-            (8.0 if surface else 0.0)
-            + (6.0 if lot.get("estimation_basse") else 0.0)
-            + (6.0 if lot.get("ville") else 0.0)
+            (6.0 if surface else 0.0)
+            + (5.0 if lot.get("estimation_basse") else 0.0)
+            + (4.0 if lot.get("ville") else 0.0)
         )
 
         temps = trajets.temps_depuis_paris18(lot.get("ville", ""), departement)
@@ -187,10 +206,10 @@ def scorer_lots(
             detail["proximite"] = 3.0
 
         if not lot.get("date_vente"):
-            detail["preparation"] = 5.0
+            detail["preparation"] = 4.0
         else:
             jours = (date.fromisoformat(lot["date_vente"]) - maintenant).days
-            detail["preparation"] = 15.0 if jours >= 10 else (8.0 if jours >= 5 else 3.0)
+            detail["preparation"] = 10.0 if jours >= 10 else (5.0 if jours >= 5 else 2.0)
 
         lot["detail_score"] = detail
         lot["score_enchere"] = int(round(min(100.0, sum(detail.values()))))
@@ -199,11 +218,12 @@ def scorer_lots(
             "forte" if score >= cfg["seuil_occasion"]
             else ("reelle" if score >= 50 else "faible")
         )
+        gardes.append(lot)
 
-    lots.sort(key=lambda lot: (-(lot.get("score_enchere") or 0), lot.get("date_vente") or "9999"))
-    for rang, lot in enumerate(lots):
+    gardes.sort(key=lambda lot: (-(lot.get("score_enchere") or 0), lot.get("date_vente") or "9999"))
+    for rang, lot in enumerate(gardes):
         lot["haut_panier"] = (
             rang < cfg["max_haut_panier"]
             and (lot.get("score_enchere") or 0) >= cfg["seuil_occasion"]
         )
-    return lots
+    return gardes, nb_ecartes

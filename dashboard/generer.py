@@ -127,6 +127,7 @@ def preparer_payload(
             "analysees": len(retenues) + len(exclues_recentes),
             "exclues_recentes": len(exclues_recentes),
             "exclues_hors_zone": len(exclues_recentes) - len(exclues_detail),
+            "encheres_ecartees": meta.get("encheres_ecartees", 0),
         },
         "retenues": retenues,
         "exclues_recentes": exclues_detail,
@@ -220,7 +221,11 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
 .wordmark .point { color: var(--or-vif); }
 .wordmark .trait { display: block; margin-top: 7px; }
 .hud { margin-left: auto; text-align: right; font-size: 13.5px; line-height: 1.6;
-  font-variant-numeric: tabular-nums; opacity: .95; max-width: 340px; }
+  font-variant-numeric: tabular-nums; max-width: 360px;
+  background: rgba(255, 255, 255, .10); border: 1px solid rgba(255, 255, 255, .20);
+  border-radius: 14px; padding: 10px 16px;
+  backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 4px 14px rgba(0, 0, 0, .12); }
 .hud b { font-size: 15px; color: var(--or-vif); }
 .hud .maj { opacity: .7; display: block; font-size: 12px; }
 .auvent { height: 15px; background: repeating-linear-gradient(90deg,
@@ -387,6 +392,7 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .score.vert { background: var(--vert-fond); color: var(--vert-texte); }
 .score.orange { background: var(--orange-fond); color: var(--orange-texte); }
 .score.gris { background: var(--gris-fond); color: var(--gris-texte); }
+.score.or { background: var(--or-clair); color: var(--or); }
 .score-libelle { font-size: 10px; color: var(--encre-3); text-transform: uppercase; letter-spacing: .05em; }
 .btn-comp { font: 600 11.5px system-ui, sans-serif; color: var(--marque);
   background: var(--plan); border: 1px solid var(--bord); border-radius: 7px;
@@ -532,7 +538,7 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
   <section id="bloc-etudier"></section>
   <details class="repli" id="bloc-reste"><summary></summary><div id="reste-liste"></div></details>
 
-  <section id="bloc-encheres"></section>
+  <details class="repli" id="bloc-encheres"><summary></summary><div id="encheres-liste"></div></details>
 
   <details class="repli exclues" id="exclues-bloc">
     <summary></summary>
@@ -832,8 +838,46 @@ function ligneCompacteHtml(a) {
   </details>`;
 }
 
+const ENCHERE_MAXIMA = {emplacement: 30, gabarit: 20, depart: 15, dossier: 15,
+                        proximite: 10, preparation: 10};
+const ENCHERE_LIBELLES = {emplacement: "Emplacement", gabarit: "Gabarit vs budget",
+  depart: "Départ sous plafond", dossier: "Dossier lisible",
+  proximite: "Trajet 18e", preparation: "Préparation"};
+
+function pourquoiEnchereHtml(e) {
+  const d = e.detail_score || {};
+  const lignes = Object.entries(ENCHERE_MAXIMA).map(([cle, max]) => {
+    const v = d[cle] ?? 0;
+    return `<div class="jauge"><span>${ENCHERE_LIBELLES[cle]}</span>
+      <div class="piste"><div data-l="${Math.max(0, Math.min(100, v / max * 100))}"></div></div>
+      <span class="val">${v}/${max}</span></div>`;
+  });
+  return `<div class="pourquoi"><div class="titre-bloc">Pourquoi ce score enchère</div>${lignes.join("")}</div>`;
+}
+
+function jaugeEnchereHtml(e) {
+  if (!e.prix_m2_mise_a_prix || !e.marche_prix_m2_bas) return "";
+  const bas = e.marche_prix_m2_bas, haut = e.marche_prix_m2_haut;
+  const med = (bas + haut) / 2, v = e.prix_m2_mise_a_prix;
+  const min = Math.min(bas, v) * 0.85, max = Math.max(haut, v) * 1.1;
+  const pos = x => Math.max(0, Math.min(100, (x - min) / (max - min) * 100));
+  return `<div class="marche">
+    <div><span class="marche-legende-bien">●</span> mise à prix : <b>${fmtEuros(v)}/m²</b> — le marché vaut ${fmtEuros(bas)} à ${fmtEuros(haut)}/m²</div>
+    <div class="marche-piste">
+      <div class="ligne"></div>
+      <div class="bande-marche" style="left:${pos(bas)}%;width:${pos(haut) - pos(bas)}%"></div>
+      <div class="mediane" style="left:${pos(med)}%" title="médiane locale ${fmtEuros(med)}/m²"></div>
+      <div class="bien" style="left:calc(${pos(v)}% - 7px)" title="mise à prix : ${fmtEuros(v)}/m²"></div>
+    </div>
+    <div class="marche-echelle"><span>${fmtEuros(bas)}/m²</span><span>médiane ${fmtEuros(med)}</span><span>${fmtEuros(haut)}/m²</span></div>
+    ${e.prix_max_conseille ? `<div class="lecture">Valeur de marché du bien ≈ ${fmtEuros(e.valeur_marche_basse)} – ${fmtEuros(e.valeur_marche_haute)}.
+      Votre plafond d'enchère = <b>${fmtEuros(e.prix_max_conseille)}</b> (le bas de cette fourchette) —
+      le prix final dépend de la salle : fixez votre limite avant d'y aller, et tenez-la.</div>` : ""}
+  </div>`;
+}
+
 function enchereHtml(e, index) {
-  const date = e.date_vente
+  const dateVente = e.date_vente
     ? new Date(e.date_vente).toLocaleDateString("fr-FR", {day: "numeric", month: "long"})
     : "date à confirmer";
   const img = e.image_url
@@ -842,35 +886,35 @@ function enchereHtml(e, index) {
     : IC.boutique;
   const forte = e.haut_panier;
   const sticker = forte
-    ? `<span class="sticker sticker-marteau" title="Occasion : marge probable élevée même après enchères">${IC.marteau}</span>` : "";
-  const marche = e.marche_prix_m2_bas
-    ? `<div class="marche" style="margin-top:6px">marché local : ${fmtEuros(e.marche_prix_m2_bas)} – ${fmtEuros(e.marche_prix_m2_haut)} /m²
-       ${e.prix_m2_mise_a_prix ? `— mise à prix : <b>${fmtEuros(e.prix_m2_mise_a_prix)}/m²</b>` : ""}</div>` : "";
-  const plafond = e.prix_max_conseille
-    ? `<div class="plafond-conseille">Valeur de marché estimée ≈ <b>${fmtEuros(e.valeur_marche_basse)} – ${fmtEuros(e.valeur_marche_haute)}</b> ·
-       plafond de raison ≈ <b>${fmtEuros(e.prix_max_conseille)}</b> — le prix final dépend de la salle :
-       fixez votre limite avant d'y aller, et tenez-la.</div>` : "";
-  const d = e.detail_score || {};
-  const infobulle = `Emplacement ${d.emplacement ?? 0}/30 · Gabarit vs budget ${d.gabarit ?? 0}/25 · ` +
-    `Dossier ${d.dossier ?? 0}/20 · Trajet ${d.proximite ?? 0}/10 · Préparation ${d.preparation ?? 0}/15`;
-  return `<article class="carte-enchere${forte ? " forte" : ""}" style="animation-delay:${index * 45}ms">
+    ? `<span class="sticker sticker-marteau" title="Occasion : bien dans le gabarit, départ loin sous le plafond">${IC.marteau}</span>` : "";
+  const badges = [
+    `<span class="badge badge-type">${IC.marteau} Enchère · ${ech(e.type_vente)}</span>`,
+    `<span class="badge badge-nouveau">${IC.horloge} vente le ${dateVente}</span>`,
+  ].join("");
+  const metriques = [
+    ["Mise à prix", fmtEuros(e.mise_a_prix)],
+    ["Surface", e.surface_m2 ? e.surface_m2 + " m²" : "—"],
+    ["Mise à prix/m²", e.prix_m2_mise_a_prix ? fmtEuros(e.prix_m2_mise_a_prix) : "—"],
+    ["Plafond d'enchère", e.prix_max_conseille ? fmtEuros(e.prix_max_conseille) : "—"],
+    ["Estimation", e.estimation_basse ? `${fmtEuros(e.estimation_basse)}–${fmtEuros(e.estimation_haute)}` : "—"],
+  ].map(([l, v]) =>
+    `<div class="metrique"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
+  return `<article class="carte${forte ? " prio podium-1" : ""}" style="animation-delay:${index * 45}ms">
     ${sticker}
     <div class="carte-img">${img}</div>
     <div>
       ${forte ? '<div><span class="tampon">Occasion à la barre</span></div>' : ""}
-      <div class="quand">${IC.horloge} Vente le ${date} · ${ech(e.type_vente)}</div>
-      <div class="carte-titre"><a href="${ech(e.url)}" target="_blank" rel="noopener">${ech(e.titre)}</a></div>
-      <div class="carte-lieu">${ech(e.ville || "")}${e.ville ? " · " : ""}département ${ech(e.departement)}
-        ${e.surface_m2 ? " · " + e.surface_m2 + " m²" : ""}${e.criteres ? " · " + ech(e.criteres) : ""}</div>
-      ${marche}
-      ${plafond}
+      <div class="carte-titre"><a href="${ech(e.url)}" target="_blank" rel="noopener">${ech(e.titre)}</a>
+        <span class="badges">${badges}</span></div>
+      <div class="carte-lieu">${ech(e.ville || "")}${e.ville ? " · " : ""}département ${ech(e.departement)}${e.criteres ? " · " + ech(e.criteres) : ""}</div>
+      <div class="metriques">${metriques}</div>
+      ${jaugeEnchereHtml(e)}
     </div>
-    <div class="bloc-mise">
-      <div class="libelle">Mise à prix</div>
-      <div class="valeur">${fmtEuros(e.mise_a_prix)}</div>
-      ${e.estimation_basse ? `<div class="sous">estimé ${fmtEuros(e.estimation_basse)}–${fmtEuros(e.estimation_haute)}</div>` : ""}
-      <div class="sous" title="${infobulle}" style="margin-top:6px">
-        <span style="${forte ? "color:var(--or);font-weight:700" : ""}">score enchère ${e.score_enchere ?? "—"}/100</span></div>
+    ${pourquoiEnchereHtml(e)}
+    <div class="carte-score">
+      <span class="rang rang-S" style="visibility:hidden"></span>
+      <div class="score or">${e.score_enchere ?? "—"}</div>
+      <div class="score-libelle">enchère /100</div>
     </div>
   </article>`;
 }
@@ -1217,26 +1261,28 @@ function initialiser() {
   const selDep = document.getElementById("f-dep");
   for (const d of deps) selDep.insertAdjacentHTML("beforeend", `<option value="${d}">${d}</option>`);
 
-  // Les meilleures occasions sont déjà en haut de page ; ici, le reste trié
-  // par score enchère, replié au-delà de 4 pour ne pas alourdir la page.
+  // Les meilleures occasions sont en haut de page ; le reste est REPLIÉ par
+  // défaut (pas du top = pas d'espace), mêmes cartes une fois ouvert.
   const encheres = (D.encheres || []).filter(e => !e.haut_panier);
   const nbFortes = (D.encheres || []).length - encheres.length;
-  const NB_VISIBLES = 4;
-  const visibles = encheres.slice(0, NB_VISIBLES);
-  const repliees = encheres.slice(NB_VISIBLES);
-  document.getElementById("bloc-encheres").innerHTML = (D.encheres || []).length
-    ? `<h2 class="section">${IC.marteau} Sous le marteau <span class="nb">${(D.encheres || []).length} vente${(D.encheres || []).length > 1 ? "s" : ""} à venir en IdF, triées par score enchère${nbFortes ? ` — ${nbFortes} occasion${nbFortes > 1 ? "s" : ""} déjà en haut de page` : ""}</span></h2>` +
-      visibles.map((e, i) => enchereHtml(e, i)).join("") +
-      (repliees.length
-        ? `<details class="repli" style="margin-top:8px"><summary>Les ${repliees.length} autres ventes (scores plus faibles)</summary>
-           ${repliees.map((e, i) => enchereHtml(e, i)).join("")}</details>`
-        : "") +
+  const blocEncheres = document.getElementById("bloc-encheres");
+  if ((D.encheres || []).length || s.encheres_ecartees) {
+    blocEncheres.style.display = "";
+    blocEncheres.querySelector("summary").textContent =
+      `Sous le marteau — ${encheres.length} autre${encheres.length > 1 ? "s" : ""} vente${encheres.length > 1 ? "s" : ""} aux enchères en IdF` +
+      (nbFortes ? ` (${nbFortes} occasion${nbFortes > 1 ? "s" : ""} déjà en haut de page)` : "") +
+      (s.encheres_ecartees ? ` · ${s.encheres_ecartees} écartée${s.encheres_ecartees > 1 ? "s" : ""} : mise à prix déjà au-dessus du plafond de raison` : "");
+    document.getElementById("encheres-liste").innerHTML =
+      encheres.map((e, i) => enchereHtml(e, i)).join("") +
       `<div class="note-encheres">Score enchère = intérêt du dossier, PAS une promesse de marge :
-       emplacement /30 + gabarit vs budget /25 (la valeur de marché du bien tient-elle dans vos moyens ?)
-       + lisibilité du dossier /20 + trajet /10 + temps de préparation /15. Le prix d'adjudication est
-       imprévisible (1× à 6× la mise à prix selon la salle) — nous ne le prédisons pas.
-       Enchérir en salle exige un avocat et une consignation (~10 %).</div>`
-    : "";
+       emplacement /30 + gabarit vs budget /20 + départ sous plafond /15 + dossier lisible /15
+       + trajet /10 + préparation /10. Le prix d'adjudication est imprévisible (1× à 6× la mise à
+       prix selon la salle) — nous ne le prédisons pas ; votre limite = le plafond d'enchère affiché.
+       Une mise à prix déjà au-dessus de ce plafond est écartée d'office.
+       Enchérir en salle exige un avocat et une consignation (~10 %).</div>`;
+  } else {
+    blocEncheres.style.display = "none";
+  }
 
   const bloc = document.getElementById("exclues-bloc");
   bloc.querySelector("summary").textContent =

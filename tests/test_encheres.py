@@ -35,22 +35,36 @@ def test_score_enchere(benchmarks, trajets, config):
 
     from sources.encheres import scorer_lots
 
-    lots = scorer_lots(_extraire(), benchmarks, trajets, config,
-                       maintenant=date(2026, 7, 3))
+    lots, nb_ecartes = scorer_lots(_extraire(), benchmarks, trajets, config,
+                                   maintenant=date(2026, 7, 3))
+    assert nb_ecartes == 0
     lot = lots[0]
     # Aucune prédiction du prix final : seulement des valeurs de marché sourcées
     assert "prix_probable" not in lot
     assert lot["valeur_marche_basse"] == 265_320   # 3 000 €/m² × 88,44
     assert lot["prix_max_conseille"] == 265_320
-    # Emplacement Paris 30 ; gabarit 12 (médiane 420 090 € juste au-dessus du
-    # budget max) ; dossier 8 (surface seule) ; trajet 10 ; vente J+6 -> 8
+    # Emplacement Paris 30 ; gabarit 10 (médiane 420 090 € juste au-dessus du
+    # budget max) ; départ 15 (mise à prix à 81 % sous le plafond) ;
+    # dossier 6 (surface seule) ; trajet 10 ; vente J+6 -> 5
     assert lot["detail_score"] == {
-        "emplacement": 30.0, "gabarit": 12.0, "dossier": 8.0,
-        "proximite": 10.0, "preparation": 8.0,
+        "emplacement": 30.0, "gabarit": 10.0, "depart": 15.0,
+        "dossier": 6.0, "proximite": 10.0, "preparation": 5.0,
     }
-    assert lot["score_enchere"] == 68
+    assert lot["score_enchere"] == 76
     assert lot["haut_panier"] is True
-    assert lot["opportunite"] == "forte"
+
+
+def test_mise_a_prix_au_dessus_du_plafond_ecartee(benchmarks, trajets, config):
+    from datetime import date
+
+    from sources.encheres import scorer_lots
+
+    lots = _extraire()
+    lots[0]["mise_a_prix"] = 300_000  # > plafond de raison 265 320 € : départ mort
+    gardes, nb_ecartes = scorer_lots(lots, benchmarks, trajets, config,
+                                     maintenant=date(2026, 7, 3))
+    assert nb_ecartes == 1
+    assert gardes == []
 
 
 def test_lecture_prix_decote_travaux(benchmarks):
