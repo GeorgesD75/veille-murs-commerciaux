@@ -18,6 +18,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any
 
+from pipeline.enrichissement import Benchmarks
 from pipeline.geo import ILE_DE_FRANCE
 from sources.extraction import extraire_surface
 from sources.http import ClientPoli
@@ -69,6 +70,10 @@ class CollecteurEncheres:
             if mise_a_prix > self.mise_a_prix_max:
                 continue
 
+            ref_adresse = (lot.get("adresse_defaut") or {}).get("__ref", "")
+            adresse = data.get(ref_adresse, {}) if ref_adresse else {}
+            ville = adresse.get("ville") or adresse.get("commune") or ""
+
             nom = lot.get("nom", "") or "Local commercial aux enchères"
             criteres = lot.get("criteres_resume", "") or ""
             surface = extraire_surface(nom) or extraire_surface(criteres)
@@ -78,21 +83,49 @@ class CollecteurEncheres:
                     lot["ouverture_date"], tz=timezone.utc
                 ).date().isoformat()
 
+            photo = lot.get("photo") or ""
             lots.append(
                 {
                     "id": identifiant,
                     "titre": nom,
                     "url": self.BASE + chemin if chemin else self.BASE + self.LISTE,
+                    "ville": ville,
                     "departement": departement,
                     "date_vente": date_vente,
                     "type_vente": lot.get("type", ""),
                     "mise_a_prix": mise_a_prix,
+                    "estimation_basse": lot.get("estimation_basse"),
+                    "estimation_haute": lot.get("estimation_haute"),
                     "surface_m2": surface,
                     "prix_m2_mise_a_prix": (
                         round(mise_a_prix / surface) if surface else None
                     ),
                     "criteres": criteres,
+                    "image_url": self.BASE + photo if photo.startswith("/") else (photo or None),
                 }
             )
         lots.sort(key=lambda lot: lot["date_vente"] or "9999")
         return lots
+
+
+def enrichir_lots(lots: list[dict[str, Any]], benchmarks: Benchmarks) -> list[dict[str, Any]]:
+    """Ajoute la comparaison au marché et un « prix max conseillé » à chaque lot.
+
+    On ne SCORE pas une enchère (la mise à prix n'est pas un prix), mais on
+    peut dire : « au-dessus de X €, ce n'est plus une affaire » — X étant la
+    valeur basse du marché local (fourchette basse du benchmark × surface).
+    Le niveau d'opportunité compare la mise à prix à cette valeur basse.
+    """
+    for lot in lots:
+        bench = benchmarks.pour("", lot.get("departement", ""))
+        surface = lot.get("surface_m2")
+        if bench is None or not surface:
+            lot["opportunite"] = "inconnue"
+            continue
+        valeur_basse = bench.prix_m2_bas * surface
+        lot["marche_prix_m2_bas"] = bench.prix_m2_bas
+        lot["marche_prix_m2_haut"] = bench.prix_m2_haut
+        lot["prix_max_conseille"] = round(valeur_basse)
+        ratio = lot["mise_a_prix"] / valeur_basse
+        lot["opportunite"] = "forte" if ratio <= 0.5 else ("reelle" if ratio <= 1 else "faible")
+    return lots

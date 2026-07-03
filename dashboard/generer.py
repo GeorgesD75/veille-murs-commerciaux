@@ -203,24 +203,23 @@ a:hover { text-decoration: underline; }
 svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
   stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-/* ---- Bandeau + store de devanture ---- */
+/* ---- Bandeau façon enseigne de commerce + store de devanture ---- */
 .masthead { background: linear-gradient(115deg, var(--marque-fonce), var(--marque) 55%, var(--marque-fonce));
-  color: var(--marque-encre); }
-.masthead-inner { max-width: 1380px; margin: 0 auto; padding: 20px 24px 14px;
-  display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-.enseigne { display: flex; align-items: center; gap: 14px; }
-.enseigne svg { width: 40px; height: 40px; color: var(--or-vif); }
-.wordmark { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 34px;
-  letter-spacing: .01em; margin: 0; line-height: 1; }
+  color: var(--marque-encre);
+  border-top: 3px solid var(--or); box-shadow: inset 0 -1px 0 rgba(255,255,255,.08); }
+.masthead-inner { max-width: 1380px; margin: 0 auto; padding: 26px 24px 18px;
+  display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.enseigne { display: flex; align-items: center; gap: 18px; }
+.enseigne svg.devanture { width: 64px; height: 64px; color: var(--or-vif); flex: none; }
+.wordmark { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 54px;
+  letter-spacing: .015em; margin: 0; line-height: .95;
+  text-shadow: 0 2px 0 rgba(0,0,0,.28); }
 .wordmark .point { color: var(--or-vif); }
-.wordmark .trait { display: block; margin-top: 4px; }
-.hud { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
-  font-size: 13px; font-variant-numeric: tabular-nums; }
-.hud .puce { background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.16);
-  border-radius: 999px; padding: 4px 12px; white-space: nowrap; display: inline-flex;
-  align-items: center; gap: 6px; }
-.hud b { font-size: 15px; }
-.hud .maj { opacity: .75; }
+.wordmark .trait { display: block; margin-top: 7px; }
+.hud { margin-left: auto; text-align: right; font-size: 13.5px; line-height: 1.6;
+  font-variant-numeric: tabular-nums; opacity: .95; max-width: 340px; }
+.hud b { font-size: 15px; color: var(--or-vif); }
+.hud .maj { opacity: .7; display: block; font-size: 12px; }
 .auvent { height: 15px; background: repeating-linear-gradient(90deg,
     var(--marque) 0 26px, var(--marque-fonce) 26px 52px);
   -webkit-mask: radial-gradient(13px at 13px 0, #000 97%, #0000) 0 0 / 26px 15px repeat-x;
@@ -256,13 +255,33 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 
 /* ---- Cartes ---- */
 @keyframes surgir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.carte { display: grid; grid-template-columns: 176px minmax(0,1fr) 265px 96px;
+.carte { position: relative; display: grid; grid-template-columns: 176px minmax(0,1fr) 265px 96px;
   gap: 16px; background: var(--surface); border: 1px solid var(--bord);
   border-radius: 12px; padding: 14px; margin-bottom: 12px; align-items: start;
   animation: surgir .4s ease both; transition: transform .15s ease, box-shadow .15s ease; }
 .carte:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(15, 40, 25, .10); }
 .carte.prio { background: var(--bande); border-color: var(--marque); }
 .carte.podium-1 { border-color: var(--or); box-shadow: 0 0 0 1px var(--or); }
+
+/* Autocollants d'exception + reflet doré sur les pépites */
+.sticker { position: absolute; top: -11px; right: 14px; z-index: 2;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  min-width: 42px; height: 42px; padding: 0 8px; border-radius: 50%;
+  font: 700 12.5px Fraunces, Georgia, serif; transform: rotate(7deg);
+  box-shadow: 0 3px 8px rgba(0,0,0,.18); pointer-events: none; }
+.sticker-or { background: radial-gradient(circle at 35% 30%, var(--or-vif), var(--or));
+  color: #fff8e6; font-size: 19px; }
+.sticker-vert { background: radial-gradient(circle at 35% 30%, #2f7c40, var(--vert-texte));
+  color: #eaf7ec; border-radius: 999px; }
+.sticker-marteau { background: radial-gradient(circle at 35% 30%, var(--or-vif), var(--or));
+  color: #fff8e6; font-size: 17px; }
+@keyframes fretiller { 0%, 100% { transform: rotate(7deg); } 35% { transform: rotate(-6deg) scale(1.12); } 70% { transform: rotate(10deg); } }
+.carte:hover .sticker, .carte-enchere:hover .sticker { animation: fretiller .55s ease; }
+.carte.rang-s { overflow: hidden; }
+.carte.rang-s::after { content: ""; position: absolute; top: 0; left: -70%; width: 45%; height: 100%;
+  background: linear-gradient(105deg, transparent, rgba(214,165,50,.16), transparent);
+  transform: skewX(-18deg); transition: left .65s ease; pointer-events: none; }
+.carte.rang-s:hover::after { left: 130%; }
 .tampon { display: inline-block; font-family: Fraunces, Georgia, serif; font-weight: 700;
   font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
   color: var(--or); border: 2px solid var(--or); border-radius: 6px;
@@ -335,23 +354,39 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
   padding: 4px 9px; cursor: pointer; margin-top: 4px; display: inline-flex; gap: 5px; align-items: center; }
 .btn-comp.actif { background: var(--marque); color: var(--marque-encre); border-color: var(--marque); }
 
-/* Rangées compactes */
+/* Rangées compactes, dépliables en carte complète */
 details.repli { margin-top: 24px; border-top: 1px solid var(--filet); padding-top: 12px; }
-details.repli summary { cursor: pointer; color: var(--encre-2); font-weight: 600; font-size: 14px; }
+details.repli > summary { cursor: pointer; color: var(--encre-2); font-weight: 600; font-size: 14px; }
+details.ligne-depliable > summary { list-style: none; cursor: pointer; }
+details.ligne-depliable > summary::-webkit-details-marker { display: none; }
+details.ligne-depliable[open] > summary .chevron { transform: rotate(90deg); }
+details.ligne-depliable .carte { margin: 8px 0 14px; animation: none; }
 .ligne-compacte { display: flex; gap: 12px; align-items: center; padding: 7px 2px;
   border-bottom: 1px solid var(--filet); font-size: 13.5px; }
+.ligne-compacte:hover { background: var(--bande); }
+.ligne-compacte .chevron { flex: 0 0 auto; color: var(--encre-3); transition: transform .15s ease; }
 .ligne-compacte .mini-score { flex: 0 0 34px; text-align: center; border-radius: 7px;
   font-weight: 700; font-variant-numeric: tabular-nums; padding: 2px 0; }
 .ligne-compacte .t { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ligne-compacte .d { color: var(--encre-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-/* Enchères */
-.enchere { display: flex; gap: 14px; align-items: baseline; padding: 9px 2px;
-  border-bottom: 1px solid var(--filet); font-size: 14px; flex-wrap: wrap; }
-.enchere .date { flex: 0 0 auto; font-weight: 700; font-variant-numeric: tabular-nums;
-  color: var(--or); font-family: Fraunces, Georgia, serif; }
-.enchere .t { flex: 1 1 320px; min-width: 0; }
-.enchere .d { color: var(--encre-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* Enchères : vraies cartes */
+.carte-enchere { position: relative; display: grid; grid-template-columns: 176px minmax(0,1fr) 170px;
+  gap: 16px; background: var(--surface); border: 1px solid var(--bord);
+  border-radius: 12px; padding: 14px; margin-bottom: 12px; align-items: start;
+  animation: surgir .4s ease both; transition: transform .15s ease, box-shadow .15s ease; }
+.carte-enchere:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(15, 40, 25, .10); }
+.carte-enchere.forte { border-color: var(--or); box-shadow: 0 0 0 1px var(--or); background: var(--bande); }
+.carte-enchere .quand { font-family: Fraunces, Georgia, serif; font-weight: 700;
+  color: var(--or); font-size: 15px; margin-bottom: 4px; }
+.bloc-mise { text-align: center; }
+.bloc-mise .libelle { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--encre-3); }
+.bloc-mise .valeur { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 22px;
+  font-variant-numeric: tabular-nums; }
+.bloc-mise .sous { font-size: 12px; color: var(--encre-2); margin-top: 2px; }
+.plafond-conseille { margin-top: 8px; font-size: 12.5px; color: var(--encre-2);
+  border-top: 1px dashed var(--filet); padding-top: 6px; }
+.plafond-conseille b { color: var(--encre-1); }
 .note-encheres { font-size: 12.5px; color: var(--encre-3); margin-top: 8px; }
 
 .exclues table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13.5px; }
@@ -392,17 +427,25 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
   .carte { grid-template-columns: 176px minmax(0,1fr) 96px; }
   .carte .pourquoi { grid-column: 1 / -1; }
 }
+@media (max-width: 1100px) {
+  .carte-enchere { grid-template-columns: 176px minmax(0,1fr); }
+  .carte-enchere .bloc-mise { grid-column: 1 / -1; text-align: left; display: flex;
+    gap: 16px; align-items: baseline; }
+}
 @media (max-width: 760px) {
   .page { padding: 8px 14px 40px; }
-  .masthead-inner { padding: 14px 16px 10px; }
-  .wordmark { font-size: 26px; }
+  .masthead-inner { padding: 16px 16px 12px; }
+  .wordmark { font-size: 34px; }
+  .enseigne svg.devanture { width: 42px; height: 42px; }
   .hud, .btn-comp, .plateau, .carte .pourquoi { display: none !important; }
   .volet-filtres > summary { display: block; }
   .carte { grid-template-columns: 1fr 84px; gap: 12px; padding: 12px; }
   .carte-img { grid-column: 1 / -1; height: 150px; }
+  .carte-enchere { grid-template-columns: 1fr; }
   .metriques { gap: 12px 18px; }
   .score { width: 54px; height: 54px; font-size: 23px; }
   .comparateur-fond { display: none !important; }
+  .sticker { top: -9px; right: 8px; min-width: 36px; height: 36px; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
@@ -413,9 +456,9 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 <header class="masthead">
   <div class="masthead-inner">
     <div class="enseigne">
-      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 20v20h32V20"/><path d="M8 40h32"/><path d="M14 40V28h8v12"/><rect x="27" y="28" width="9" height="7" rx="1"/><path d="M4 20c0-2 1-8 4-8h32c3 0 4 6 4 8"/><path d="M4 20c0 2.2 2 4 4.5 4S13 22.2 13 20c0 2.2 2 4 4.5 4s4.5-1.8 4.5-4c0 2.2 2 4 4.5 4s4.5-1.8 4.5-4c0 2.2 2 4 4.5 4s4.5-1.8 4.5-4c0 2.2 2 4 4.5 4S44 22.2 44 20"/></svg>
+      <svg class="devanture" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20v20h32V20"/><path d="M8 40h32"/><path d="M14 40V28h8v12"/><rect x="27" y="28" width="9" height="7" rx="1"/><path d="M4 20c0-2 1-8 4-8h32c3 0 4 6 4 8"/><path d="M4 20c0 2.2 2 4 4.5 4S13 22.2 13 20c0 2.2 2 4 4.5 4s4.5-1.8 4.5-4c0 2.2 2 4 4.5 4s4.5-1.8 4.5-4c0 2.2 2 4 4.5 4s4.5-1.8 4.5-4c0 2.2 2 4 4.5 4S44 22.2 44 20"/></svg>
       <h1 class="wordmark">Les Murs<span class="point">.</span>
-        <svg class="trait" width="128" height="7" viewBox="0 0 128 7" aria-hidden="true"><path d="M2 4.5 C 24 1.5, 40 6, 64 3.5 S 108 5.5, 126 2.5" stroke="var(--or-vif)" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
+        <svg class="trait" width="208" height="8" viewBox="0 0 208 8" aria-hidden="true"><path d="M2 5 C 38 1.5, 66 7, 104 4 S 172 6.5, 206 2.5" stroke="var(--or-vif)" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
       </h1>
     </div>
     <div class="hud" id="hud"></div>
@@ -608,8 +651,16 @@ function carteHtml(a, options) {
   const lettreRang = rang(a.score);
   const dansComp = comparaison.includes(a.id);
 
-  return `<article class="carte${options.prio ? " prio" : ""}${options.medaille === 0 ? " podium-1" : ""}"
+  // Autocollant d'exception : pépite (diamant or) > vraie décote (pastille verte)
+  let sticker = "";
+  if (lettreRang === "S")
+    sticker = `<span class="sticker sticker-or" title="Pépite — score ≥ ${D.seuils.pepite}">${IC.pepite}</span>`;
+  else if ((a.decote_pct ?? 0) >= 15 && !(a.flags || []).includes("rendement_anormalement_eleve"))
+    sticker = `<span class="sticker sticker-vert" title="Nettement sous la médiane du marché local">−${Math.round(a.decote_pct)}%</span>`;
+
+  return `<article class="carte${options.prio ? " prio" : ""}${options.medaille === 0 ? " podium-1" : ""}${lettreRang === "S" ? " rang-s" : ""}"
       style="animation-delay:${(options.index || 0) * 45}ms">
+    ${sticker}
     <div class="carte-img">${img}</div>
     <div>
       ${tampon}
@@ -636,23 +687,54 @@ function ligneCompacteHtml(a) {
   const cls = classeScore(a.score);
   const fonds = {vert: "var(--vert-fond)", orange: "var(--orange-fond)", gris: "var(--gris-fond)"}[cls];
   const encres = {vert: "var(--vert-texte)", orange: "var(--orange-texte)", gris: "var(--gris-texte)"}[cls];
-  return `<div class="ligne-compacte">
-    <span class="mini-score" style="background:${fonds};color:${encres}">${a.score ?? "—"}</span>
-    <span class="t"><a href="${ech(a.url)}" target="_blank" rel="noopener">${ech(a.titre)}</a></span>
-    <span class="d">${ech(a.ville)} · ${fmtEuros(a.prix)} · rdt ${fmtPct(a.rendement_brut_pct)}</span>
-  </div>`;
+  // Ligne compacte dépliable : la carte complète (mêmes infos qu'« à étudier »)
+  // n'est construite qu'à l'ouverture, la page reste légère.
+  return `<details class="ligne-depliable" data-id="${ech(a.id)}">
+    <summary><div class="ligne-compacte">
+      <span class="chevron">▸</span>
+      <span class="mini-score" style="background:${fonds};color:${encres}">${a.score ?? "—"}</span>
+      <span class="t">${ech(a.titre)}</span>
+      <span class="d">${ech(a.ville)} · ${fmtEuros(a.prix)} · rdt ${fmtPct(a.rendement_brut_pct)}</span>
+    </div></summary>
+    <div class="corps-depliable"></div>
+  </details>`;
 }
 
-function enchereHtml(e) {
+function enchereHtml(e, index) {
   const date = e.date_vente
-    ? new Date(e.date_vente).toLocaleDateString("fr-FR", {day: "numeric", month: "short"})
-    : "date ?";
-  const m2 = e.prix_m2_mise_a_prix ? ` · ${fmtEuros(e.prix_m2_mise_a_prix)}/m² (mise à prix)` : "";
-  return `<div class="enchere">
-    <span class="date">${IC.horloge} ${date}</span>
-    <span class="t"><a href="${ech(e.url)}" target="_blank" rel="noopener">${ech(e.titre)}</a></span>
-    <span class="d">dépt ${ech(e.departement)} · mise à prix ${fmtEuros(e.mise_a_prix)}${m2} · ${ech(e.type_vente)}</span>
-  </div>`;
+    ? new Date(e.date_vente).toLocaleDateString("fr-FR", {day: "numeric", month: "long"})
+    : "date à confirmer";
+  const img = e.image_url
+    ? `<img src="${ech(e.image_url)}" alt="" loading="lazy" referrerpolicy="no-referrer"
+         onerror="this.parentElement.innerHTML=IC.boutique">`
+    : IC.boutique;
+  const forte = e.opportunite === "forte";
+  const sticker = forte
+    ? `<span class="sticker sticker-marteau" title="Mise à prix très en dessous du marché local">${IC.marteau}</span>` : "";
+  const marche = e.marche_prix_m2_bas
+    ? `<div class="marche" style="margin-top:6px">marché local : ${fmtEuros(e.marche_prix_m2_bas)} – ${fmtEuros(e.marche_prix_m2_haut)} /m²
+       ${e.prix_m2_mise_a_prix ? `— mise à prix : <b>${fmtEuros(e.prix_m2_mise_a_prix)}/m²</b>` : ""}</div>` : "";
+  const plafond = e.prix_max_conseille
+    ? `<div class="plafond-conseille">Reste une affaire jusqu'à ≈ <b>${fmtEuros(e.prix_max_conseille)}</b>
+       (bas de fourchette du marché local) — au-delà, laissez filer.</div>` : "";
+  return `<article class="carte-enchere${forte ? " forte" : ""}" style="animation-delay:${index * 45}ms">
+    ${sticker}
+    <div class="carte-img">${img}</div>
+    <div>
+      ${forte ? '<div><span class="tampon">Belle occasion ?</span></div>' : ""}
+      <div class="quand">${IC.horloge} Vente le ${date} · ${ech(e.type_vente)}</div>
+      <div class="carte-titre"><a href="${ech(e.url)}" target="_blank" rel="noopener">${ech(e.titre)}</a></div>
+      <div class="carte-lieu">${ech(e.ville || "")}${e.ville ? " · " : ""}département ${ech(e.departement)}
+        ${e.surface_m2 ? " · " + e.surface_m2 + " m²" : ""}${e.criteres ? " · " + ech(e.criteres) : ""}</div>
+      ${marche}
+      ${plafond}
+    </div>
+    <div class="bloc-mise">
+      <div class="libelle">Mise à prix</div>
+      <div class="valeur">${fmtEuros(e.mise_a_prix)}</div>
+      ${e.estimation_basse ? `<div class="sous">estimé ${fmtEuros(e.estimation_basse)}–${fmtEuros(e.estimation_haute)}</div>` : ""}
+    </div>
+  </article>`;
 }
 
 function filtres() {
@@ -689,11 +771,16 @@ function rendre() {
   });
 
   let index = 0;
+  // Les enchères à forte opportunité montent dans le haut du panier
+  const occasions = (D.encheres || []).filter(e => e.opportunite === "forte");
   document.getElementById("bloc-prio").innerHTML =
-    `<h2 class="section">${IC.trophee} Le haut du panier <span class="nb">score ≥ ${D.seuils.vert}</span></h2>` +
-    (prio.length ? prio.map(a => carteHtml(a, {...opts(a), index: index++})).join("")
+    `<h2 class="section">${IC.trophee} Le haut du panier <span class="nb">score ≥ ${D.seuils.vert} & occasions aux enchères</span></h2>` +
+    (prio.length || occasions.length
+      ? prio.map(a => carteHtml(a, {...opts(a), index: index++})).join("") +
+        occasions.map((e, i) => enchereHtml(e, index + i)).join("")
       : `<div class="note-vide">Aucun trophée au-dessus de ${D.seuils.vert} aujourd'hui — les mieux classées sont ci-dessous.
          La chasse reprend chaque matin à 7 h ; une pépite (≥ ${D.seuils.pepite}) déclenchera un email immédiat.</div>`);
+  index += occasions.length;
 
   document.getElementById("bloc-etudier").innerHTML =
     `<h2 class="section">${IC.loupe} À étudier de près <span class="nb">score ${D.seuils.affichage}–${D.seuils.vert - 1}</span></h2>` +
@@ -769,6 +856,20 @@ function ouvrirComparateur() {
   document.getElementById("comparateur-fond").style.display = "block";
 }
 
+// Dépliage d'une ligne compacte : on construit la carte complète à la volée
+document.addEventListener("toggle", ev => {
+  const bloc = ev.target.closest?.("details.ligne-depliable");
+  if (!bloc || !bloc.open) return;
+  const corps = bloc.querySelector(".corps-depliable");
+  if (corps.childElementCount) return;
+  const a = D.retenues.find(x => x.id === bloc.dataset.id);
+  if (!a) return;
+  corps.innerHTML = carteHtml(a, {prio: false, medaille: null, index: 0});
+  requestAnimationFrame(() => {
+    corps.querySelectorAll(".piste div[data-l]").forEach(el => { el.style.width = el.dataset.l + "%"; });
+  });
+}, true);
+
 document.addEventListener("click", ev => {
   const btn = ev.target.closest(".btn-comp");
   if (btn) {
@@ -788,10 +889,10 @@ function initialiser() {
 
   const s = D.stats;
   document.getElementById("hud").innerHTML =
-    `<span class="puce">${IC.etincelle} <b>${s.nouvelles}</b> nouvelle${s.nouvelles > 1 ? "s" : ""} (48 h)</span>` +
-    `<span class="puce">${IC.pepite} <b>${s.pepites}</b> pépite${s.pepites > 1 ? "s" : ""}</span>` +
-    `<span class="puce">${IC.cible} <b>${s.analysees}</b> passées au crible (7 j)</span>` +
-    `<span class="maj">maj ${fmtDate(D.derniere_execution)}</span>`;
+    `Ces dernières 48 h : <b>${s.nouvelles}</b> nouvelle${s.nouvelles > 1 ? "s" : ""} annonce${s.nouvelles > 1 ? "s" : ""}` +
+    `${s.pepites ? `, dont <b>${s.pepites}</b> pépite${s.pepites > 1 ? "s" : ""} !` : ", pas de pépite pour l'instant."}<br>` +
+    `<b>${s.analysees}</b> annonces passées au crible sur 7 jours.` +
+    `<span class="maj">Dernière tournée : ${new Date(D.derniere_execution).toLocaleString("fr-FR", {day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"})}</span>`;
   document.getElementById("pied-maj").textContent =
     new Date(D.derniere_execution).toLocaleString("fr-FR");
 
@@ -799,12 +900,15 @@ function initialiser() {
   const selDep = document.getElementById("f-dep");
   for (const d of deps) selDep.insertAdjacentHTML("beforeend", `<option value="${d}">${d}</option>`);
 
-  const encheres = D.encheres || [];
-  document.getElementById("bloc-encheres").innerHTML = encheres.length
-    ? `<h2 class="section">${IC.marteau} Sous le marteau <span class="nb">${encheres.length} vente${encheres.length > 1 ? "s" : ""} aux enchères à venir en IdF</span></h2>` +
-      encheres.map(enchereHtml).join("") +
-      `<div class="note-encheres">La mise à prix n'est pas le prix final (comptez souvent 1,5× à 3×).
-       Enchérir en salle exige un avocat et une consignation (~10 %). Section informative, hors scoring.</div>`
+  // Les occasions « fortes » sont déjà remontées dans le haut du panier
+  const encheres = (D.encheres || []).filter(e => e.opportunite !== "forte");
+  const nbFortes = (D.encheres || []).length - encheres.length;
+  document.getElementById("bloc-encheres").innerHTML = (D.encheres || []).length
+    ? `<h2 class="section">${IC.marteau} Sous le marteau <span class="nb">${(D.encheres || []).length} vente${(D.encheres || []).length > 1 ? "s" : ""} aux enchères à venir en IdF${nbFortes ? ` — ${nbFortes} occasion${nbFortes > 1 ? "s" : ""} déjà en haut de page` : ""}</span></h2>` +
+      encheres.map((e, i) => enchereHtml(e, i)).join("") +
+      `<div class="note-encheres">La mise à prix n'est pas le prix final (comptez souvent 1,5× à 3× au marteau).
+       Enchérir en salle exige un avocat et une consignation (~10 % de la mise à prix). Section hors scoring :
+       le « reste une affaire jusqu'à… » est votre plafond de raison.</div>`
     : "";
 
   const bloc = document.getElementById("exclues-bloc");

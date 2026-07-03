@@ -23,7 +23,7 @@ from pipeline.normalisation import maintenant_iso, normaliser
 from pipeline.scoring import scorer
 from pipeline.stockage import Stockage
 from sources import sources_actives
-from sources.encheres import CollecteurEncheres
+from sources.encheres import CollecteurEncheres, enrichir_lots
 
 log = logging.getLogger("collecteur")
 
@@ -91,9 +91,12 @@ def executer() -> dict[str, Any]:
     encheres: list = []
     if (config.sources.get("encheres_publiques") or {}).get("actif"):
         try:
-            encheres = CollecteurEncheres(
-                mise_a_prix_max=config.budget["prix_max_filtre"]
-            ).collecter()
+            encheres = enrichir_lots(
+                CollecteurEncheres(
+                    mise_a_prix_max=config.budget["prix_max_filtre"]
+                ).collecter(),
+                benchmarks,
+            )
             sante["encheres_publiques"] = {"statut": "ok", "annonces": len(encheres)}
             log.info("enchères : %d lots IdF à venir", len(encheres))
         except Exception as exc:  # noqa: BLE001

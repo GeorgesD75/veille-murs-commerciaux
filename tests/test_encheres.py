@@ -30,6 +30,18 @@ def test_champs_du_lot():
     assert lot["url"].endswith("_400001")
 
 
+def test_enrichissement_des_lots(benchmarks):
+    from sources.encheres import enrichir_lots
+
+    lots = enrichir_lots(_extraire(), benchmarks)
+    lot = lots[0]
+    # 88,44 m² à Paris : valeur basse = 3 000 €/m² × 88,44 = 265 320 €
+    assert lot["prix_max_conseille"] == 265_320
+    # Mise à prix 50 000 € = 19 % de la valeur basse -> opportunité forte
+    assert lot["opportunite"] == "forte"
+    assert lot["marche_prix_m2_bas"] == 3_000
+
+
 def test_lecture_prix_decote_travaux(benchmarks):
     from pipeline.enrichissement import enrichir
     from tests.fabriques import faire_annonce
