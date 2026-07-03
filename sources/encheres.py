@@ -147,6 +147,11 @@ def scorer_lots(
     gardes: list[dict[str, Any]] = []
     nb_ecartes = 0
     for lot in lots:
+        # Anti-zombie : une vente déjà passée (ou sans date ET jamais adjugée
+        # depuis des années) n'est plus une opportunité, quoi qu'en dise le site.
+        if lot.get("date_vente") and date.fromisoformat(lot["date_vente"]) < maintenant:
+            nb_ecartes += 1
+            continue
         departement = lot.get("departement", "")
         surface = lot.get("surface_m2")
         bench = benchmarks.pour("", departement)

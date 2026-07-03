@@ -33,6 +33,7 @@ class AnnonceBrute:
     loyer_mensuel: float | None = None
     honoraires: float | None = None
     image_url: str | None = None
+    images: list[str] = field(default_factory=list)  # toutes les photos connues
     description: str = ""
 
 
@@ -58,6 +59,7 @@ class Annonce:
     date_premiere_vue: str
     date_derniere_vue: str
     urls_multiples: list[str] = field(default_factory=list)
+    images: list[str] = field(default_factory=list)  # toutes les photos connues
 
     # Enrichissement
     prix_m2: float | None = None

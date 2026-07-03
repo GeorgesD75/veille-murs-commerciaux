@@ -25,14 +25,15 @@ def _texte_description(description_html: str) -> str:
     return BeautifulSoup(description_html or "", "html.parser").get_text(" ", strip=True)
 
 
-def _premiere_photo(annonce: dict[str, Any]) -> str | None:
-    photos = annonce.get("photos") or []
-    if not photos:
-        return None
-    premiere = photos[0]
-    if isinstance(premiere, str):
-        return premiere
-    return premiere.get("url_photo") or premiere.get("url")
+def _photos(annonce: dict[str, Any], maximum: int = 6) -> list[str]:
+    urls: list[str] = []
+    for photo in (annonce.get("photos") or [])[:maximum]:
+        url = photo if isinstance(photo, str) else (
+            photo.get("url_photo") or photo.get("url")
+        )
+        if url and url not in urls:
+            urls.append(url)
+    return urls
 
 
 class SourceBienici(SourceHtml):
@@ -75,6 +76,7 @@ class SourceBienici(SourceHtml):
             if not identifiant:
                 continue
             description = _texte_description(a.get("description", ""))
+            photos = _photos(a)
             titre_source = a.get("title") or "Local commercial"
             type_murs = deviner_type_murs(f"{titre_source} {description}")
             prix = a.get("price")
@@ -92,7 +94,8 @@ class SourceBienici(SourceHtml):
                     prix=float(prix) if prix is not None else None,
                     surface_m2=a.get("surfaceArea"),
                     loyer_mensuel=loyer_mensuel_depuis_texte(description, prix),
-                    image_url=_premiere_photo(a),
+                    image_url=photos[0] if photos else None,
+                    images=photos,
                     description=description[:600],
                 )
             )

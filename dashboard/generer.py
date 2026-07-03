@@ -79,6 +79,7 @@ def preparer_payload(
                 "prix_cible_rendement": a.prix_cible_rendement,
                 "temps_trajet_min": a.temps_trajet_min,
                 "image_url": a.image_url,
+                "images": a.images,
                 "date_premiere_vue": a.date_premiere_vue,
                 "est_nouvelle": _iso(a.date_premiere_vue) >= seuil_nouveaute,
             }
@@ -295,11 +296,22 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
   color: var(--or); border: 2px solid var(--or); border-radius: 6px;
   padding: 2px 9px; transform: rotate(-2.5deg); box-shadow: inset 0 0 0 1.5px var(--surface),
   inset 0 0 0 3px var(--or); background: var(--or-clair); margin-bottom: 7px; }
-.carte-img { height: 124px; border-radius: 8px; overflow: hidden;
+.carte-img { position: relative; height: 124px; border-radius: 8px; overflow: hidden;
   background: var(--gris-fond); display: flex; align-items: center; justify-content: center;
   color: var(--encre-3); }
 .carte-img svg { width: 54px; height: 54px; opacity: .5; }
 .carte-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.car-btn { position: absolute; top: 50%; transform: translateY(-50%);
+  width: 26px; height: 26px; border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(15, 25, 18, .55); color: #fff; font: 700 15px/1 system-ui;
+  opacity: 0; transition: opacity .15s ease; }
+.carte-img:hover .car-btn { opacity: 1; }
+.car-btn.prec { left: 6px; }
+.car-btn.suiv { right: 6px; }
+.car-compteur { position: absolute; bottom: 5px; right: 7px;
+  background: rgba(15, 25, 18, .55); color: #fff; font-size: 10.5px;
+  border-radius: 999px; padding: 1px 7px; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) { .car-btn { opacity: 1; } }
 .carte-titre { font-size: 16px; font-weight: 600; margin: 0 0 2px; }
 .carte-titre a { color: var(--encre-1); }
 .carte-lieu { color: var(--encre-2); font-size: 13px; margin-bottom: 7px; }
@@ -351,9 +363,16 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .marche-piste .bien { position: absolute; top: 2px; width: 14px; height: 14px;
   border-radius: 50%; background: var(--or-vif); border: 2.5px solid var(--encre-1);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--or-vif) 30%, transparent); }
+.marche-piste .cible { position: absolute; top: 13px; width: 0; height: 0;
+  border-left: 5px solid transparent; border-right: 5px solid transparent;
+  border-bottom: 7px solid var(--alerte-texte); }
 .marche-echelle { display: flex; justify-content: space-between; font-size: 11px;
   color: var(--encre-3); font-variant-numeric: tabular-nums; margin-bottom: 3px; }
 .marche-legende-bien { color: var(--or); font-weight: 700; }
+.cible-txt { color: var(--alerte-texte); font-weight: 600; font-size: 11.5px; }
+.exp-ligne { grid-column: 1 / -1; font-size: 11.5px; color: var(--encre-2);
+  background: var(--plan); border-left: 3px solid var(--or); border-radius: 0 6px 6px 0;
+  padding: 6px 9px; margin: 2px 0 7px; }
 .marche .bon { color: var(--vert-texte); font-weight: 600; }
 .marche .mauvais { color: var(--alerte-texte); font-weight: 600; }
 .lecture { font-style: italic; color: var(--encre-2); margin-top: 5px;
@@ -681,8 +700,18 @@ function jaugeMarcheHtml(a) {
   if (a.prix_m2 == null || a.marche_prix_m2_bas == null) return "";
   const bas = a.marche_prix_m2_bas, haut = a.marche_prix_m2_haut;
   const med = (bas + haut) / 2;
-  const min = Math.min(bas, a.prix_m2) * 0.85, max = Math.max(haut, a.prix_m2) * 1.1;
+  // Repère « offre à faire » : le prix/m² qui atteint l'objectif de rendement
+  let cibleM2 = null;
+  if (a.prix_cible_rendement && a.surface_m2 && a.prix && a.prix_cible_rendement < a.prix)
+    cibleM2 = a.prix_cible_rendement / a.surface_m2;
+  const min = Math.min(bas, a.prix_m2, cibleM2 ?? Infinity) * 0.85,
+        max = Math.max(haut, a.prix_m2) * 1.1;
   const pos = v => Math.max(0, Math.min(100, (v - min) / (max - min) * 100));
+  const cible = cibleM2 == null ? "" :
+    `<div class="cible" style="left:calc(${pos(cibleM2)}% - 5px)"
+       title="offre à faire pour ${D.analyse.rendement_cible_pct} % brut : ${fmtEuros(Math.round(cibleM2))}/m²"></div>`;
+  const cibleTxt = cibleM2 == null ? "" :
+    ` <span class="cible-txt">▲ offre à faire : ${fmtEuros(Math.round(cibleM2))}/m²</span>`;
   const lecture = a.lecture_prix ? `<div class="lecture">${ech(a.lecture_prix)}</div>` : "";
   // Le levier du négociateur : à quel prix ce bien atteint l'objectif de rendement
   let nego = "";
@@ -698,11 +727,12 @@ function jaugeMarcheHtml(a) {
   }
   return `<div class="marche">
     <div><span class="marche-legende-bien">●</span> ce bien : <b>${fmtEuros(a.prix_m2)}/m²</b> — ${verdictMarche(a)}
-      <span style="color:var(--encre-3)" title="écart à la médiane locale">(${a.decote_pct >= 0 ? "-" : "+"}${fmtPct(Math.abs(a.decote_pct))} vs médiane)</span></div>
+      <span style="color:var(--encre-3)" title="écart à la médiane locale">(${a.decote_pct >= 0 ? "-" : "+"}${fmtPct(Math.abs(a.decote_pct))} vs médiane)</span>${cibleTxt}</div>
     <div class="marche-piste">
       <div class="ligne"></div>
       <div class="bande-marche" style="left:${pos(bas)}%;width:${pos(haut) - pos(bas)}%"></div>
       <div class="mediane" style="left:${pos(med)}%" title="médiane locale ${fmtEuros(med)}/m²"></div>
+      ${cible}
       <div class="bien" style="left:calc(${pos(a.prix_m2)}% - 7px)" title="ce bien : ${fmtEuros(a.prix_m2)}/m²"></div>
     </div>
     <div class="marche-echelle"><span>${fmtEuros(bas)}/m²</span><span>médiane ${fmtEuros(med)}</span><span>${fmtEuros(haut)}/m²</span></div>
@@ -721,11 +751,20 @@ function cashflowMensuel(a) {
   return Math.round(loyer - mensualite);
 }
 
+const EXPLICATIONS = {
+  rendement: "Loyer annuel ÷ prix affiché. 0 pt à ≤ 4 % de rendement brut, maximum (40) à ≥ 9 %, linéaire entre les deux. −10 pts si le loyer est estimé ou promis plutôt que prouvé par un bail signé.",
+  emplacement: "La qualité de la rue fait la solidité du locataire : Paris 25, petite couronne dynamique (Pantin, Saint-Ouen…) 20, petite couronne 15, grande couronne centre-ville 10, autre 5.",
+  prix_m2_vs_benchmark: "Prix/m² comparé au référentiel local (modifiable dans data/benchmarks.json) : décote ≥ 20 % sous la médiane = 20 pts, dans la fourchette = 10, au-dessus = 0.",
+  proximite: "Temps de transport estimé depuis Paris 18e (table modifiable) : moins de 20 min = 5, 20-40 = 3, 40-60 = 1.",
+  quartier: "Attachement au 18e : 5 pts si le bien est dans le 75018 — économie locale, gestion à pied.",
+};
+
 function pourquoiHtml(a) {
   const d = a.detail_score || {};
   const lignes = Object.entries(D.maxima).map(([cle, max]) => {
     const v = d[cle] ?? 0;
-    return `<div class="jauge"><span>${LIBELLES_SCORE[cle]}</span>
+    return `<div class="jauge"><span>${LIBELLES_SCORE[cle]}
+        <span class="info-i" data-exp="${ech(EXPLICATIONS[cle] || "")}">i</span></span>
       <div class="piste"><div data-l="${Math.max(0, Math.min(100, v / max * 100))}"></div></div>
       <span class="val">${v}/${max}</span></div>`;
   });
@@ -742,9 +781,16 @@ function carteHtml(a, options) {
   if ((a.flags || []).includes("rendement_anormalement_eleve"))
     badges.push(`<span class="badge badge-alerte">${IC.alerte} rendement à vérifier</span>`);
 
-  const img = a.image_url
-    ? `<img src="${ech(a.image_url)}" alt="" loading="lazy" referrerpolicy="no-referrer"
-         onerror="this.parentElement.innerHTML=IC.boutique">`
+  // Carrousel : toutes les photos connues du bien
+  const photos = (a.images && a.images.length) ? a.images : (a.image_url ? [a.image_url] : []);
+  const img = photos.length
+    ? `<img src="${ech(photos[0])}" alt="" loading="lazy" referrerpolicy="no-referrer"
+         onerror="this.closest('.carte-img').innerHTML=IC.boutique">` +
+      (photos.length > 1
+        ? `<button type="button" class="car-btn prec" data-car="-1" title="photo précédente">‹</button>
+           <button type="button" class="car-btn suiv" data-car="1" title="photo suivante">›</button>
+           <span class="car-compteur">1/${photos.length}</span>`
+        : "")
     : IC.boutique;
 
   const liens = (a.urls_multiples || []).map((u, i) =>
@@ -797,7 +843,7 @@ function carteHtml(a, options) {
   return `<article class="carte${options.prio ? " prio" : ""}${options.medaille === 0 ? " podium-1" : ""}${lettreRang === "S" ? " rang-s" : ""}"
       style="animation-delay:${(options.index || 0) * 45}ms">
     ${sticker}
-    <div class="carte-img">${img}</div>
+    <div class="carte-img" data-id="${ech(a.id)}" data-idx="0">${img}</div>
     <div>
       ${tampon}
       <div class="carte-titre"><a href="${ech(a.url)}" target="_blank" rel="noopener">${ech(a.titre)}</a>
@@ -844,11 +890,29 @@ const ENCHERE_LIBELLES = {emplacement: "Emplacement", gabarit: "Gabarit vs budge
   depart: "Départ sous plafond", dossier: "Dossier lisible",
   proximite: "Trajet 18e", preparation: "Préparation"};
 
+function explicationsEnchere(e) {
+  const jours = e.date_vente
+    ? Math.max(0, Math.ceil((new Date(e.date_vente) - Date.now()) / 86400000)) : null;
+  return {
+    emplacement: "Même grille que les annonces (×1,2) : Paris 30, commune dynamique 24, petite couronne 18, grande couronne centre-ville 12, autre 6 — la rue fait la valeur à 10 ans.",
+    gabarit: "La valeur de marché MÉDIANE du bien doit tenir dans votre budget : ≤ 420 000 € = 20 pts, jusqu'à +35 % = 10, au-delà = 0 (la salle vous doublera ou vous surpaierez).",
+    depart: "Espace entre la mise à prix et votre plafond de raison (valeur basse du marché) : plein score à ≥ 60 % d'espace. Plus le départ est bas, plus vous pouvez enchérir en restant une affaire.",
+    dossier: "Surface connue (6) + estimation du commissaire (5) + ville identifiée (4) : un dossier opaque se rate.",
+    proximite: "Temps de transport estimé depuis Paris 18e : moins de 20 min = 10, 20-40 = 6, 40-60 = 3.",
+    preparation: (e.date_vente
+      ? `Vente le ${new Date(e.date_vente).toLocaleDateString("fr-FR")}${jours != null ? ` — dans ${jours} jour${jours > 1 ? "s" : ""}` : ""}. `
+      : "Date de vente inconnue. ")
+      + "≥ 10 jours = 10 pts, ≥ 5 jours = 5, moins = 2 : en dessous, difficile de mandater un avocat, visiter et boucler le financement à temps.",
+  };
+}
+
 function pourquoiEnchereHtml(e) {
   const d = e.detail_score || {};
+  const exp = explicationsEnchere(e);
   const lignes = Object.entries(ENCHERE_MAXIMA).map(([cle, max]) => {
     const v = d[cle] ?? 0;
-    return `<div class="jauge"><span>${ENCHERE_LIBELLES[cle]}</span>
+    return `<div class="jauge"><span>${ENCHERE_LIBELLES[cle]}
+        <span class="info-i" data-exp="${ech(exp[cle] || "")}">i</span></span>
       <div class="piste"><div data-l="${Math.max(0, Math.min(100, v / max * 100))}"></div></div>
       <span class="val">${v}/${max}</span></div>`;
   });
@@ -1224,6 +1288,32 @@ document.addEventListener("toggle", ev => {
 }, true);
 
 document.addEventListener("click", ev => {
+  // Carrousel photo
+  const car = ev.target.closest(".car-btn");
+  if (car) {
+    const boite = car.closest(".carte-img");
+    const a = D.retenues.find(x => x.id === boite.dataset.id);
+    const photos = (a && a.images && a.images.length) ? a.images : null;
+    if (photos) {
+      const i = ((parseInt(boite.dataset.idx || "0", 10) + parseInt(car.dataset.car, 10))
+        % photos.length + photos.length) % photos.length;
+      boite.dataset.idx = i;
+      const image = boite.querySelector("img");
+      if (image) image.src = photos[i];
+      const compteur = boite.querySelector(".car-compteur");
+      if (compteur) compteur.textContent = `${i + 1}/${photos.length}`;
+    }
+    return;
+  }
+  // Encart d'explication d'un critère de score
+  const inf = ev.target.closest(".info-i[data-exp]");
+  if (inf) {
+    const jauge = inf.closest(".jauge");
+    const suivant = jauge.nextElementSibling;
+    if (suivant && suivant.classList.contains("exp-ligne")) suivant.remove();
+    else jauge.insertAdjacentHTML("afterend", `<div class="exp-ligne">${inf.dataset.exp}</div>`);
+    return;
+  }
   const btn = ev.target.closest(".btn-comp");
   if (btn) {
     basculerComparaison(btn.dataset.id);

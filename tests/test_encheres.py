@@ -15,12 +15,13 @@ def _extraire():
 
 def test_seuls_les_lots_idf_a_venir_sont_gardes():
     lots = _extraire()
-    # Le lot adjugé et le lot lyonnais sont ignorés
-    assert [lot["id"] for lot in lots] == ["400001"]
+    # Le lot adjugé et le lot lyonnais sont ignorés dès l'extraction ;
+    # le lot fantôme (vente en 2017) passe ici mais tombera au scoring.
+    assert [lot["id"] for lot in lots] == ["400004", "400001"]
 
 
 def test_champs_du_lot():
-    lot = _extraire()[0]
+    lot = next(lot for lot in _extraire() if lot["id"] == "400001")
     assert lot["mise_a_prix"] == 50_000
     assert lot["surface_m2"] == 88.44
     assert lot["prix_m2_mise_a_prix"] == 565
@@ -37,7 +38,8 @@ def test_score_enchere(benchmarks, trajets, config):
 
     lots, nb_ecartes = scorer_lots(_extraire(), benchmarks, trajets, config,
                                    maintenant=date(2026, 7, 3))
-    assert nb_ecartes == 0
+    assert nb_ecartes == 1          # le lot fantôme de 2017 est écarté
+    assert len(lots) == 1
     lot = lots[0]
     # Aucune prédiction du prix final : seulement des valeurs de marché sourcées
     assert "prix_probable" not in lot
@@ -59,7 +61,7 @@ def test_mise_a_prix_au_dessus_du_plafond_ecartee(benchmarks, trajets, config):
 
     from sources.encheres import scorer_lots
 
-    lots = _extraire()
+    lots = [lot for lot in _extraire() if lot["id"] == "400001"]
     lots[0]["mise_a_prix"] = 300_000  # > plafond de raison 265 320 € : départ mort
     gardes, nb_ecartes = scorer_lots(lots, benchmarks, trajets, config,
                                      maintenant=date(2026, 7, 3))

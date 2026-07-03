@@ -89,6 +89,15 @@ class SourceHektor(SourceHtml):
         if surface is None:
             surface = extraire_surface(description)
 
+        # Toutes les photos du diaporama de la carte (src ou data-src en lazy-load)
+        images: list[str] = []
+        for img in carte.select("img.slideshow__img, img[itemprop=image]"):
+            src = img.get("src") or img.get("data-src")
+            if src:
+                absolue = urljoin(self.BASE, str(src))
+                if absolue not in images:
+                    images.append(absolue)
+
         # Loyer : annuel dans la description, sinon déduit de la rentabilité déclarée.
         loyer = loyer_mensuel_depuis_texte(description, prix)
         if loyer is None:
@@ -99,12 +108,6 @@ class SourceHektor(SourceHtml):
         ville = _premiere_ligne(carte.select_one("p.city")).title()
         quartier = _premiere_ligne(carte.select_one("p.quartier"))
         titre = f"{_LIBELLES[type_murs]} – {ville}" + (f" ({quartier})" if quartier else "")
-
-        image = None
-        if image_el is not None:
-            src = image_el.get("src") or image_el.get("data-src")
-            if src:
-                image = urljoin(self.BASE, str(src))
 
         return AnnonceBrute(
             id_source=ref.group(1),
@@ -117,7 +120,8 @@ class SourceHektor(SourceHtml):
             prix=prix,
             surface_m2=surface,
             loyer_mensuel=loyer,
-            image_url=image,
+            image_url=images[0] if images else None,
+            images=images,
             description=description,
         )
 
