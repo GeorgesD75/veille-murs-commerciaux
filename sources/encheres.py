@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any
 
 from pipeline.config import Config
@@ -114,23 +114,27 @@ def scorer_lots(
     benchmarks: Benchmarks,
     trajets: Trajets,
     config: Config,
+    maintenant: date | None = None,
 ) -> list[dict[str, Any]]:
-    """Score /100 ADAPTÉ aux enchères — la mise à prix n'est pas un prix.
+    """Score d'INTÉRÊT /100 adapté aux enchères — sans prédire le prix final.
 
-    Le raisonnement d'un habitué des ventes à la barre :
-    - ce qu'on paiera vraiment ≈ 2× la mise à prix (plafonné à la valeur
-      médiane du marché local) — c'est le « prix d'adjudication probable » ;
-    - la marge = ce prix probable comparé à la valeur BASSE du marché
-      (marge /40, pleine à ≥ 40 % d'écart) ;
-    - le bien doit rester finançable au prix probable (budget /20) ;
-    - même grille d'emplacement que les annonces classiques (/25) ;
-    - un dossier lisible se travaille, un dossier opaque se rate :
-      surface connue +4, estimation du commissaire +3, ville identifiée +3 (/10) ;
-    - proximité de Paris 18e (/5).
+    Le prix d'adjudication est imprévisible (1× à 6× la mise à prix selon la
+    salle) : toute « marge probable » serait une supposition. On note donc ce
+    qui est CONNAISSABLE avant la vente :
+    - emplacement /30 (même grille que les annonces, ×1,2) ;
+    - gabarit vs budget /25 : la valeur de marché MÉDIANE du bien tient-elle
+      dans le budget ? Si elle le dépasse largement, la salle vous doublera
+      ou vous surpaierez — ce bien n'est pas pour vous ;
+    - lisibilité du dossier /20 : surface 8, estimation du commissaire 6,
+      ville identifiée 6 — un dossier opaque se rate ;
+    - trajet depuis Paris 18e /10 ;
+    - temps de préparation /15 : ≥ 10 jours avant la vente (avocat, visite,
+      financement) 15, ≥ 5 jours 8, moins 3.
 
     Seules les `max_haut_panier` meilleures ≥ `seuil_occasion` montent en haut
-    de page (drapeau `haut_panier`) — le reste demeure « Sous le marteau ».
+    de page. Le plafond de raison affiché reste la valeur BASSE du marché.
     """
+    maintenant = maintenant or date.today()
     cfg = config["encheres"]
     budget = config.budget
     communes_dynamiques = config.scoring["communes_dynamiques"]
@@ -142,52 +146,51 @@ def scorer_lots(
         bench = benchmarks.pour("", departement)
         detail: dict[str, float] = {}
 
-        prix_probable = None
+        valeur_mediane = None
         if bench is not None and surface:
-            valeur_basse = bench.prix_m2_bas * surface
             valeur_mediane = bench.prix_m2_median * surface
-            prix_probable = min(
-                lot["mise_a_prix"] * cfg["multiplicateur_prix_probable"], valeur_mediane
-            )
-            lot["prix_probable"] = round(prix_probable)
-            lot["prix_max_conseille"] = round(valeur_basse)
+            lot["valeur_marche_basse"] = round(bench.prix_m2_bas * surface)
+            lot["valeur_marche_haute"] = round(bench.prix_m2_haut * surface)
+            lot["prix_max_conseille"] = lot["valeur_marche_basse"]
             lot["marche_prix_m2_bas"] = bench.prix_m2_bas
             lot["marche_prix_m2_haut"] = bench.prix_m2_haut
-            marge = (valeur_basse - prix_probable) / valeur_basse
-            detail["marge"] = round(max(0.0, min(1.0, marge / 0.40)) * 40, 1)
-        else:
-            detail["marge"] = 0.0
-
-        if prix_probable is None:
-            detail["budget"] = 0.0
-        elif prix_probable <= budget["prix_max"]:
-            detail["budget"] = 20.0
-        elif prix_probable <= budget["prix_max_filtre"]:
-            detail["budget"] = 10.0
-        else:
-            detail["budget"] = 0.0
 
         categorie = categorie_emplacement(
             lot.get("ville", ""), departement,
             f"{lot.get('titre', '')} {lot.get('criteres', '')}", communes_dynamiques,
         )
-        detail["emplacement"] = float(bareme_emplacement[categorie])
+        detail["emplacement"] = round(float(bareme_emplacement[categorie]) * 1.2, 1)
+
+        if valeur_mediane is None:
+            detail["gabarit"] = 0.0
+        elif valeur_mediane <= budget["prix_max"]:
+            detail["gabarit"] = 25.0
+        elif valeur_mediane <= budget["prix_max"] * 1.35:
+            detail["gabarit"] = 12.0  # jouable si la salle est calme
+        else:
+            detail["gabarit"] = 0.0
 
         detail["dossier"] = (
-            (4.0 if surface else 0.0)
-            + (3.0 if lot.get("estimation_basse") else 0.0)
-            + (3.0 if lot.get("ville") else 0.0)
+            (8.0 if surface else 0.0)
+            + (6.0 if lot.get("estimation_basse") else 0.0)
+            + (6.0 if lot.get("ville") else 0.0)
         )
 
         temps = trajets.temps_depuis_paris18(lot.get("ville", ""), departement)
         if temps is None or temps > 60:
             detail["proximite"] = 0.0
         elif temps < 20:
-            detail["proximite"] = 5.0
+            detail["proximite"] = 10.0
         elif temps <= 40:
-            detail["proximite"] = 3.0
+            detail["proximite"] = 6.0
         else:
-            detail["proximite"] = 1.0
+            detail["proximite"] = 3.0
+
+        if not lot.get("date_vente"):
+            detail["preparation"] = 5.0
+        else:
+            jours = (date.fromisoformat(lot["date_vente"]) - maintenant).days
+            detail["preparation"] = 15.0 if jours >= 10 else (8.0 if jours >= 5 else 3.0)
 
         lot["detail_score"] = detail
         lot["score_enchere"] = int(round(min(100.0, sum(detail.values()))))

@@ -109,9 +109,8 @@ sources:                      # activer/désactiver une source = une ligne
   imap:            {actif: true}    # alertes email LeBonCoin/SeLoger/Geolocaux/BureauxLocaux
                                     # (s'ignore proprement tant que IMAP_USER/IMAP_PASSWORD manquent)
 
-encheres:                     # scoring dédié aux ventes aux enchères
-  multiplicateur_prix_probable: 2.0   # adjudication probable ≈ 2× la mise à prix
-                                      # (plafonnée à la valeur médiane du marché local)
+encheres:                     # score d'INTÉRÊT dédié aux enchères (le prix final
+                              # est imprévisible : on ne le prédit pas)
   seuil_occasion: 65          # score enchère minimal pour être une « occasion »
   max_haut_panier: 2          # nb maximal d'occasions remontées en haut de page
 

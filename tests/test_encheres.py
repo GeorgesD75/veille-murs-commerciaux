@@ -31,18 +31,24 @@ def test_champs_du_lot():
 
 
 def test_score_enchere(benchmarks, trajets, config):
+    from datetime import date
+
     from sources.encheres import scorer_lots
 
-    lots = scorer_lots(_extraire(), benchmarks, trajets, config)
+    lots = scorer_lots(_extraire(), benchmarks, trajets, config,
+                       maintenant=date(2026, 7, 3))
     lot = lots[0]
-    # Adjudication probable = min(2 × 50 000 ; médiane 4 750 × 88,44) = 100 000 €
-    assert lot["prix_probable"] == 100_000
-    # Valeur basse du marché = 3 000 €/m² × 88,44 = 265 320 €
+    # Aucune prédiction du prix final : seulement des valeurs de marché sourcées
+    assert "prix_probable" not in lot
+    assert lot["valeur_marche_basse"] == 265_320   # 3 000 €/m² × 88,44
     assert lot["prix_max_conseille"] == 265_320
-    # Marge 62 % -> 40/40 ; budget 20 ; emplacement Paris 25 ;
-    # dossier 4 (surface seule) ; trajet 5 -> 94
-    assert lot["score_enchere"] == 94
-    assert lot["detail_score"]["marge"] == 40
+    # Emplacement Paris 30 ; gabarit 12 (médiane 420 090 € juste au-dessus du
+    # budget max) ; dossier 8 (surface seule) ; trajet 10 ; vente J+6 -> 8
+    assert lot["detail_score"] == {
+        "emplacement": 30.0, "gabarit": 12.0, "dossier": 8.0,
+        "proximite": 10.0, "preparation": 8.0,
+    }
+    assert lot["score_enchere"] == 68
     assert lot["haut_panier"] is True
     assert lot["opportunite"] == "forte"
 

@@ -52,24 +52,28 @@ def _points_quartier(annonce: Annonce, cfg: dict) -> float:
     return float(q["points"]) if annonce.code_postal in q["codes_postaux"] else 0.0
 
 
-def _points_bonus_malus(annonce: Annonce, cfg: dict) -> float:
+def _points_bonus_malus(annonce: Annonce, cfg: dict) -> tuple[float, list[str]]:
+    """Points bornés + noms des règles déclenchées (affichés comme faits sourcés)."""
     texte = normaliser_texte(annonce.texte_complet())
     total = 0.0
+    detectes: list[str] = []
     for regle in cfg["bonus_malus"]:
         if any(normaliser_texte(mot) in texte for mot in regle["mots"]):
             total += regle["points"]
-    return max(BONUS_MIN, min(BONUS_MAX, total))
+            detectes.append(regle["nom"])
+    return max(BONUS_MIN, min(BONUS_MAX, total)), detectes
 
 
 def scorer(annonce: Annonce, config: Config) -> Annonce:
     cfg = config.scoring
+    points_bonus, annonce.bonus_detectes = _points_bonus_malus(annonce, cfg)
     detail = {
         "rendement": round(_points_rendement(annonce, cfg), 1),
         "emplacement": round(_points_emplacement(annonce, cfg), 1),
         "prix_m2_vs_benchmark": round(_points_benchmark(annonce, cfg), 1),
         "proximite": round(_points_proximite(annonce, cfg), 1),
         "quartier": round(_points_quartier(annonce, cfg), 1),
-        "bonus_malus": round(_points_bonus_malus(annonce, cfg), 1),
+        "bonus_malus": round(points_bonus, 1),
     }
     annonce.detail_score = detail
     annonce.score = int(round(max(0.0, min(100.0, sum(detail.values())))))

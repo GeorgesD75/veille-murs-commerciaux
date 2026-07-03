@@ -70,6 +70,7 @@ def preparer_payload(
                 "score": a.score,
                 "detail_score": a.detail_score,
                 "flags": a.flags,
+                "bonus_detectes": a.bonus_detectes,
                 "caracteristiques": a.caracteristiques,
                 "decote_pct": a.decote_pct,
                 "marche_prix_m2_bas": a.marche_prix_m2_bas,
@@ -305,6 +306,29 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .etiquettes { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 9px; }
 .etiquette { font-size: 11.5px; color: var(--encre-2); border: 1px solid var(--filet);
   border-radius: 6px; padding: 1px 7px; background: var(--plan); }
+.etiquette-plus { border-color: var(--vert-texte); color: var(--vert-texte); }
+.etiquette-moins { border-color: var(--alerte-texte); color: var(--alerte-texte); }
+.btn-outil { font: 600 11.5px system-ui, sans-serif; color: var(--marque);
+  background: var(--plan); border: 1px solid var(--bord); border-radius: 7px;
+  padding: 4px 9px; cursor: pointer; margin-top: 4px; display: inline-flex; gap: 5px; align-items: center; }
+.info-i { display: inline-flex; width: 15px; height: 15px; border-radius: 50%;
+  border: 1.4px solid var(--encre-3); color: var(--encre-3); font: 700 10px Georgia, serif;
+  align-items: center; justify-content: center; cursor: pointer; vertical-align: 1px; margin-left: 4px; }
+.sim-grille { border-collapse: collapse; margin-top: 10px; font-variant-numeric: tabular-nums; }
+.sim-grille th, .sim-grille td { border: 1px solid var(--filet); padding: 6px 12px;
+  text-align: right; font-size: 13.5px; }
+.sim-grille th { color: var(--encre-3); font-weight: 600; }
+.sim-grille td.top { background: var(--vert-fond); color: var(--vert-texte); font-weight: 700; }
+.sim-champs { display: flex; gap: 16px; flex-wrap: wrap; margin: 12px 0; }
+.sim-champs label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--encre-3); }
+.sim-champs input { background: var(--plan); color: var(--encre-1); border: 1px solid var(--bord);
+  border-radius: 7px; padding: 6px 8px; font: inherit; width: 110px; }
+.sim-resultats { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 6px; }
+.check-groupe h4 { font-family: Fraunces, Georgia, serif; margin: 14px 0 6px; font-size: 15px; }
+.check-item { display: flex; gap: 9px; align-items: baseline; padding: 4px 0; font-size: 14px; }
+.check-item .auto { font-size: 11.5px; color: var(--vert-texte); background: var(--vert-fond);
+  border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.check-item .auto.negatif { color: var(--alerte-texte); background: var(--alerte-fond); }
 
 .metriques { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 10px; }
 .metrique .libelle { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--encre-3); }
@@ -313,14 +337,18 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 
 /* Jauge marché + lecture du prix */
 .marche { font-size: 12.5px; color: var(--encre-2); max-width: 480px; }
-.marche-piste { position: relative; height: 14px; margin: 4px 0 2px; }
-.marche-piste .ligne { position: absolute; top: 6px; left: 0; right: 0; height: 2px;
+.marche-piste { position: relative; height: 18px; margin: 6px 0 1px; }
+.marche-piste .ligne { position: absolute; top: 8px; left: 0; right: 0; height: 2px;
   background: var(--filet); border-radius: 2px; }
-.marche-piste .bande-marche { position: absolute; top: 4px; height: 6px;
-  background: color-mix(in srgb, var(--marque) 30%, transparent); border-radius: 3px; }
-.marche-piste .mediane { position: absolute; top: 2px; width: 2px; height: 10px; background: var(--encre-3); }
-.marche-piste .bien { position: absolute; top: 3px; width: 9px; height: 9px;
-  border-radius: 50%; background: var(--marque); border: 2px solid var(--surface); }
+.marche-piste .bande-marche { position: absolute; top: 5px; height: 8px;
+  background: color-mix(in srgb, var(--marque) 30%, transparent); border-radius: 4px; }
+.marche-piste .mediane { position: absolute; top: 3px; width: 2px; height: 12px; background: var(--encre-3); }
+.marche-piste .bien { position: absolute; top: 2px; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--or-vif); border: 2.5px solid var(--encre-1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--or-vif) 30%, transparent); }
+.marche-echelle { display: flex; justify-content: space-between; font-size: 11px;
+  color: var(--encre-3); font-variant-numeric: tabular-nums; margin-bottom: 3px; }
+.marche-legende-bien { color: var(--or); font-weight: 700; }
 .marche .bon { color: var(--vert-texte); font-weight: 600; }
 .marche .mauvais { color: var(--alerte-texte); font-weight: 600; }
 .lecture { font-style: italic; color: var(--encre-2); margin-top: 5px;
@@ -411,7 +439,7 @@ details.ligne-depliable .carte { margin: 8px 0 14px; animation: none; }
   box-shadow: 0 8px 24px rgba(0,0,0,.25); }
 .plateau button { background: none; border: none; color: var(--or-vif); font: inherit;
   font-weight: 700; cursor: pointer; margin-left: 10px; }
-.comparateur-fond { position: fixed; inset: 0; background: rgba(10, 20, 14, .55);
+.comparateur-fond, .outil-fond { position: fixed; inset: 0; background: rgba(10, 20, 14, .55);
   display: none; z-index: 30; padding: 4vh 3vw; }
 .comparateur { background: var(--surface); border-radius: 14px; max-width: 1180px;
   margin: 0 auto; max-height: 92vh; overflow: auto; padding: 20px 24px; }
@@ -569,6 +597,12 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
     <div id="comp-table"></div>
   </div>
 </div>
+<div class="outil-fond" id="outil-fond">
+  <div class="comparateur">
+    <button class="fermer" id="outil-fermer">Fermer ✕</button>
+    <div id="outil-contenu"></div>
+  </div>
+</div>
 
 <script id="donnees" type="application/json">__DONNEES__</script>
 <script>
@@ -593,7 +627,9 @@ const IC = {
   loupe: '<svg class="ic" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>',
   trophee: '<svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 5H4c0 3 1.3 4.8 3 5M17 5h3c0 3-1.3 4.8-3 5M12 14v3M8.5 20h7M10 17h4"/></svg>',
   alerte: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4Z"/><path d="M12 10v5M12 17.5v.5"/></svg>',
-  horloge: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>'
+  horloge: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>',
+  calc: '<svg class="ic" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 7.5h7M8.5 12h.5M12 12h.5M15.5 12h.5M8.5 15.5h.5M12 15.5h.5M15.5 15.5v2.5"/></svg>',
+  coche: '<svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8.5 12.5 2.5 2.5 5-5.5"/></svg>'
 };
 
 let comparaison = [];
@@ -629,9 +665,10 @@ function verdictMarche(a) {
     return '<span class="bon">sous la fourchette du marché</span>';
   if (a.prix_m2 > a.marche_prix_m2_haut)
     return '<span class="mauvais">au-dessus du marché local</span>';
-  return a.decote_pct >= 0
-    ? '<span class="bon">dans la fourchette, moitié basse</span>'
-    : "dans la fourchette, moitié haute";
+  const part = (a.prix_m2 - a.marche_prix_m2_bas) / (a.marche_prix_m2_haut - a.marche_prix_m2_bas);
+  if (part <= 0.33) return '<span class="bon">dans le tiers bas de la fourchette</span>';
+  if (part <= 0.66) return "au cœur de la fourchette locale";
+  return "dans le tiers haut de la fourchette";
 }
 
 function jaugeMarcheHtml(a) {
@@ -654,15 +691,15 @@ function jaugeMarcheHtml(a) {
     }
   }
   return `<div class="marche">
-    <div>${fmtEuros(a.prix_m2)}/m² — ${verdictMarche(a)}
+    <div><span class="marche-legende-bien">●</span> ce bien : <b>${fmtEuros(a.prix_m2)}/m²</b> — ${verdictMarche(a)}
       <span style="color:var(--encre-3)" title="écart à la médiane locale">(${a.decote_pct >= 0 ? "-" : "+"}${fmtPct(Math.abs(a.decote_pct))} vs médiane)</span></div>
     <div class="marche-piste">
       <div class="ligne"></div>
       <div class="bande-marche" style="left:${pos(bas)}%;width:${pos(haut) - pos(bas)}%"></div>
       <div class="mediane" style="left:${pos(med)}%" title="médiane locale ${fmtEuros(med)}/m²"></div>
-      <div class="bien" style="left:calc(${pos(a.prix_m2)}% - 4px)" title="ce bien : ${fmtEuros(a.prix_m2)}/m²"></div>
+      <div class="bien" style="left:calc(${pos(a.prix_m2)}% - 7px)" title="ce bien : ${fmtEuros(a.prix_m2)}/m²"></div>
     </div>
-    <div>marché local : ${fmtEuros(bas)} – ${fmtEuros(haut)} /m²</div>
+    <div class="marche-echelle"><span>${fmtEuros(bas)}/m²</span><span>médiane ${fmtEuros(med)}</span><span>${fmtEuros(haut)}/m²</span></div>
     ${lecture}
     ${nego}
   </div>`;
@@ -707,16 +744,27 @@ function carteHtml(a, options) {
   const liens = (a.urls_multiples || []).map((u, i) =>
     ` · <a href="${ech(u)}" target="_blank" rel="noopener">aussi vu ici (${i + 2})</a>`).join("");
 
+  // Faits DÉTECTÉS dans le texte de l'annonce (sourcés, jamais supposés)
+  const FAITS = {
+    bail_recent: ["Bail récent (annonce)", "plus"],
+    taxe_fonciere_locataire: ["Taxe foncière au locataire (annonce)", "plus"],
+    enseigne_nationale: ["Enseigne nationale (annonce)", "plus"],
+    travaux: ["Travaux signalés (annonce)", "moins"],
+  };
   const etiquettes = (a.caracteristiques || []).map(c =>
-    `<span class="etiquette">${ech(c)}</span>`).join("");
+    `<span class="etiquette">${ech(c)}</span>`)
+    .concat((a.bonus_detectes || []).filter(n => FAITS[n]).map(n =>
+      `<span class="etiquette etiquette-${FAITS[n][1]}">${FAITS[n][0]}</span>`))
+    .join("");
 
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   const est = (a.loyer_mensuel == null && a.loyer_mensuel_estime != null) || a.loyer_estime
     ? " <small>est.</small>" : "";
   const cf = cashflowMensuel(a);
   const cfHtml = cf == null ? "—" :
-    `<span style="color:${cf >= 0 ? "var(--vert-texte)" : "var(--alerte-texte)"}"
-      title="loyer − mensualité d'un crédit 100 % du coût acte en main sur ${D.analyse.financement.duree_ans} ans à ${D.analyse.financement.taux_pct} % — hors taxe foncière et gestion">${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois</span>`;
+    `<span style="color:${cf >= 0 ? "var(--vert-texte)" : "var(--alerte-texte)"}">${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois</span>` +
+    `<span class="info-i" data-sim="${ech(a.id)}"
+      title="Loyer − mensualité d'un crédit 100 % du coût acte en main (prix × 1,08) sur ${D.analyse.financement.duree_ans} ans à ${D.analyse.financement.taux_pct} % — hors taxe foncière, assurance et gestion. Cliquez pour simuler avec votre apport.">i</span>`;
   const metriques = [
     ["Prix", fmtEuros(a.prix)],
     ["Surface", a.surface_m2 == null ? "—" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²"],
@@ -761,6 +809,8 @@ function carteHtml(a, options) {
       <div class="score-libelle">/100</div>
       <button type="button" class="btn-comp${dansComp ? " actif" : ""}" data-id="${ech(a.id)}">
         ${IC.balance} ${dansComp ? "Comparé" : "Comparer"}</button>
+      <button type="button" class="btn-outil" data-sim="${ech(a.id)}">${IC.calc} Financer</button>
+      <button type="button" class="btn-outil" data-check="${ech(a.id)}">${IC.coche} ${nbChecklist(a)}</button>
     </div>
   </article>`;
 }
@@ -797,11 +847,12 @@ function enchereHtml(e, index) {
     ? `<div class="marche" style="margin-top:6px">marché local : ${fmtEuros(e.marche_prix_m2_bas)} – ${fmtEuros(e.marche_prix_m2_haut)} /m²
        ${e.prix_m2_mise_a_prix ? `— mise à prix : <b>${fmtEuros(e.prix_m2_mise_a_prix)}/m²</b>` : ""}</div>` : "";
   const plafond = e.prix_max_conseille
-    ? `<div class="plafond-conseille">Adjudication probable ≈ <b>${fmtEuros(e.prix_probable)}</b> ·
-       reste une affaire jusqu'à ≈ <b>${fmtEuros(e.prix_max_conseille)}</b> — au-delà, laissez filer.</div>` : "";
+    ? `<div class="plafond-conseille">Valeur de marché estimée ≈ <b>${fmtEuros(e.valeur_marche_basse)} – ${fmtEuros(e.valeur_marche_haute)}</b> ·
+       plafond de raison ≈ <b>${fmtEuros(e.prix_max_conseille)}</b> — le prix final dépend de la salle :
+       fixez votre limite avant d'y aller, et tenez-la.</div>` : "";
   const d = e.detail_score || {};
-  const infobulle = `Marge probable ${d.marge ?? 0}/40 · Emplacement ${d.emplacement ?? 0}/25 · ` +
-    `Budget ${d.budget ?? 0}/20 · Dossier ${d.dossier ?? 0}/10 · Trajet ${d.proximite ?? 0}/5`;
+  const infobulle = `Emplacement ${d.emplacement ?? 0}/30 · Gabarit vs budget ${d.gabarit ?? 0}/25 · ` +
+    `Dossier ${d.dossier ?? 0}/20 · Trajet ${d.proximite ?? 0}/10 · Préparation ${d.preparation ?? 0}/15`;
   return `<article class="carte-enchere${forte ? " forte" : ""}" style="animation-delay:${index * 45}ms">
     ${sticker}
     <div class="carte-img">${img}</div>
@@ -943,6 +994,177 @@ function ouvrirComparateur() {
   document.getElementById("comparateur-fond").style.display = "block";
 }
 
+/* ---- Simulateur de financement ---- */
+function mensualite(capital, tauxPct, ans) {
+  const t = tauxPct / 100 / 12, n = ans * 12;
+  return capital * t / (1 - Math.pow(1 + t, -n));
+}
+
+let simId = null;
+let simEtat = {prix: 0, apport: 20, taux: D.analyse.financement.taux_pct,
+               duree: D.analyse.financement.duree_ans};
+
+function ouvrirSimulateur(id) {
+  const a = D.retenues.find(x => x.id === id);
+  if (!a || a.prix == null) return;
+  simId = id;
+  simEtat.prix = Math.round(a.prix);
+  rendreSimulateur();
+  document.getElementById("outil-fond").style.display = "block";
+}
+
+function rendreSimulateur() {
+  const a = D.retenues.find(x => x.id === simId);
+  const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
+  const cout = simEtat.prix * 1.08;
+  const apportEuros = Math.round(cout * simEtat.apport / 100);
+  const emprunt = Math.max(0, cout - apportEuros);
+  const m = emprunt > 0 ? mensualite(emprunt, simEtat.taux, simEtat.duree) : 0;
+  const cf = loyer != null ? Math.round(loyer - m) : null;
+  const interets = Math.round(m * simEtat.duree * 12 - emprunt);
+  const coc = (loyer != null && apportEuros > 0)
+    ? ((loyer - m) * 12 / apportEuros * 100) : null;
+
+  // Grille de scénarios : le triangle apport × durée
+  const apports = [10, 20, 30], durees = [15, 20, 25];
+  let meilleurCf = -Infinity;
+  const cellules = durees.map(d => apports.map(ap => {
+    const e2 = cout * (1 - ap / 100);
+    const cf2 = loyer != null ? Math.round(loyer - mensualite(e2, simEtat.taux, d)) : null;
+    if (cf2 != null && cf2 > meilleurCf) meilleurCf = cf2;
+    return cf2;
+  }));
+  const grille = loyer == null ? "" : `
+    <p style="margin:14px 0 4px;font-weight:600">Cash-flow mensuel selon apport et durée
+      <span style="color:var(--encre-3);font-weight:400">(taux ${simEtat.taux} %)</span></p>
+    <table class="sim-grille"><tr><th></th>${apports.map(ap => `<th>apport ${ap} %</th>`).join("")}</tr>
+    ${durees.map((d, i) => `<tr><th>${d} ans</th>${cellules[i].map(v =>
+      `<td class="${v === meilleurCf ? "top" : ""}">${v >= 0 ? "+" : "−"}${fmtEuros(Math.abs(v))}</td>`).join("")}</tr>`).join("")}
+    </table>
+    <p style="font-size:13px;color:var(--encre-2);margin-top:8px">La règle du jeu :
+    plus d'apport ou plus de durée améliore le cash-flow, mais plus d'apport dilue le rendement
+    de vos fonds propres et plus de durée gonfle les intérêts versés. Le meilleur choix dépend
+    de votre objectif — retraite = privilégier un cash-flow positif sans épuiser l'épargne.</p>`;
+
+  document.getElementById("outil-contenu").innerHTML = `
+    <h3>${IC.calc} Financer — ${ech(a.titre)}</h3>
+    <div class="sim-champs">
+      <label>Prix négocié (€)<input type="number" step="5000" min="0" value="${simEtat.prix}" data-sim-champ="prix"></label>
+      <label>Apport (%)<input type="number" step="5" min="0" max="100" value="${simEtat.apport}" data-sim-champ="apport"></label>
+      <label>Taux (%)<input type="number" step="0.1" min="0.5" max="8" value="${simEtat.taux}" data-sim-champ="taux"></label>
+      <label>Durée (ans)<input type="number" step="1" min="5" max="27" value="${simEtat.duree}" data-sim-champ="duree"></label>
+    </div>
+    <div class="sim-resultats">
+      <div class="metrique"><div class="libelle">Coût acte en main</div><div class="valeur">${fmtEuros(Math.round(cout))}</div></div>
+      <div class="metrique"><div class="libelle">Apport</div><div class="valeur">${fmtEuros(apportEuros)}</div></div>
+      <div class="metrique"><div class="libelle">Emprunt</div><div class="valeur">${fmtEuros(Math.round(emprunt))}</div></div>
+      <div class="metrique"><div class="libelle">Mensualité</div><div class="valeur">${fmtEuros(Math.round(m))}</div></div>
+      <div class="metrique"><div class="libelle">Cash-flow/mois</div><div class="valeur" style="color:${cf >= 0 ? "var(--vert-texte)" : "var(--alerte-texte)"}">${cf == null ? "—" : (cf >= 0 ? "+" : "−") + fmtEuros(Math.abs(cf))}</div></div>
+      <div class="metrique"><div class="libelle">Rdt des fonds propres</div><div class="valeur">${coc == null ? "—" : fmtPct(coc)}</div></div>
+      <div class="metrique"><div class="libelle">Intérêts totaux</div><div class="valeur">${fmtEuros(interets)}</div></div>
+    </div>
+    ${grille}
+    <p style="font-size:12px;color:var(--encre-3);margin-top:10px">Calcul : coût acte en main = prix × 1,08
+    (droits ~7,5 % + frais) ; mensualité = annuité classique ; cash-flow = loyer − mensualité.
+    Hors assurance emprunteur (~0,2-0,4 %/an), taxe foncière et gestion. Le taux par défaut est
+    une moyenne de marché à ajuster avec votre banque — aucune donnée bancaire en direct ici,
+    par honnêteté.</p>`;
+}
+
+/* ---- Checklist par annonce (persistée) ---- */
+const CHECKLIST = [
+  {g: "Le bail", items: [
+    {id: "bail_date", t: "Bail 3/6/9 lu : date, échéance triennale, loyer à jour",
+      auto: a => (a.bonus_detectes || []).includes("bail_recent") ? "bail récent signalé" : null},
+    {id: "bail_606", t: "Article 606 et taxe foncière à la charge du locataire",
+      auto: a => (a.bonus_detectes || []).includes("taxe_fonciere_locataire") ? "signalé dans l'annonce" : null},
+    {id: "bail_destination", t: "Destination du bail large (« tous commerces » idéalement)",
+      auto: a => (a.caracteristiques || []).includes("Toutes activités") ? "« toutes activités » signalé" : null},
+    {id: "bail_depot", t: "Dépôt de garantie et garanties personnelles vérifiés"},
+  ]},
+  {g: "Le locataire", items: [
+    {id: "loc_place", t: "Un locataire est en place et paie",
+      auto: a => a.type_murs === "murs_occupes" ? "murs vendus occupés" : null},
+    {id: "loc_kbis", t: "Kbis + 3 derniers bilans obtenus et lus"},
+    {id: "loc_ratio", t: "Loyer ≤ 10 % du chiffre d'affaires du locataire"},
+    {id: "loc_quittances", t: "12 mois de quittances sans incident"},
+  ]},
+  {g: "L'immeuble et le local", items: [
+    {id: "imm_ag", t: "3 derniers PV d'AG lus (ravalement, toiture votés ?)"},
+    {id: "imm_visite", t: "Local visité (sols, vitrine, électricité, humidité)"},
+    {id: "imm_travaux", t: "Pas de gros travaux à prévoir", negatif: true,
+      auto: a => (a.bonus_detectes || []).includes("travaux") ? "travaux signalés dans l'annonce" : null},
+  ]},
+  {g: "La rue et les chiffres", items: [
+    {id: "rue_flux", t: "Flux vérifié sur place (mardi 15 h ET samedi 11 h)"},
+    {id: "rue_rideaux", t: "Moins de 2 rideaux baissés sur 10 dans la rue"},
+    {id: "chiffre_aem", t: "Rendement acte en main recalculé soi-même",
+      auto: a => a.rendement_acte_en_main_pct != null ? `calculé ici : ${fmtPct(a.rendement_acte_en_main_pct)}` : null},
+    {id: "nego_ecrit", t: "Offre écrite, conditionnée au prêt et à la lecture du bail"},
+  ]},
+];
+
+function etatChecklists() {
+  try { return JSON.parse(localStorage.getItem("veille-checklists") || "{}"); }
+  catch (e) { return {}; }
+}
+
+function nbChecklist(a) {
+  const coches = new Set(etatChecklists()[a.id] || []);
+  let total = 0, faits = 0;
+  for (const groupe of CHECKLIST) for (const item of groupe.items) {
+    total++;
+    const auto = item.auto && item.auto(a);
+    if (coches.has(item.id) || (auto && !item.negatif)) faits++;
+  }
+  return `${faits}/${total}`;
+}
+
+let chkId = null;
+function ouvrirChecklist(id) {
+  chkId = id;
+  rendreChecklist();
+  document.getElementById("outil-fond").style.display = "block";
+}
+
+function rendreChecklist() {
+  const a = D.retenues.find(x => x.id === chkId);
+  if (!a) return;
+  const coches = new Set(etatChecklists()[chkId] || []);
+  const groupes = CHECKLIST.map(groupe => `<div class="check-groupe"><h4>${groupe.g}</h4>` +
+    groupe.items.map(item => {
+      const auto = item.auto && item.auto(a);
+      const cochee = coches.has(item.id) || (auto && !item.negatif);
+      const badge = auto
+        ? `<span class="auto${item.negatif ? " negatif" : ""}">${item.negatif ? "⚠ " : "✓ "}${ech(auto)}</span>` : "";
+      return `<label class="check-item"><input type="checkbox" data-chk-item="${item.id}"
+        ${cochee ? "checked" : ""}> <span>${item.t}</span> ${badge}</label>`;
+    }).join("") + "</div>").join("");
+  document.getElementById("outil-contenu").innerHTML = `
+    <h3>${IC.coche} Checklist — ${ech(a.titre)}</h3>
+    <p style="font-size:13px;color:var(--encre-2)">Les points « ✓ signalé » viennent du texte de
+    l'annonce (à confirmer sur pièces) ; cochez le reste au fil de vos vérifications — c'est
+    enregistré sur cet appareil.</p>
+    ${groupes}`;
+}
+
+document.addEventListener("change", ev => {
+  const champ = ev.target.closest("[data-sim-champ]");
+  if (champ) {
+    simEtat[champ.dataset.simChamp] = parseFloat(champ.value) || simEtat[champ.dataset.simChamp];
+    rendreSimulateur();
+    return;
+  }
+  const caseChk = ev.target.closest("[data-chk-item]");
+  if (caseChk && chkId) {
+    const tout = etatChecklists();
+    const liste = new Set(tout[chkId] || []);
+    caseChk.checked ? liste.add(caseChk.dataset.chkItem) : liste.delete(caseChk.dataset.chkItem);
+    tout[chkId] = [...liste];
+    localStorage.setItem("veille-checklists", JSON.stringify(tout));
+  }
+});
+
 // Dépliage d'une ligne compacte : on construit la carte complète à la volée
 document.addEventListener("toggle", ev => {
   const bloc = ev.target.closest?.("details.ligne-depliable");
@@ -964,10 +1186,18 @@ document.addEventListener("click", ev => {
     if (document.getElementById("comparateur-fond").style.display === "block") ouvrirComparateur();
     return;
   }
+  const sim = ev.target.closest("[data-sim]");
+  if (sim) { ouvrirSimulateur(sim.dataset.sim); return; }
+  const chk = ev.target.closest("[data-check]");
+  if (chk) { ouvrirChecklist(chk.dataset.check); return; }
   if (ev.target.id === "comp-ouvrir") ouvrirComparateur();
   if (ev.target.id === "comp-vider") { comparaison = []; localStorage.setItem(CLE_COMP, "[]"); rendre(); }
   if (ev.target.id === "comp-fermer" || ev.target.id === "comparateur-fond")
     document.getElementById("comparateur-fond").style.display = "none";
+  if (ev.target.id === "outil-fermer" || ev.target.id === "outil-fond") {
+    document.getElementById("outil-fond").style.display = "none";
+    rendre();  // rafraîchit les compteurs de checklist sur les cartes
+  }
 });
 
 function initialiser() {
@@ -1001,9 +1231,11 @@ function initialiser() {
         ? `<details class="repli" style="margin-top:8px"><summary>Les ${repliees.length} autres ventes (scores plus faibles)</summary>
            ${repliees.map((e, i) => enchereHtml(e, i)).join("")}</details>`
         : "") +
-      `<div class="note-encheres">Score enchère : marge probable /40 (adjudication estimée ≈ 2× la mise à prix,
-       plafonnée à la médiane du marché) + emplacement /25 + budget /20 + lisibilité du dossier /10 + trajet /5.
-       Enchérir en salle exige un avocat et une consignation (~10 %). Le « reste une affaire jusqu'à… » est votre plafond de raison.</div>`
+      `<div class="note-encheres">Score enchère = intérêt du dossier, PAS une promesse de marge :
+       emplacement /30 + gabarit vs budget /25 (la valeur de marché du bien tient-elle dans vos moyens ?)
+       + lisibilité du dossier /20 + trajet /10 + temps de préparation /15. Le prix d'adjudication est
+       imprévisible (1× à 6× la mise à prix selon la salle) — nous ne le prédisons pas.
+       Enchérir en salle exige un avocat et une consignation (~10 %).</div>`
     : "";
 
   const bloc = document.getElementById("exclues-bloc");
@@ -1027,7 +1259,8 @@ function initialiser() {
     `+ bonus/malus (−3 à +5, plafonné à 100). Rangs : S ≥ ${D.seuils.pepite} (pépite, email immédiat), ` +
     `A ≥ ${D.seuils.vert}, B ≥ ${D.seuils.orange}, C en dessous. Un rendement > 10 % est plafonné ` +
     `sous ${D.seuils.affichage} (piège probable) jusqu'à vérification. ` +
-    `« est. » = loyer estimé ou promis, non prouvé par un bail.`;
+    `« est. » = loyer estimé ou promis, non prouvé par un bail. ` +
+    `Le score enchère est un score d'intérêt distinct (voir sa note de section).`;
 
   try {
     const memo = JSON.parse(localStorage.getItem(CLE_FILTRES) || "{}");
