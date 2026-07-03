@@ -5,6 +5,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+from pipeline.geo import GRANDE_COURONNE
 from pipeline.modeles import Annonce, TypeMurs
 from pipeline.texte import normaliser_texte
 
@@ -70,6 +71,63 @@ def caracteristiques_depuis_texte(texte: str) -> list[str]:
     return [libelle for libelle, mots in _CARACTERISTIQUES if any(m in t for m in mots)]
 
 
+def lecture_prix(annonce: Annonce) -> str:
+    """Phrase honnête : pourquoi ce prix est là où il est, d'après l'annonce.
+
+    On ne s'appuie que sur des éléments constatables (mots de l'annonce,
+    surface, secteur, bail) — jamais d'invention. Une décote inexpliquée est
+    dite telle quelle : bonne affaire possible… ou défaut caché.
+    """
+    if annonce.prix_m2 is None or annonce.decote_pct is None:
+        return ""
+    d = annonce.decote_pct
+    texte = normaliser_texte(annonce.texte_complet())
+    caracts = " ".join(annonce.caracteristiques).lower()
+
+    if d >= 10:  # nettement sous la médiane
+        raisons = []
+        if any(m in texte for m in ("travaux", "a renover", "a rafraichir", "rafraichissement")):
+            raisons.append("des travaux sont signalés dans l'annonce")
+        if annonce.surface_m2 and annonce.surface_m2 >= 120:
+            raisons.append("les grandes surfaces se négocient mécaniquement moins cher au m²")
+        if annonce.departement in GRANDE_COURONNE:
+            raisons.append("secteur de grande couronne, moins tendu")
+        if (
+            annonce.type_murs is TypeMurs.MURS_OCCUPES
+            and annonce.rendement_brut_pct is not None
+            and annonce.rendement_brut_pct < 5
+        ):
+            raisons.append("le loyer en place est faible et tire le prix vers le bas")
+        if raisons:
+            return f"Décote lisible : {' ; '.join(raisons)}."
+        return (
+            "Décote sans explication visible dans l'annonce : possible bonne affaire "
+            "— ou défaut caché (état, copropriété, bail) à vérifier sur place."
+        )
+
+    if d <= -10:  # nettement au-dessus de la médiane
+        raisons = []
+        if annonce.surface_m2 and annonce.surface_m2 <= 25:
+            raisons.append("les petites surfaces se paient plus cher au m²")
+        if annonce.departement == "75":
+            raisons.append("emplacement parisien recherché")
+        if "extraction" in caracts or "restauration" in caracts:
+            raisons.append("la possibilité de restauration est un atout rare")
+        if "terrasse" in caracts or "angle" in caracts:
+            raisons.append("atouts d'emplacement (terrasse, angle)")
+        if (
+            annonce.type_murs is TypeMurs.MURS_OCCUPES
+            and annonce.rendement_brut_pct is not None
+            and annonce.rendement_brut_pct >= 7
+        ):
+            raisons.append("le bail en place à bon rendement justifie une prime")
+        if raisons:
+            return f"Prime explicable : {' ; '.join(raisons)}."
+        return "Prime non justifiée par les éléments de l'annonce : marge de négociation probable."
+
+    return "Prix cohérent avec le marché local."
+
+
 def loyer_mensuel_retenu(annonce: Annonce, benchmarks: Benchmarks) -> tuple[float | None, bool]:
     """Loyer retenu pour le rendement, et s'il est hypothétique.
 
@@ -125,4 +183,5 @@ def enrichir(annonce: Annonce, benchmarks: Benchmarks, seuil_decote_pct: float) 
             annonce.decote_pct = round(
                 (bench.prix_m2_median - annonce.prix_m2) / bench.prix_m2_median * 100, 1
             )
+    annonce.lecture_prix = lecture_prix(annonce)
     return annonce

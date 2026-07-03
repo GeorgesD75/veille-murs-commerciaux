@@ -23,6 +23,7 @@ from pipeline.normalisation import maintenant_iso, normaliser
 from pipeline.scoring import scorer
 from pipeline.stockage import Stockage
 from sources import sources_actives
+from sources.encheres import CollecteurEncheres
 
 log = logging.getLogger("collecteur")
 
@@ -85,6 +86,20 @@ def executer() -> dict[str, Any]:
     brutes, sante = collecter_toutes_sources(config)
     nouvelles = integrer(brutes, annonces, config, quand)
 
+    # Canal spécial : enchères à venir (hors scoring — une mise à prix n'est
+    # pas un prix de marché). Rafraîchi entièrement à chaque run.
+    encheres: list = []
+    if (config.sources.get("encheres_publiques") or {}).get("actif"):
+        try:
+            encheres = CollecteurEncheres(
+                mise_a_prix_max=config.budget["prix_max_filtre"]
+            ).collecter()
+            sante["encheres_publiques"] = {"statut": "ok", "annonces": len(encheres)}
+            log.info("enchères : %d lots IdF à venir", len(encheres))
+        except Exception as exc:  # noqa: BLE001
+            sante["encheres_publiques"] = {"statut": "erreur", "message": str(exc)}
+            log.exception("collecte des enchères en échec, on continue")
+
     # Filtrage + enrichissement + scoring recalculés sur tout le stock à chaque run,
     # pour que les changements de config.yaml ou des benchmarks s'appliquent partout.
     seuil_decote = config.scoring["prix_m2_vs_benchmark"]["seuil_decote_pct"]
@@ -102,6 +117,7 @@ def executer() -> dict[str, Any]:
         "derniere_execution": quand,
         "sante_sources": sante,
         "nouvelles_ce_run": nouvelles,
+        "encheres": encheres,
     }
     stockage.sauvegarder(annonces, meta)
 

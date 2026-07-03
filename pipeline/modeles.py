@@ -71,6 +71,7 @@ class Annonce:
     marche_prix_m2_haut: float | None = None
     temps_trajet_min: int | None = None
     caracteristiques: list[str] = field(default_factory=list)  # extraction, terrasse…
+    lecture_prix: str = ""                     # phrase : pourquoi ce prix est haut/bas
 
     # Scoring
     score: int | None = None

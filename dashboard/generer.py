@@ -4,13 +4,14 @@ Un seul fichier HTML autonome (CSS/JS inclus, données embarquées en JSON) :
 rien à builder, consultable aussi en local en ouvrant le fichier. Le site est
 non référencé (meta noindex + docs/robots.txt).
 
-La préparation des données (tri, badge 🆕 < 48 h, exclues < 7 jours, séparation
-du hors-zone) est faite ici en Python pour être testable ; le JavaScript ne
-fait que filtrer/afficher.
+La préparation des données (tri, badge nouveau < 48 h, exclues < 7 jours,
+hors-zone agrégé, lecture du prix) est faite en Python pour être testable ;
+le JavaScript ne fait que filtrer/afficher.
 
-Identité : « Les Murs. » — carnet de chasse gamifié. Vert bouteille de
-devanture, or réservé aux trophées (podium du jour, rang S), rangs S/A/B/C,
-barres de score façon XP, comparateur de biens. Animations coupées si
+Identité « Les Murs. » : devanture de boutique parisienne — store scalloped
+sous le bandeau, pictogrammes SVG tracés à la main (pas d'emoji), tampons
+encrés pour le podium, or réservé aux trophées. Mobile : filtres repliés,
+comparateur et jauges de score masqués. Animations coupées si
 prefers-reduced-motion.
 """
 from __future__ import annotations
@@ -73,6 +74,7 @@ def preparer_payload(
                 "decote_pct": a.decote_pct,
                 "marche_prix_m2_bas": a.marche_prix_m2_bas,
                 "marche_prix_m2_haut": a.marche_prix_m2_haut,
+                "lecture_prix": a.lecture_prix,
                 "temps_trajet_min": a.temps_trajet_min,
                 "image_url": a.image_url,
                 "date_premiere_vue": a.date_premiere_vue,
@@ -80,9 +82,8 @@ def preparer_payload(
             }
         )
 
-    # Exclusions récentes : le hors-zone (Marseille…) est compté mais pas
-    # détaillé — seules les exclusions « intéressantes » (prix, fonds déguisé,
-    # trajet) méritent une ligne.
+    # Exclusions récentes : le hors-zone est compté mais pas détaillé — seules
+    # les exclusions instructives (prix, fonds déguisé, trajet) ont une ligne.
     exclues_recentes = [
         a for a in annonces.values()
         if a.exclue and _iso(a.date_derniere_vue) >= seuil_exclues
@@ -110,7 +111,6 @@ def preparer_payload(
             "pepite": seuils["pepite"],
             "affichage": seuils.get("affichage", seuils["orange"]),
         },
-        # Barème maximal de chaque poste, pour les jauges « pourquoi ce score »
         "maxima": {
             "rendement": scoring["rendement"]["points"],
             "emplacement": scoring["emplacement"]["paris"],
@@ -128,6 +128,7 @@ def preparer_payload(
         },
         "retenues": retenues,
         "exclues_recentes": exclues_detail,
+        "encheres": meta.get("encheres", []),
         "sante": meta.get("sante_sources", {}),
     }
 
@@ -165,7 +166,7 @@ _GABARIT = """<!doctype html>
 <title>Les Murs — carnet de chasse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,560;0,9..144,700;1,9..144,500&display=swap" rel="stylesheet">
 <style>
 :root {
   --plan: #f6f6f1; --surface: #fdfdfa;
@@ -182,7 +183,7 @@ _GABARIT = """<!doctype html>
 @media (prefers-color-scheme: dark) {
   :root {
     --plan: #101210; --surface: #191c19;
-    --marque: #163f31; --marque-fonce: #0f2c22; --marque-encre: #eceade;
+    --marque: #1d5240; --marque-fonce: #0f2c22; --marque-encre: #eceade;
     --or: #d6a532; --or-clair: #3a2f10; --or-vif: #e7bc4e;
     --encre-1: #f4f4ef; --encre-2: #bcc2ba; --encre-3: #848a80;
     --filet: #2a2d29; --bord: rgba(255,255,255,.10);
@@ -199,28 +200,41 @@ body { margin: 0; background: var(--plan); color: var(--encre-1);
 a { color: var(--marque); text-decoration: none; }
 @media (prefers-color-scheme: dark) { a { color: #8fbfa9; } }
 a:hover { text-decoration: underline; }
+svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
+  stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-/* ---- Bandeau : carnet de chasse ---- */
+/* ---- Bandeau + store de devanture ---- */
 .masthead { background: linear-gradient(115deg, var(--marque-fonce), var(--marque) 55%, var(--marque-fonce));
-  color: var(--marque-encre); border-bottom: 3px solid var(--or); }
-.masthead-inner { max-width: 1380px; margin: 0 auto; padding: 22px 24px 16px;
-  display: flex; align-items: baseline; gap: 22px; flex-wrap: wrap; }
+  color: var(--marque-encre); }
+.masthead-inner { max-width: 1380px; margin: 0 auto; padding: 20px 24px 14px;
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.enseigne { display: flex; align-items: center; gap: 14px; }
+.enseigne svg { width: 40px; height: 40px; color: var(--or-vif); }
 .wordmark { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 34px;
-  letter-spacing: .01em; margin: 0; }
+  letter-spacing: .01em; margin: 0; line-height: 1; }
 .wordmark .point { color: var(--or-vif); }
+.wordmark .trait { display: block; margin-top: 4px; }
 .hud { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
   font-size: 13px; font-variant-numeric: tabular-nums; }
 .hud .puce { background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.16);
-  border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
+  border-radius: 999px; padding: 4px 12px; white-space: nowrap; display: inline-flex;
+  align-items: center; gap: 6px; }
 .hud b { font-size: 15px; }
 .hud .maj { opacity: .75; }
+.auvent { height: 15px; background: repeating-linear-gradient(90deg,
+    var(--marque) 0 26px, var(--marque-fonce) 26px 52px);
+  -webkit-mask: radial-gradient(13px at 13px 0, #000 97%, #0000) 0 0 / 26px 15px repeat-x;
+  mask: radial-gradient(13px at 13px 0, #000 97%, #0000) 0 0 / 26px 15px repeat-x; }
 
 .page { max-width: 1380px; margin: 0 auto; padding: 10px 24px 90px; }
 
-/* ---- Filtres ---- */
-.filtres { position: sticky; top: 0; z-index: 5; background: var(--plan);
-  display: flex; align-items: end; gap: 14px; flex-wrap: wrap;
-  padding: 12px 0; border-bottom: 1px solid var(--filet); margin-bottom: 4px; }
+/* ---- Filtres (repliables sur mobile) ---- */
+.volet-filtres { position: sticky; top: 0; z-index: 5; background: var(--plan);
+  border-bottom: 1px solid var(--filet); margin-bottom: 4px; }
+.volet-filtres > summary { display: none; cursor: pointer; padding: 10px 0;
+  font-weight: 600; color: var(--encre-2); list-style: none; }
+.volet-filtres > summary::-webkit-details-marker { display: none; }
+.filtres { display: flex; align-items: end; gap: 14px; flex-wrap: wrap; padding: 12px 0; }
 .filtre { display: flex; flex-direction: column; gap: 3px; }
 .filtre label { font-size: 11px; color: var(--encre-3); text-transform: uppercase; letter-spacing: .06em; }
 .filtre select, .filtre input { background: var(--surface); color: var(--encre-1);
@@ -234,6 +248,7 @@ a:hover { text-decoration: underline; }
 /* ---- Sections ---- */
 h2.section { font-family: Fraunces, Georgia, serif; font-weight: 560; font-size: 21px;
   margin: 28px 0 12px; display: flex; align-items: baseline; gap: 10px; }
+h2.section svg.ic { color: var(--or); font-size: 19px; }
 h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
   text-transform: uppercase; letter-spacing: .05em; }
 .note-vide { color: var(--encre-2); font-size: 14px; margin: 4px 0 8px;
@@ -248,12 +263,15 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .carte:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(15, 40, 25, .10); }
 .carte.prio { background: var(--bande); border-color: var(--marque); }
 .carte.podium-1 { border-color: var(--or); box-shadow: 0 0 0 1px var(--or); }
-.medaille { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .03em;
-  background: var(--or-clair); color: var(--or); border: 1px solid var(--or);
-  border-radius: 999px; padding: 2px 10px; margin-bottom: 6px; }
+.tampon { display: inline-block; font-family: Fraunces, Georgia, serif; font-weight: 700;
+  font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--or); border: 2px solid var(--or); border-radius: 6px;
+  padding: 2px 9px; transform: rotate(-2.5deg); box-shadow: inset 0 0 0 1.5px var(--surface),
+  inset 0 0 0 3px var(--or); background: var(--or-clair); margin-bottom: 7px; }
 .carte-img { height: 124px; border-radius: 8px; overflow: hidden;
   background: var(--gris-fond); display: flex; align-items: center; justify-content: center;
-  font-size: 32px; color: var(--encre-3); }
+  color: var(--encre-3); }
+.carte-img svg { width: 54px; height: 54px; opacity: .5; }
 .carte-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .carte-titre { font-size: 16px; font-weight: 600; margin: 0 0 2px; }
 .carte-titre a { color: var(--encre-1); }
@@ -272,8 +290,8 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .metrique .valeur { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .metrique .valeur small { font-weight: 400; color: var(--encre-2); }
 
-/* Jauge marché */
-.marche { font-size: 12.5px; color: var(--encre-2); max-width: 470px; }
+/* Jauge marché + lecture du prix */
+.marche { font-size: 12.5px; color: var(--encre-2); max-width: 480px; }
 .marche-piste { position: relative; height: 14px; margin: 4px 0 2px; }
 .marche-piste .ligne { position: absolute; top: 6px; left: 0; right: 0; height: 2px;
   background: var(--filet); border-radius: 2px; }
@@ -284,8 +302,10 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
   border-radius: 50%; background: var(--marque); border: 2px solid var(--surface); }
 .marche .bon { color: var(--vert-texte); font-weight: 600; }
 .marche .mauvais { color: var(--alerte-texte); font-weight: 600; }
+.lecture { font-style: italic; color: var(--encre-2); margin-top: 5px;
+  border-left: 3px solid var(--or); padding-left: 8px; }
 
-/* Pourquoi ce score : barres XP */
+/* Pourquoi ce score */
 .pourquoi { font-size: 12px; color: var(--encre-2); }
 .pourquoi .titre-bloc { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em;
   color: var(--encre-3); margin-bottom: 6px; }
@@ -295,8 +315,6 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
   background: linear-gradient(90deg, var(--marque), #3f8f6b); border-radius: 4px;
   transition: width .7s cubic-bezier(.2,.7,.3,1); }
 .jauge .val { text-align: right; font-variant-numeric: tabular-nums; }
-.total-ligne { border-top: 1px solid var(--filet); margin-top: 7px; padding-top: 6px;
-  display: flex; justify-content: space-between; font-weight: 600; color: var(--encre-1); }
 
 .carte-score { display: flex; flex-direction: column; align-items: center; gap: 5px; justify-content: start; }
 .rang { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 15px;
@@ -314,10 +332,10 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .score-libelle { font-size: 10px; color: var(--encre-3); text-transform: uppercase; letter-spacing: .05em; }
 .btn-comp { font: 600 11.5px system-ui, sans-serif; color: var(--marque);
   background: var(--plan); border: 1px solid var(--bord); border-radius: 7px;
-  padding: 4px 9px; cursor: pointer; margin-top: 4px; }
+  padding: 4px 9px; cursor: pointer; margin-top: 4px; display: inline-flex; gap: 5px; align-items: center; }
 .btn-comp.actif { background: var(--marque); color: var(--marque-encre); border-color: var(--marque); }
 
-/* Rangées compactes (reste du tableau) */
+/* Rangées compactes */
 details.repli { margin-top: 24px; border-top: 1px solid var(--filet); padding-top: 12px; }
 details.repli summary { cursor: pointer; color: var(--encre-2); font-weight: 600; font-size: 14px; }
 .ligne-compacte { display: flex; gap: 12px; align-items: center; padding: 7px 2px;
@@ -326,6 +344,15 @@ details.repli summary { cursor: pointer; color: var(--encre-2); font-weight: 600
   font-weight: 700; font-variant-numeric: tabular-nums; padding: 2px 0; }
 .ligne-compacte .t { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ligne-compacte .d { color: var(--encre-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* Enchères */
+.enchere { display: flex; gap: 14px; align-items: baseline; padding: 9px 2px;
+  border-bottom: 1px solid var(--filet); font-size: 14px; flex-wrap: wrap; }
+.enchere .date { flex: 0 0 auto; font-weight: 700; font-variant-numeric: tabular-nums;
+  color: var(--or); font-family: Fraunces, Georgia, serif; }
+.enchere .t { flex: 1 1 320px; min-width: 0; }
+.enchere .d { color: var(--encre-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.note-encheres { font-size: 12.5px; color: var(--encre-3); margin-top: 8px; }
 
 .exclues table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13.5px; }
 .exclues td { padding: 6px 10px 6px 0; border-bottom: 1px solid var(--filet); vertical-align: top; }
@@ -360,13 +387,22 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 .sante .erreur::before { content: "●"; color: #d03b3b; margin-right: 5px; }
 .legende { color: var(--encre-3); }
 
+/* ---- Mobile : on allège ---- */
 @media (max-width: 1100px) {
   .carte { grid-template-columns: 176px minmax(0,1fr) 96px; }
   .carte .pourquoi { grid-column: 1 / -1; }
 }
-@media (max-width: 700px) {
-  .carte { grid-template-columns: 1fr 96px; }
+@media (max-width: 760px) {
+  .page { padding: 8px 14px 40px; }
+  .masthead-inner { padding: 14px 16px 10px; }
+  .wordmark { font-size: 26px; }
+  .hud, .btn-comp, .plateau, .carte .pourquoi { display: none !important; }
+  .volet-filtres > summary { display: block; }
+  .carte { grid-template-columns: 1fr 84px; gap: 12px; padding: 12px; }
   .carte-img { grid-column: 1 / -1; height: 150px; }
+  .metriques { gap: 12px 18px; }
+  .score { width: 54px; height: 54px; font-size: 23px; }
+  .comparateur-fond { display: none !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
@@ -376,34 +412,45 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 <body>
 <header class="masthead">
   <div class="masthead-inner">
-    <h1 class="wordmark">Les Murs<span class="point">.</span></h1>
+    <div class="enseigne">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 20v20h32V20"/><path d="M8 40h32"/><path d="M14 40V28h8v12"/><rect x="27" y="28" width="9" height="7" rx="1"/><path d="M4 20c0-2 1-8 4-8h32c3 0 4 6 4 8"/><path d="M4 20c0 2.2 2 4 4.5 4S13 22.2 13 20c0 2.2 2 4 4.5 4s4.5-1.8 4.5-4c0 2.2 2 4 4.5 4s4.5-1.8 4.5-4c0 2.2 2 4 4.5 4s4.5-1.8 4.5-4c0 2.2 2 4 4.5 4S44 22.2 44 20"/></svg>
+      <h1 class="wordmark">Les Murs<span class="point">.</span>
+        <svg class="trait" width="128" height="7" viewBox="0 0 128 7" aria-hidden="true"><path d="M2 4.5 C 24 1.5, 40 6, 64 3.5 S 108 5.5, 126 2.5" stroke="var(--or-vif)" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
+      </h1>
+    </div>
     <div class="hud" id="hud"></div>
   </div>
 </header>
+<div class="auvent" aria-hidden="true"></div>
 <div class="page">
 
-  <div class="filtres">
-    <div class="filtre"><label for="f-type">Type</label>
-      <select id="f-type">
-        <option value="tous">Tous</option>
-        <option value="murs_occupes">Murs occupés</option>
-        <option value="murs_libres">Murs libres</option>
-      </select></div>
-    <div class="filtre"><label for="f-dep">Département</label>
-      <select id="f-dep"><option value="tous">Tous</option></select></div>
-    <div class="filtre"><label for="f-rdt">Rendement min (%)</label>
-      <input id="f-rdt" type="number" min="0" max="15" step="0.5" placeholder="ex. 6"></div>
-    <div class="filtre"><label for="f-score">Score min</label>
-      <input id="f-score" type="number" min="0" max="100" step="5" placeholder="ex. 60"></div>
-    <div class="filtre"><label for="f-nouv">Fraîcheur</label>
-      <label style="font-size:14px;color:var(--encre-1);padding:6px 0"><input id="f-nouv" type="checkbox"> 🆕 seulement</label></div>
-    <button id="f-reset" type="button">Réinitialiser</button>
-    <span class="compteur" id="compteur"></span>
-  </div>
+  <details class="volet-filtres" id="volet-filtres">
+    <summary>Filtres &amp; réglages ▾</summary>
+    <div class="filtres">
+      <div class="filtre"><label for="f-type">Type</label>
+        <select id="f-type">
+          <option value="tous">Tous</option>
+          <option value="murs_occupes">Murs occupés</option>
+          <option value="murs_libres">Murs libres</option>
+        </select></div>
+      <div class="filtre"><label for="f-dep">Département</label>
+        <select id="f-dep"><option value="tous">Tous</option></select></div>
+      <div class="filtre"><label for="f-rdt">Rendement min (%)</label>
+        <input id="f-rdt" type="number" min="0" max="15" step="0.5" placeholder="ex. 6"></div>
+      <div class="filtre"><label for="f-score">Score min</label>
+        <input id="f-score" type="number" min="0" max="100" step="5" placeholder="ex. 60"></div>
+      <div class="filtre"><label for="f-nouv">Fraîcheur</label>
+        <label style="font-size:14px;color:var(--encre-1);padding:6px 0"><input id="f-nouv" type="checkbox"> Nouveautés seulement</label></div>
+      <button id="f-reset" type="button">Réinitialiser</button>
+      <span class="compteur" id="compteur"></span>
+    </div>
+  </details>
 
   <section id="bloc-prio"></section>
   <section id="bloc-etudier"></section>
   <details class="repli" id="bloc-reste"><summary></summary><div id="reste-liste"></div></details>
+
+  <section id="bloc-encheres"></section>
 
   <details class="repli exclues" id="exclues-bloc">
     <summary></summary>
@@ -421,7 +468,7 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 <div class="comparateur-fond" id="comparateur-fond">
   <div class="comparateur">
     <button class="fermer" id="comp-fermer">Fermer ✕</button>
-    <h3>⚖️ Face à face</h3>
+    <h3>Face à face</h3>
     <div id="comp-table"></div>
   </div>
 </div>
@@ -436,7 +483,21 @@ const LIBELLES_SCORE = {
   rendement: "Rendement", emplacement: "Emplacement",
   prix_m2_vs_benchmark: "Prix vs marché", proximite: "Trajet 18e", quartier: "Quartier 18e"
 };
-const MEDAILLES = ["🥇 nᵒ 1 du jour", "🥈 nᵒ 2", "🥉 nᵒ 3"];
+const TAMPONS = ["Nº 1 du jour", "Nº 2", "Nº 3"];
+
+/* Pictogrammes tracés (pas d'emoji) */
+const IC = {
+  boutique: '<svg class="ic" viewBox="0 0 24 24"><path d="M4 10v10h16V10"/><path d="M7 20v-6h4v6"/><rect x="13.5" y="14" width="4.5" height="3.5" rx=".8"/><path d="M2 10c0-1 .6-4 2-4h16c1.4 0 2 3 2 4"/><path d="M2 10c0 1.2 1 2.2 2.5 2.2S7 11.2 7 10c0 1.2 1 2.2 2.5 2.2S12 11.2 12 10c0 1.2 1 2.2 2.5 2.2S17 11.2 17 10c0 1.2 1 2.2 2.5 2.2S22 11.2 22 10"/></svg>',
+  etincelle: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/></svg>',
+  pepite: '<svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10l4 6-9 10L3 10Z"/><path d="M3 10h18M12 20 8.5 10l2-6M12 20l3.5-10-2-6"/></svg>',
+  cible: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>',
+  marteau: '<svg class="ic" viewBox="0 0 24 24"><path d="m9.5 7 6 6M13 3.5 19.5 10M11 5.5 17.5 12M12.5 9.5l-8.5 8.5a1.6 1.6 0 0 0 2.3 2.3L14.8 12"/><path d="M13 21h8"/></svg>',
+  balance: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 4v16M6 4.8 18 4M7 20h10"/><path d="M6 5 3 12h6L6 5ZM18 4l-3 7h6l-3-7Z"/></svg>',
+  loupe: '<svg class="ic" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>',
+  trophee: '<svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 5H4c0 3 1.3 4.8 3 5M17 5h3c0 3-1.3 4.8-3 5M12 14v3M8.5 20h7M10 17h4"/></svg>',
+  alerte: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4Z"/><path d="M12 10v5M12 17.5v.5"/></svg>',
+  horloge: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>'
+};
 
 let comparaison = [];
 try { comparaison = JSON.parse(localStorage.getItem(CLE_COMP) || "[]"); } catch (e) {}
@@ -468,7 +529,7 @@ function rang(s) {
 
 function verdictMarche(a) {
   if (a.prix_m2 < a.marche_prix_m2_bas)
-    return '<span class="bon">sous la fourchette du marché 🎯</span>';
+    return '<span class="bon">sous la fourchette du marché</span>';
   if (a.prix_m2 > a.marche_prix_m2_haut)
     return '<span class="mauvais">au-dessus du marché local</span>';
   return a.decote_pct >= 0
@@ -482,6 +543,7 @@ function jaugeMarcheHtml(a) {
   const med = (bas + haut) / 2;
   const min = Math.min(bas, a.prix_m2) * 0.85, max = Math.max(haut, a.prix_m2) * 1.1;
   const pos = v => Math.max(0, Math.min(100, (v - min) / (max - min) * 100));
+  const lecture = a.lecture_prix ? `<div class="lecture">${ech(a.lecture_prix)}</div>` : "";
   return `<div class="marche">
     <div>${fmtEuros(a.prix_m2)}/m² — ${verdictMarche(a)}
       <span style="color:var(--encre-3)" title="écart à la médiane locale">(${a.decote_pct >= 0 ? "-" : "+"}${fmtPct(Math.abs(a.decote_pct))} vs médiane)</span></div>
@@ -492,6 +554,7 @@ function jaugeMarcheHtml(a) {
       <div class="bien" style="left:calc(${pos(a.prix_m2)}% - 4px)" title="ce bien : ${fmtEuros(a.prix_m2)}/m²"></div>
     </div>
     <div>marché local : ${fmtEuros(bas)} – ${fmtEuros(haut)} /m²</div>
+    ${lecture}
   </div>`;
 }
 
@@ -506,21 +569,20 @@ function pourquoiHtml(a) {
   const bonus = d.bonus_malus ?? 0;
   lignes.push(`<div class="jauge"><span>Bonus/malus</span><span></span>
     <span class="val">${bonus > 0 ? "+" : ""}${bonus}/5</span></div>`);
-  lignes.push(`<div class="total-ligne"><span>Total</span><span>${a.score ?? "—"} / 100</span></div>`);
   return `<div class="pourquoi"><div class="titre-bloc">Pourquoi ce score</div>${lignes.join("")}</div>`;
 }
 
 function carteHtml(a, options) {
   const badges = [];
   badges.push(`<span class="badge badge-type">${a.type_murs === "murs_occupes" ? "Murs occupés" : "Murs libres"}</span>`);
-  if (a.est_nouvelle) badges.push('<span class="badge badge-nouveau">🆕 nouveau</span>');
+  if (a.est_nouvelle) badges.push(`<span class="badge badge-nouveau">${IC.etincelle} nouveau</span>`);
   if ((a.flags || []).includes("rendement_anormalement_eleve"))
-    badges.push('<span class="badge badge-alerte">⚠️ rendement à vérifier</span>');
+    badges.push(`<span class="badge badge-alerte">${IC.alerte} rendement à vérifier</span>`);
 
   const img = a.image_url
     ? `<img src="${ech(a.image_url)}" alt="" loading="lazy" referrerpolicy="no-referrer"
-         onerror="this.parentElement.textContent='🏪'">`
-    : "🏪";
+         onerror="this.parentElement.innerHTML=IC.boutique">`
+    : IC.boutique;
 
   const liens = (a.urls_multiples || []).map((u, i) =>
     ` · <a href="${ech(u)}" target="_blank" rel="noopener">aussi vu ici (${i + 2})</a>`).join("");
@@ -537,11 +599,12 @@ function carteHtml(a, options) {
     ["Loyer/mois", loyer == null ? "—" : fmtEuros(loyer) + est],
     ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "")],
     ["Rdt acte en main", fmtPct(a.rendement_acte_en_main_pct)],
+    ["Trajet 18e", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min"],
   ].map(([l, v]) =>
     `<div class="metrique"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
 
-  const medaille = options.medaille != null
-    ? `<div><span class="medaille">${MEDAILLES[options.medaille]}</span></div>` : "";
+  const tampon = options.medaille != null
+    ? `<div><span class="tampon">${TAMPONS[options.medaille]}</span></div>` : "";
   const lettreRang = rang(a.score);
   const dansComp = comparaison.includes(a.id);
 
@@ -549,7 +612,7 @@ function carteHtml(a, options) {
       style="animation-delay:${(options.index || 0) * 45}ms">
     <div class="carte-img">${img}</div>
     <div>
-      ${medaille}
+      ${tampon}
       <div class="carte-titre"><a href="${ech(a.url)}" target="_blank" rel="noopener">${ech(a.titre)}</a>
         <span class="badges">${badges.join("")}</span></div>
       <div class="carte-lieu">${ech(a.ville)}${a.code_postal ? " (" + ech(a.code_postal) + ")" : ""}
@@ -564,7 +627,7 @@ function carteHtml(a, options) {
       <div class="score ${classeScore(a.score)}">${a.score ?? "—"}</div>
       <div class="score-libelle">/100</div>
       <button type="button" class="btn-comp${dansComp ? " actif" : ""}" data-id="${ech(a.id)}">
-        ${dansComp ? "✓ Comparé" : "⚖ Comparer"}</button>
+        ${IC.balance} ${dansComp ? "Comparé" : "Comparer"}</button>
     </div>
   </article>`;
 }
@@ -577,6 +640,18 @@ function ligneCompacteHtml(a) {
     <span class="mini-score" style="background:${fonds};color:${encres}">${a.score ?? "—"}</span>
     <span class="t"><a href="${ech(a.url)}" target="_blank" rel="noopener">${ech(a.titre)}</a></span>
     <span class="d">${ech(a.ville)} · ${fmtEuros(a.prix)} · rdt ${fmtPct(a.rendement_brut_pct)}</span>
+  </div>`;
+}
+
+function enchereHtml(e) {
+  const date = e.date_vente
+    ? new Date(e.date_vente).toLocaleDateString("fr-FR", {day: "numeric", month: "short"})
+    : "date ?";
+  const m2 = e.prix_m2_mise_a_prix ? ` · ${fmtEuros(e.prix_m2_mise_a_prix)}/m² (mise à prix)` : "";
+  return `<div class="enchere">
+    <span class="date">${IC.horloge} ${date}</span>
+    <span class="t"><a href="${ech(e.url)}" target="_blank" rel="noopener">${ech(e.titre)}</a></span>
+    <span class="d">dépt ${ech(e.departement)} · mise à prix ${fmtEuros(e.mise_a_prix)}${m2} · ${ech(e.type_vente)}</span>
   </div>`;
 }
 
@@ -607,7 +682,6 @@ function rendre() {
   const etudier = visibles.filter(a => (a.score ?? 0) >= D.seuils.affichage && (a.score ?? 0) < D.seuils.vert);
   const reste = visibles.filter(a => (a.score ?? 0) < D.seuils.affichage);
 
-  // Podium : les 3 meilleures visibles au-dessus du seuil d'affichage
   const podium = [...prio, ...etudier].slice(0, 3).map(a => a.id);
   const opts = a => ({
     prio: (a.score ?? 0) >= D.seuils.vert,
@@ -616,13 +690,13 @@ function rendre() {
 
   let index = 0;
   document.getElementById("bloc-prio").innerHTML =
-    `<h2 class="section">🏆 Le haut du panier <span class="nb">score ≥ ${D.seuils.vert}</span></h2>` +
+    `<h2 class="section">${IC.trophee} Le haut du panier <span class="nb">score ≥ ${D.seuils.vert}</span></h2>` +
     (prio.length ? prio.map(a => carteHtml(a, {...opts(a), index: index++})).join("")
       : `<div class="note-vide">Aucun trophée au-dessus de ${D.seuils.vert} aujourd'hui — les mieux classées sont ci-dessous.
          La chasse reprend chaque matin à 7 h ; une pépite (≥ ${D.seuils.pepite}) déclenchera un email immédiat.</div>`);
 
   document.getElementById("bloc-etudier").innerHTML =
-    `<h2 class="section">🔎 À étudier de près <span class="nb">score ${D.seuils.affichage}–${D.seuils.vert - 1}</span></h2>` +
+    `<h2 class="section">${IC.loupe} À étudier de près <span class="nb">score ${D.seuils.affichage}–${D.seuils.vert - 1}</span></h2>` +
     (etudier.length ? etudier.map(a => carteHtml(a, {...opts(a), index: index++})).join("")
       : '<div class="note-vide">Rien dans cette tranche avec ces filtres.</div>');
 
@@ -640,12 +714,12 @@ function rendre() {
   majPlateau();
 }
 
-/* ---- Comparateur ---- */
+/* ---- Comparateur (bureau uniquement) ---- */
 function majPlateau() {
   const plateau = document.getElementById("plateau");
   if (comparaison.length === 0) { plateau.style.display = "none"; return; }
   plateau.style.display = "block";
-  plateau.innerHTML = `⚖️ ${comparaison.length} bien${comparaison.length > 1 ? "s" : ""} sélectionné${comparaison.length > 1 ? "s" : ""}
+  plateau.innerHTML = `${IC.balance} ${comparaison.length} bien${comparaison.length > 1 ? "s" : ""} sélectionné${comparaison.length > 1 ? "s" : ""}
     <button type="button" id="comp-ouvrir" ${comparaison.length < 2 ? "disabled style='opacity:.5'" : ""}>Face à face</button>
     <button type="button" id="comp-vider">Vider</button>`;
 }
@@ -663,7 +737,7 @@ function ouvrirComparateur() {
   if (biens.length < 2) return;
   const meilleur = fn => Math.max(...biens.map(fn).filter(v => v != null && !isNaN(v)));
   const lignes = [
-    ["", b => b.image_url ? `<img src="${ech(b.image_url)}" referrerpolicy="no-referrer" onerror="this.remove()">` : "🏪"],
+    ["", b => b.image_url ? `<img src="${ech(b.image_url)}" referrerpolicy="no-referrer" onerror="this.remove()">` : IC.boutique],
     ["Annonce", b => `<a href="${ech(b.url)}" target="_blank" rel="noopener">${ech(b.titre)}</a><br>
        <span style="color:var(--encre-3)">${ech(b.ville)} (${ech(b.code_postal)})</span>`],
     ["Score", b => {
@@ -672,6 +746,7 @@ function ouvrirComparateur() {
     }],
     ["Prix", b => fmtEuros(b.prix)],
     ["Prix/m²", b => `${fmtEuros(b.prix_m2)} <span style="color:var(--encre-3)">(marché ${fmtEuros(b.marche_prix_m2_bas)}–${fmtEuros(b.marche_prix_m2_haut)})</span>`],
+    ["Lecture du prix", b => ech(b.lecture_prix || "—")],
     ["Surface", b => b.surface_m2 == null ? "—" : b.surface_m2 + " m²"],
     ["Loyer/mois", b => {
       const l = b.loyer_mensuel ?? b.loyer_mensuel_estime;
@@ -708,11 +783,14 @@ document.addEventListener("click", ev => {
 });
 
 function initialiser() {
+  // Filtres ouverts d'office sur grand écran, repliés sur mobile
+  if (window.innerWidth > 760) document.getElementById("volet-filtres").open = true;
+
   const s = D.stats;
   document.getElementById("hud").innerHTML =
-    `<span class="puce">🆕 <b>${s.nouvelles}</b> nouvelle${s.nouvelles > 1 ? "s" : ""} (48 h)</span>` +
-    `<span class="puce">🔥 <b>${s.pepites}</b> pépite${s.pepites > 1 ? "s" : ""}</span>` +
-    `<span class="puce">🎯 <b>${s.analysees}</b> annonces passées au crible (7 j)</span>` +
+    `<span class="puce">${IC.etincelle} <b>${s.nouvelles}</b> nouvelle${s.nouvelles > 1 ? "s" : ""} (48 h)</span>` +
+    `<span class="puce">${IC.pepite} <b>${s.pepites}</b> pépite${s.pepites > 1 ? "s" : ""}</span>` +
+    `<span class="puce">${IC.cible} <b>${s.analysees}</b> passées au crible (7 j)</span>` +
     `<span class="maj">maj ${fmtDate(D.derniere_execution)}</span>`;
   document.getElementById("pied-maj").textContent =
     new Date(D.derniere_execution).toLocaleString("fr-FR");
@@ -720,6 +798,14 @@ function initialiser() {
   const deps = [...new Set(D.retenues.map(a => a.departement).filter(Boolean))].sort();
   const selDep = document.getElementById("f-dep");
   for (const d of deps) selDep.insertAdjacentHTML("beforeend", `<option value="${d}">${d}</option>`);
+
+  const encheres = D.encheres || [];
+  document.getElementById("bloc-encheres").innerHTML = encheres.length
+    ? `<h2 class="section">${IC.marteau} Sous le marteau <span class="nb">${encheres.length} vente${encheres.length > 1 ? "s" : ""} aux enchères à venir en IdF</span></h2>` +
+      encheres.map(enchereHtml).join("") +
+      `<div class="note-encheres">La mise à prix n'est pas le prix final (comptez souvent 1,5× à 3×).
+       Enchérir en salle exige un avocat et une consignation (~10 %). Section informative, hors scoring.</div>`
+    : "";
 
   const bloc = document.getElementById("exclues-bloc");
   bloc.querySelector("summary").textContent =
@@ -740,9 +826,9 @@ function initialiser() {
   document.getElementById("legende").textContent =
     `Barème /100 : rendement 40 + emplacement 25 + prix vs marché 20 + trajet 5 + quartier 18e 5 ` +
     `+ bonus/malus (−3 à +5, plafonné à 100). Rangs : S ≥ ${D.seuils.pepite} (pépite, email immédiat), ` +
-    `A ≥ ${D.seuils.vert}, B ≥ ${D.seuils.orange}, C en dessous. ` +
-    `⚠️ = rendement anormalement élevé, vérifier locataire et quartier. ` +
-    `« est. » = loyer estimé d'après le référentiel local (data/benchmarks.json, modifiable).`;
+    `A ≥ ${D.seuils.vert}, B ≥ ${D.seuils.orange}, C en dessous. Un rendement > 10 % est plafonné ` +
+    `sous ${D.seuils.affichage} (piège probable) jusqu'à vérification. ` +
+    `« est. » = loyer estimé ou promis, non prouvé par un bail.`;
 
   try {
     const memo = JSON.parse(localStorage.getItem(CLE_FILTRES) || "{}");

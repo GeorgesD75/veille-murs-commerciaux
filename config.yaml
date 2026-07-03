@@ -100,7 +100,10 @@ sources:                      # activer/désactiver une source = une ligne
   papcommerces:    {actif: true}   # site commerces de PAP, listing IdF
   bienici:         {actif: true, max_annonces: 100}   # API JSON, boutiques triées par date
   cessionpme:      {actif: true}   # listing « vente locaux commerciaux IdF » (1 000+ annonces)
+  encheres_publiques: {actif: true}  # enchères IdF — canal spécial sans scoring (mise à prix ≠ prix)
   # placedescommerces.com écarté : marché de fonds de commerce, pas de murs.
+  # licitor.com : résultats chargés en AJAX, à réétudier si besoin (l'appli mobile a une API).
+  # Facebook Marketplace / LeBonCoin / SeLoger : accès authentifié + anti-bot -> alertes email (Phase 4).
   # century21 : non implémenté en scraping (robots.txt restrictif, rubrique commerces
   # non identifiable sans blocage) — couvert par les alertes email en Phase 4.
   imap:            {actif: false}   # Phase 4 (alertes email LeBonCoin, SeLoger, Geolocaux…)
