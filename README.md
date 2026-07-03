@@ -47,16 +47,18 @@ Zéro serveur, zéro abonnement : GitHub exécute et héberge tout gratuitement.
    `url_dashboard: "https://…"` (tout en bas), bouton **Commit changes**.
    → C'est le lien « Ouvrir le tableau de chasse » de vos emails.
 
-### Étape 3 — La boîte Gmail dédiée aux alertes
+### Étape 3 — Autoriser la lecture des alertes dans votre Gmail
 
 Les grands portails (LeBonCoin, SeLoger, Geolocaux…) interdisent la collecte
-automatique MAIS envoient des alertes email gratuites : le système les lit dans
-une boîte dédiée.
+automatique MAIS envoient des alertes email gratuites : le système les lit
+directement dans votre boîte Gmail. **Sans risque pour vos autres emails** :
+le robot ne cherche QUE les messages venant des portails connus — il ne lit ni
+ne marque rien d'autre.
 
-1. Créez une adresse Gmail neuve, par exemple `veille.murs.georges@gmail.com`
-   (n'utilisez PAS votre adresse personnelle : le robot marque les emails comme lus).
-2. Activez la **validation en 2 étapes** : [myaccount.google.com/security](https://myaccount.google.com/security).
-3. Créez un **mot de passe d'application** :
+1. Activez la **validation en 2 étapes** sur votre compte Google (si ce n'est
+   pas déjà fait) : [myaccount.google.com/security](https://myaccount.google.com/security).
+2. Créez un **mot de passe d'application** (un mot de passe spécial, limité,
+   que vous pouvez révoquer à tout moment — PAS votre mot de passe Gmail) :
    [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
    → nom « veille murs » → notez les 16 caractères affichés (c'est `IMAP_PASSWORD`).
 
@@ -74,15 +76,15 @@ quatre fois :
 
 | Nom du secret | Valeur |
 |---|---|
-| `IMAP_USER` | l'adresse Gmail dédiée (étape 3) |
-| `IMAP_PASSWORD` | le mot de passe d'application 16 caractères |
+| `IMAP_USER` | votre adresse Gmail (celle qui reçoit les alertes) |
+| `IMAP_PASSWORD` | le mot de passe d'application 16 caractères (étape 3) |
 | `RESEND_API_KEY` | la clé Resend (étape 4) |
-| `EMAIL_TO` | votre adresse personnelle |
+| `EMAIL_TO` | votre adresse Gmail (la même) |
 
 ### Étape 6 — Créer les alertes sur les portails
 
-Sur chaque portail, créez une recherche + alerte email **vers la boîte dédiée**
-(étape 3). Critères conseillés partout : *achat / vente · local commercial ·
+Sur chaque portail, créez une recherche + alerte email **vers votre adresse
+Gmail**. Critères conseillés partout : *achat / vente · local commercial ·
 Île-de-France · 140 000 à 420 000 €*.
 
 - **LeBonCoin** ([leboncoin.fr](https://www.leboncoin.fr)) : catégorie

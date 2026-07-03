@@ -124,4 +124,4 @@ notifications:
   fournisseur: resend
   email_quotidien: true       # uniquement s'il y a de nouvelles annonces retenues
   max_annonces_email: 5
-  url_dashboard: ""           # renseignée en Phase 5 (adresse GitHub Pages)
+  url_dashboard: "https://georgesd75.github.io/veille-murs-commerciaux/"

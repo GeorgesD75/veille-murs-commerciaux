@@ -2,17 +2,20 @@
 
 LeBonCoin, SeLoger Bureaux & Commerces, Geolocaux, BureauxLocaux bloquent le
 scraping (DataDome…) MAIS envoient des alertes email gratuites : on lit ces
-alertes dans une boîte Gmail dédiée. Identifiants attendus en variables
-d'environnement (secrets GitHub Actions) :
+alertes dans la boîte Gmail de l'utilisateur. Identifiants attendus en
+variables d'environnement (secrets GitHub Actions) :
 
-    IMAP_USER      adresse de la boîte dédiée (ex. veille.murs.georges@gmail.com)
+    IMAP_USER      l'adresse Gmail qui reçoit les alertes
     IMAP_PASSWORD  « mot de passe d'application » Gmail (PAS le mot de passe
                    du compte : compte Google > Sécurité > Validation en 2 étapes
                    > Mots de passe des applications)
 
+Boîte PERSONNELLE compatible : la recherche IMAP est restreinte aux expéditeurs
+des portails connus — aucun autre email n'est lu ni marqué lu. Seules les
+alertes NON LUES sont traitées ; leur lecture les marque lues, elles ne seront
+donc pas retraitées au run suivant.
+
 Sans ces variables, la source s'ignore proprement (avertissement en santé).
-Seuls les messages NON LUS sont traités ; la lecture IMAP les marque lus,
-ils ne seront donc pas retraités au run suivant.
 
 Les extracteurs par portail sont volontairement génériques (lien d'annonce
 reconnu par motif + lecture du bloc alentour : prix, surface, ville) : les
@@ -171,8 +174,16 @@ class SourceImap(Source):
         with imaplib.IMAP4_SSL(self.hote) as boite:
             boite.login(utilisateur, mot_de_passe)
             boite.select(self.dossier)
-            _, resultats = boite.search(None, "UNSEEN")
-            numeros = resultats[0].split() if resultats and resultats[0] else []
+            # Boîte personnelle oblige : on ne cherche QUE les emails des
+            # portails connus — le reste de la boîte n'est ni lu ni marqué lu.
+            numeros: list[bytes] = []
+            for portail in PORTAILS:
+                for domaine in portail.domaines:
+                    _, resultats = boite.search(None, f'(UNSEEN FROM "{domaine}")')
+                    if resultats and resultats[0]:
+                        numeros.extend(
+                            n for n in resultats[0].split() if n not in numeros
+                        )
             for numero in numeros:
                 # fetch RFC822 pose le drapeau \\Seen : le message ne sera pas retraité
                 _, contenu = boite.fetch(numero, "(RFC822)")
