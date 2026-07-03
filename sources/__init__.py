@@ -15,6 +15,7 @@ from sources.base import Source
 from sources.bienici import SourceBienici
 from sources.cessionpme import SourceCessionPme
 from sources.hektor import SourceFlagship, SourceIburoshop
+from sources.imap_alertes import SourceImap
 from sources.mock import SourceMock
 from sources.murscommerciaux import SourceMursCommerciaux
 from sources.papcommerces import SourcePapCommerces
@@ -29,7 +30,7 @@ FABRIQUES: dict[str, Callable[..., Source]] = {
     "papcommerces": SourcePapCommerces,
     "bienici": SourceBienici,
     "cessionpme": SourceCessionPme,
-    # Phase 4 : "imap"
+    "imap": SourceImap,
 }
 
 

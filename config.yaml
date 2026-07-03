@@ -103,12 +103,14 @@ sources:                      # activer/désactiver une source = une ligne
   encheres_publiques: {actif: true}  # enchères IdF — canal spécial sans scoring (mise à prix ≠ prix)
   # placedescommerces.com écarté : marché de fonds de commerce, pas de murs.
   # licitor.com : résultats chargés en AJAX, à réétudier si besoin (l'appli mobile a une API).
-  # Facebook Marketplace / LeBonCoin / SeLoger : accès authentifié + anti-bot -> alertes email (Phase 4).
+  # Facebook Marketplace : accès authentifié + anti-bot, pas de contournement propre.
   # century21 : non implémenté en scraping (robots.txt restrictif, rubrique commerces
-  # non identifiable sans blocage) — couvert par les alertes email en Phase 4.
-  imap:            {actif: false}   # Phase 4 (alertes email LeBonCoin, SeLoger, Geolocaux…)
+  # non identifiable sans blocage) — couvert par les alertes email ci-dessous.
+  imap:            {actif: true}    # alertes email LeBonCoin/SeLoger/Geolocaux/BureauxLocaux
+                                    # (s'ignore proprement tant que IMAP_USER/IMAP_PASSWORD manquent)
 
 notifications:
   fournisseur: resend
   email_quotidien: true       # uniquement s'il y a de nouvelles annonces retenues
   max_annonces_email: 5
+  url_dashboard: ""           # renseignée en Phase 5 (adresse GitHub Pages)

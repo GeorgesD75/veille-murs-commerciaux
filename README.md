@@ -18,7 +18,10 @@ les score, met à jour un dashboard GitHub Pages et envoie un email s'il y a du 
 - [x] **Phase 3** — dashboard GitHub Pages (docs/index.html autonome, non référencé :
   noindex + robots.txt ; filtres mémorisés, mode sombre, section « Exclues » repliée,
   santé des sources en pied de page)
-- [ ] **Phase 4** — module IMAP (alertes email des portails) + notifications Resend
+- [x] **Phase 4** — module IMAP (alertes email LeBonCoin/SeLoger/Geolocaux/BureauxLocaux
+  lues dans une boîte Gmail dédiée, messages non lus uniquement) + notifications Resend
+  (email quotidien top 5 s'il y a du nouveau, email « 🔥 Pépite » immédiat avec
+  anti-doublon persistant). S'ignorent proprement tant que les secrets ne sont pas posés.
 - [ ] **Phase 5** — workflow GitHub Actions + README complet pas-à-pas
 
 ## Démarrage rapide (développement)

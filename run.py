@@ -20,6 +20,7 @@ from pipeline.filtres import raison_exclusion
 from pipeline.geo import Trajets
 from pipeline.modeles import Annonce, AnnonceBrute
 from pipeline.normalisation import maintenant_iso, normaliser
+from pipeline.notifications import notifier
 from pipeline.scoring import scorer
 from pipeline.stockage import Stockage
 from sources import sources_actives
@@ -80,7 +81,7 @@ def executer() -> dict[str, Any]:
     trajets = Trajets.charger(RACINE / "data" / "trajets.json")
     benchmarks = Benchmarks.charger(RACINE / "data" / "benchmarks.json")
     stockage = Stockage(RACINE / "data" / "annonces.json")
-    annonces, _ = stockage.charger()
+    annonces, ancienne_meta = stockage.charger()
     quand = maintenant_iso()
 
     brutes, sante = collecter_toutes_sources(config)
@@ -121,7 +122,11 @@ def executer() -> dict[str, Any]:
         "sante_sources": sante,
         "nouvelles_ce_run": nouvelles,
         "encheres": encheres,
+        # Mémoire anti-doublon des emails pépite (complétée par notifier)
+        "pepites_notifiees": ancienne_meta.get("pepites_notifiees", []),
     }
+
+    meta["notifications"] = notifier(annonces, nouvelles, meta, config)
     stockage.sauvegarder(annonces, meta)
 
     try:
@@ -130,12 +135,15 @@ def executer() -> dict[str, Any]:
     except Exception:  # noqa: BLE001 — les données sont sauvées, le run reste utile
         log.exception("génération du dashboard en échec")
 
-    afficher_rapport(annonces, nouvelles, sante)
+    afficher_rapport(annonces, nouvelles, sante, meta["notifications"])
     return meta
 
 
 def afficher_rapport(
-    annonces: dict[str, Annonce], nouvelles: list[str], sante: dict[str, Any]
+    annonces: dict[str, Annonce],
+    nouvelles: list[str],
+    sante: dict[str, Any],
+    notifications: dict[str, Any],
 ) -> None:
     retenues = sorted(
         (a for a in annonces.values() if not a.exclue), key=lambda a: a.score or 0, reverse=True
@@ -165,6 +173,10 @@ def afficher_rapport(
             f"  [{a.score:>3}] {a.titre} — {a.ville} ({a.code_postal}) — {prix} — "
             f"{surface} — rendement brut {rendement}{alerte}"
         )
+
+    print(f"\n=== Notifications : {notifications.get('statut', '?')} "
+          f"(pépites : {notifications.get('pepites', 0)}, "
+          f"quotidien : {notifications.get('quotidien', 0)}) ===")
 
     print(f"\n=== {len(exclues)} annonces exclues (transparence du filtre) ===")
     for a in exclues:
