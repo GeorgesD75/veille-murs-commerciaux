@@ -1,67 +1,159 @@
-# Veille murs commerciaux — Paris & Île-de-France
+# Les Murs. — votre veille de murs commerciaux, automatique
 
-Système automatisé de veille d'annonces de **murs de locaux commerciaux** (murs occupés en
-priorité) pour un investisseur particulier basé à Paris 18e. Budget 150 000 – 400 000 €,
-objectif : bail commercial 3/6/9, gestion minimale.
+Chaque matin à 7 h, ce système :
+1. fait la tournée de **8 sources** (sites spécialisés, API, alertes email des grands
+   portails, ventes aux enchères) ;
+2. **écarte les pièges** (fonds de commerce déguisés, prix incohérents, hors zone,
+   rendements trop beaux pour être vrais) ;
+3. **note chaque annonce sur 100** (rendement, emplacement, prix vs marché, trajet,
+   quartier 18e) et compare au marché local ;
+4. met à jour votre site privé **« Les Murs. »** (comparateur, simulateur de
+   financement, checklist d'achat) ;
+5. vous **envoie un email** s'il y a du nouveau — et un email immédiat 🔥 si une
+   pépite (score ≥ 80) apparaît.
 
-Fonctionnement cible : un run quotidien via GitHub Actions collecte les annonces, les filtre,
-les score, met à jour un dashboard GitHub Pages et envoie un email s'il y a du nouveau.
-**Aucun serveur à gérer.**
+Zéro serveur, zéro abonnement : GitHub exécute et héberge tout gratuitement.
 
-## Avancement par phases
+---
 
-- [x] **Phase 1** — structure, pipeline (normalisation → filtres → dédoublonnage →
-  enrichissement → scoring), tests sur données mockées
-- [x] **Phase 2** — parsers Niveau 1 : pointdevente.fr, murscommerciaux.com,
-  iburoshop.fr, flagship.fr (century21.fr écarté : robots.txt restrictif, couvert
-  via les alertes email en Phase 4)
-- [x] **Phase 3** — dashboard GitHub Pages (docs/index.html autonome, non référencé :
-  noindex + robots.txt ; filtres mémorisés, mode sombre, section « Exclues » repliée,
-  santé des sources en pied de page)
-- [x] **Phase 4** — module IMAP (alertes email LeBonCoin/SeLoger/Geolocaux/BureauxLocaux
-  lues dans une boîte Gmail dédiée, messages non lus uniquement) + notifications Resend
-  (email quotidien top 5 s'il y a du nouveau, email « 🔥 Pépite » immédiat avec
-  anti-doublon persistant). S'ignorent proprement tant que les secrets ne sont pas posés.
-- [ ] **Phase 5** — workflow GitHub Actions + README complet pas-à-pas
+## Mise en route (~30 minutes, une seule fois)
 
-## Démarrage rapide (développement)
+### Étape 1 — Créer un compte GitHub et y envoyer le projet
 
-```powershell
-python -m venv .venv
-.venv\Scripts\python -m pip install -r requirements.txt
-.venv\Scripts\python -m pytest          # tests
-.venv\Scripts\python run.py             # run complet sur la source mock
+1. Créez un compte sur [github.com](https://github.com) (gratuit).
+2. Créez un dépôt : bouton **New repository**, nom `veille-murs-commerciaux`,
+   visibilité **Public** (obligatoire pour l'hébergement gratuit du site —
+   pas d'inquiétude : le site est non référencé par les moteurs de recherche,
+   et le dépôt ne contient aucun mot de passe). **Ne cochez rien d'autre.**
+3. Sur VOTRE ordinateur, ouvrez PowerShell dans le dossier du projet et collez
+   (remplacez `VOTRE-PSEUDO`) :
+
+   ```powershell
+   git remote add origin https://github.com/VOTRE-PSEUDO/veille-murs-commerciaux.git
+   git push -u origin master
+   ```
+
+   GitHub vous demandera de vous connecter — suivez la fenêtre qui s'ouvre.
+
+### Étape 2 — Activer le site (GitHub Pages)
+
+1. Sur la page GitHub du dépôt : **Settings → Pages**.
+2. Sous « Build and deployment » : Source = **Deploy from a branch**,
+   Branch = **master**, dossier = **/docs**, puis **Save**.
+3. Après ~2 minutes, l'adresse de votre site apparaît en haut de cette page
+   (`https://VOTRE-PSEUDO.github.io/veille-murs-commerciaux/`). Gardez-la.
+4. Recopiez cette adresse dans le fichier `config.yaml` du dépôt : ouvrez le
+   fichier sur GitHub, cliquez le crayon ✏️, remplissez
+   `url_dashboard: "https://…"` (tout en bas), bouton **Commit changes**.
+   → C'est le lien « Ouvrir le tableau de chasse » de vos emails.
+
+### Étape 3 — La boîte Gmail dédiée aux alertes
+
+Les grands portails (LeBonCoin, SeLoger, Geolocaux…) interdisent la collecte
+automatique MAIS envoient des alertes email gratuites : le système les lit dans
+une boîte dédiée.
+
+1. Créez une adresse Gmail neuve, par exemple `veille.murs.georges@gmail.com`
+   (n'utilisez PAS votre adresse personnelle : le robot marque les emails comme lus).
+2. Activez la **validation en 2 étapes** : [myaccount.google.com/security](https://myaccount.google.com/security).
+3. Créez un **mot de passe d'application** :
+   [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+   → nom « veille murs » → notez les 16 caractères affichés (c'est `IMAP_PASSWORD`).
+
+### Étape 4 — Le compte d'envoi d'emails (Resend)
+
+1. Créez un compte gratuit sur [resend.com](https://resend.com) **avec votre adresse
+   personnelle** (celle où vous voulez recevoir les alertes : en offre gratuite,
+   Resend n'envoie qu'à l'adresse du compte).
+2. Menu **API Keys → Create API key** → copiez la clé (c'est `RESEND_API_KEY`).
+
+### Étape 5 — Renseigner les 4 secrets
+
+Sur GitHub : **Settings → Secrets and variables → Actions → New repository secret**,
+quatre fois :
+
+| Nom du secret | Valeur |
+|---|---|
+| `IMAP_USER` | l'adresse Gmail dédiée (étape 3) |
+| `IMAP_PASSWORD` | le mot de passe d'application 16 caractères |
+| `RESEND_API_KEY` | la clé Resend (étape 4) |
+| `EMAIL_TO` | votre adresse personnelle |
+
+### Étape 6 — Créer les alertes sur les portails
+
+Sur chaque portail, créez une recherche + alerte email **vers la boîte dédiée**
+(étape 3). Critères conseillés partout : *achat / vente · local commercial ·
+Île-de-France · 140 000 à 420 000 €*.
+
+- **LeBonCoin** ([leboncoin.fr](https://www.leboncoin.fr)) : catégorie
+  Immobilier → Bureaux & Commerces, filtre « Vente », zone Île-de-France,
+  fourchette de prix → bouton **Créer une alerte** (créez un compte LeBonCoin
+  avec l'adresse dédiée, ou renseignez-la comme email de réception).
+- **SeLoger Bureaux & Commerces** ([bureauxlocaux.com](https://www.bureauxlocaux.com)) :
+  recherche « Acheter · Local commercial · Île-de-France » → **Créer une alerte email**.
+- **Geolocaux** ([geolocaux.com](https://www.geolocaux.com)) : Achat → Local
+  commercial → Île-de-France → **Alerte email**.
+- Bonus : les alertes de n'importe quel autre portail envoyées à cette boîte
+  seront tentées aussi — au pire elles sont ignorées proprement.
+
+Astuce : depuis la boîte dédiée, un test simple = transférez-vous une vraie
+alerte reçue ; à la tournée suivante, l'annonce apparaît sur le site.
+
+### Étape 7 — Premier essai
+
+1. Onglet **Actions** du dépôt → « Veille quotidienne » → **Run workflow**.
+2. Deux minutes plus tard : la coche verte ✅, votre site est à jour, et vous
+   recevez l'email du jour s'il y a des nouveautés.
+
+C'est terminé : chaque matin à 7 h, tout se refait sans vous.
+
+---
+
+## La vie courante
+
+- **Consulter** : ouvrez votre site (mettez-le en favori sur ordinateur ET téléphone).
+- **Lancer une tournée à la main** : Actions → Veille quotidienne → Run workflow.
+- **Modifier un réglage** : sur GitHub, ouvrez le fichier → crayon ✏️ → Commit.
+  - `config.yaml` — budget, barème du score, seuils, communes bonus, sources
+    on/off, cible de rendement, hypothèses de crédit ;
+  - `data/benchmarks.json` — les fourchettes de prix/m² et loyers du marché
+    (affinez-les au fil de vos visites : tout le monde vous dira merci) ;
+  - `data/trajets.json` — les temps de trajet depuis Paris 18e.
+  Le score de TOUTES les annonces est recalculé à la tournée suivante.
+
+## En cas de pépin
+
+- **Une source en erreur** dans « Santé des sources » (pied du site) : pas grave,
+  les autres continuent ; si ça dure plusieurs jours, le site a probablement
+  changé sa structure — les autres sources compensent en attendant un correctif.
+- **Pas d'emails** : vérifiez les 4 secrets (étape 5) et que `EMAIL_TO` est bien
+  l'adresse de votre compte Resend.
+- **`imap : avertissement identifiants absents`** : secrets `IMAP_USER` /
+  `IMAP_PASSWORD` manquants ou mal copiés.
+- **La tournée ne se lance plus** : GitHub suspend les crons après 60 jours sans
+  activité — le commit quotidien des données l'évite normalement ; sinon, un
+  passage sur Actions → « Enable workflow » suffit.
+
+## Ce qu'il y a sous le capot
+
+```
+run.py                  La tournée : collecte → filtres → score → site → emails
+config.yaml             TOUS les réglages, commentés en français
+sources/                1 fichier = 1 source (8 canaux), client HTTP poli
+                        (robots.txt vérifié, 3-5 s entre requêtes, arrêt sur refus)
+pipeline/               Filtres anti-pièges, dédoublonnage, enrichissement,
+                        scoring /100, lecture du prix, notifications
+dashboard/generer.py    Le site « Les Murs. » (1 fichier autonome, non référencé)
+data/annonces.json      La mémoire (committée à chaque tournée = historique gratuit)
+tests/                  96 tests automatiques, joués avant chaque tournée
+.github/workflows/      Le réveil-matin (cron 7 h Paris + bouton manuel)
 ```
 
-## Structure
+Choix assumés, en une ligne chacun : stockage JSON versionné (diffs lisibles) ;
+scraping poli et documenté source par source ; les grands portails passent par
+leurs alertes email officielles ; les enchères ont leur score d'intérêt propre
+(le prix final étant imprévisible, on ne le prédit jamais) ; tout rendement
+> 10 % est plafonné sous le seuil d'affichage jusqu'à vérification humaine.
 
-```
-run.py                 Point d'entrée : collecte → pipeline → stockage
-config.yaml            Tous les paramètres (budget, scoring, sources…) modifiables à la main
-sources/               1 fichier = 1 source, interface commune (sources/base.py)
-pipeline/              Normalisation, filtres, dédoublonnage, enrichissement, scoring, stockage
-data/benchmarks.json   Fourchettes de prix/m² et loyers médians par département — à affiner à la main
-data/trajets.json      Temps de trajet approximatifs depuis Paris 18e — à affiner à la main
-data/annonces.json     Mémoire du collecteur (générée, versionnée dans git pour le dédoublonnage)
-dashboard/generer.py   Génère docs/index.html (page autonome, aucune dépendance front)
-docs/                  Le site publié par GitHub Pages (index.html, robots.txt, .nojekyll)
-tests/                 Tests unitaires (pytest)
-```
-
-## Choix documentés
-
-- **Stockage JSON versionné plutôt que SQLite** : les diffs restent lisibles dans git à chaque
-  run (on voit les annonces apparaître/disparaître), pas de fichier binaire committé. L'accès
-  est isolé dans `pipeline/stockage.py` si l'on veut migrer plus tard.
-- **Temps de trajet : table statique** (`data/trajets.json`). Recherche par commune, sinon
-  valeur par défaut du département. C'est approximatif mais suffisant pour un filtre à 1h,
-  gratuit, sans API, et corrigeable à la main.
-- **Détection fonds de commerce** : mots-clés éliminatoires + contrôle de cohérence prix/m²
-  (un local à < 1 500 €/m² en petite couronne sans le mot « murs » est presque toujours un
-  fonds ou un droit au bail). Listes et planchers dans `config.yaml`.
-- **Le scoring est recalculé à chaque run** sur tout le stock : modifier `config.yaml` ou les
-  benchmarks re-score toutes les annonces au run suivant.
-- **Scraping poli, vérifié source par source** (relevés robots.txt du 2026-07-02 documentés
-  en tête de chaque parser) : User-Agent honnête avec contact, 3-5 s entre requêtes, arrêt
-  propre sur 403/429, premières pages uniquement (les listings sont triés « plus récentes
-  d'abord », largement suffisant pour un run quotidien). ~7 requêtes par run au total.
+Budget de fonctionnement : **0 €** (GitHub Actions ~3 min/jour, Pages, Resend
+et Gmail dans leurs offres gratuites).
