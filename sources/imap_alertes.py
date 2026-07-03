@@ -30,6 +30,7 @@ import imaplib
 import os
 import re
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from urllib.parse import unquote
 
 from bs4 import BeautifulSoup
@@ -142,13 +143,28 @@ def extraire_annonces_html(html: str, portail: Portail) -> list[AnnonceBrute]:
     return list(annonces.values())
 
 
+# Mois IMAP (format RFC : indépendant de la langue du système)
+_MOIS_IMAP = ("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+
 class SourceImap(Source):
     nom = "imap"
 
-    def __init__(self, hote: str = "imap.gmail.com", dossier: str = "INBOX") -> None:
+    def __init__(
+        self, hote: str = "imap.gmail.com", dossier: str = "INBOX",
+        jours_max: int = 3,
+    ) -> None:
         super().__init__()
         self.hote = hote
         self.dossier = dossier
+        # Ne regarder que les alertes récentes : protège une boîte personnelle
+        # pleine d'anciens non-lus (ils ne sont ni traités ni marqués lus).
+        self.jours_max = jours_max
+
+    def _depuis(self) -> str:
+        quand = datetime.now() - timedelta(days=self.jours_max)
+        return f"{quand.day}-{_MOIS_IMAP[quand.month - 1]}-{quand.year}"
 
     def extraire_message(self, message: email.message.EmailMessage) -> list[AnnonceBrute]:
         partie = message.get_body(preferencelist=("html", "plain"))
@@ -177,9 +193,12 @@ class SourceImap(Source):
             # Boîte personnelle oblige : on ne cherche QUE les emails des
             # portails connus — le reste de la boîte n'est ni lu ni marqué lu.
             numeros: list[bytes] = []
+            depuis = self._depuis()
             for portail in PORTAILS:
                 for domaine in portail.domaines:
-                    _, resultats = boite.search(None, f'(UNSEEN FROM "{domaine}")')
+                    _, resultats = boite.search(
+                        None, f'(UNSEEN SINCE {depuis} FROM "{domaine}")'
+                    )
                     if resultats and resultats[0]:
                         numeros.extend(
                             n for n in resultats[0].split() if n not in numeros
