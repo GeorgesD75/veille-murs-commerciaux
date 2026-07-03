@@ -112,6 +112,18 @@ def test_prix_m2_incoherent_avec_murs_conserve(config, trajets):
     assert raison_exclusion(a, config, trajets) is None
 
 
+def test_plancher_paris_plus_strict(config, trajets):
+    # 1 550 €/m² dans Paris sans mention des murs : cession de bail probable.
+    a = faire_annonce(
+        titre="Vente Local commercial 103m² Paris",
+        description="Local commercial, loyer : 2 700 €. Emplacement n°1.",
+        ville="Paris 10e", code_postal="75010", departement="75",
+        prix=160_000.0, surface_m2=103.0,
+    )
+    raison = raison_exclusion(a, config, trajets)
+    assert raison is not None and "suspect_fonds" in raison
+
+
 def test_plancher_grande_couronne_moins_strict(config, trajets):
     # 937 €/m² à Cergy : au-dessus du plancher grande couronne (800 €/m²) -> conservé.
     a = faire_annonce(

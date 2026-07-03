@@ -105,6 +105,11 @@ class SourcePointDeVente(SourceHtml):
         if nom_bien:
             titre += f" – {nom_bien}"
 
+        # Les pictos de la carte (« Restauration sans conduit possible »,
+        # « Terrasse »…) disent ce qu'on peut FAIRE dans le local : capturés
+        # comme description pour nourrir les étiquettes d'activité.
+        etiquettes = [t.get_text(strip=True) for t in carte.select(".list-tag-produit .sr-only")]
+
         return AnnonceBrute(
             id_source=ref.group(1),
             source=self.nom,
@@ -117,4 +122,5 @@ class SourcePointDeVente(SourceHtml):
             surface_m2=surface,
             loyer_mensuel=loyer,
             image_url=image,
+            description=" · ".join(etiquettes),
         )

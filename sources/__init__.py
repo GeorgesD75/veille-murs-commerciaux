@@ -13,6 +13,7 @@ from typing import Callable
 from pipeline.config import Config
 from sources.base import Source
 from sources.bienici import SourceBienici
+from sources.cessionpme import SourceCessionPme
 from sources.hektor import SourceFlagship, SourceIburoshop
 from sources.mock import SourceMock
 from sources.murscommerciaux import SourceMursCommerciaux
@@ -27,6 +28,7 @@ FABRIQUES: dict[str, Callable[..., Source]] = {
     "flagship": SourceFlagship,
     "papcommerces": SourcePapCommerces,
     "bienici": SourceBienici,
+    "cessionpme": SourceCessionPme,
     # Phase 4 : "imap"
 }
 

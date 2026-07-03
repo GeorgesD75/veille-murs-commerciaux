@@ -34,7 +34,17 @@ def _annonces_exemple():
     )
     exclue_vieille.exclue = True
     exclue_vieille.raison_exclusion = "prix hors budget"
-    return {a.id: a for a in [ancienne, recente, exclue_fraiche, exclue_vieille]}
+    exclue_hors_zone = faire_annonce(
+        id="eee", titre="Murs Marseille", ville="Marseille",
+        code_postal="13001", departement="13",
+        date_derniere_vue="2026-07-02T07:00:00+02:00",
+    )
+    exclue_hors_zone.exclue = True
+    exclue_hors_zone.raison_exclusion = "hors Île-de-France (département 13)"
+    return {
+        a.id: a
+        for a in [ancienne, recente, exclue_fraiche, exclue_vieille, exclue_hors_zone]
+    }
 
 
 def test_payload_trie_par_score_decroissant(config):
@@ -51,11 +61,14 @@ def test_badge_nouveaute_sous_48h(config):
     assert payload["stats"]["nouvelles"] == 1
 
 
-def test_exclues_limitees_a_sept_jours(config):
+def test_exclues_limitees_a_sept_jours_et_hors_zone_agrege(config):
     payload = preparer_payload(_annonces_exemple(), {}, config, MAINTENANT)
+    # Le détail ne liste ni la vieille exclue (> 7 j) ni le hors-zone (agrégé)
     titres = [e["titre"] for e in payload["exclues_recentes"]]
     assert titres == ["Fonds de commerce piège"]
-    assert payload["exclues_recentes"][0]["raison"].startswith("mot-clé")
+    assert payload["stats"]["exclues_recentes"] == 2      # fonds + Marseille
+    assert payload["stats"]["exclues_hors_zone"] == 1     # Marseille, comptée sans détail
+    assert payload["stats"]["analysees"] == 4             # 2 retenues + 2 exclues récentes
 
 
 def test_html_autonome_et_non_reference(config):

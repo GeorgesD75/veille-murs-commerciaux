@@ -46,6 +46,12 @@ def _points_proximite(annonce: Annonce, cfg: dict) -> float:
     return float(p["de_40_a_60_min"])
 
 
+def _points_quartier(annonce: Annonce, cfg: dict) -> float:
+    """Attachement au quartier : bonus plein si le bien est dans le 18e."""
+    q = cfg["quartier"]
+    return float(q["points"]) if annonce.code_postal in q["codes_postaux"] else 0.0
+
+
 def _points_bonus_malus(annonce: Annonce, cfg: dict) -> float:
     texte = normaliser_texte(annonce.texte_complet())
     total = 0.0
@@ -62,6 +68,7 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
         "emplacement": round(_points_emplacement(annonce, cfg), 1),
         "prix_m2_vs_benchmark": round(_points_benchmark(annonce, cfg), 1),
         "proximite": round(_points_proximite(annonce, cfg), 1),
+        "quartier": round(_points_quartier(annonce, cfg), 1),
         "bonus_malus": round(_points_bonus_malus(annonce, cfg), 1),
     }
     annonce.detail_score = detail
@@ -74,6 +81,10 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
         annonce.rendement_brut_pct is not None
         and annonce.rendement_brut_pct > cfg["seuil_alerte_rendement_pct"]
     ):
-        # Pas un bonus : signal « trop beau pour être vrai », à vérifier (locataire, quartier).
+        # « Trop beau pour être vrai » : souvent une cession de bail ou un fonds
+        # déguisé. Signalé ⚠️ ET plafonné sous le seuil d'affichage, pour qu'un
+        # piège ne trône jamais en haut du panier ni ne déclenche l'email pépite.
         annonce.flags.append("rendement_anormalement_eleve")
+        plafond = int(cfg["seuils"].get("affichage", cfg["seuils"]["orange"])) - 1
+        annonce.score = min(annonce.score, plafond)
     return annonce

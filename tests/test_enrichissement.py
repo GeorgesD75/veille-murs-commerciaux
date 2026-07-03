@@ -43,6 +43,18 @@ def test_murs_libres_loyer_estime_au_benchmark(benchmarks):
     assert a.rendement_brut_pct == 5.25  # 8 400 / 160 000
 
 
+def test_murs_libres_loyer_declare_reste_hypothetique(benchmarks):
+    # Un « loyer » annoncé sur des murs LIBRES est une promesse du vendeur,
+    # pas un bail : traité comme estimé (pénalité d'incertitude au scoring).
+    from pipeline.modeles import TypeMurs
+
+    a = faire_annonce(type_murs=TypeMurs.MURS_LIBRES, loyer_mensuel=2_300.0,
+                      prix=290_000.0, surface_m2=58.0)
+    enrichir(a, benchmarks, SEUIL_DECOTE)
+    assert a.loyer_estime is True
+    assert a.rendement_brut_pct == 9.52
+
+
 def test_murs_occupes_sans_loyer_pas_de_rendement(benchmarks):
     # Pas d'estimation pour des murs annoncés occupés sans loyer : donnée manquante.
     a = faire_annonce(loyer_mensuel=None)
@@ -83,6 +95,20 @@ def test_loyer_estime_expose_pour_affichage(benchmarks):
     enrichir(a, benchmarks, SEUIL_DECOTE)
     assert a.loyer_mensuel is None          # la donnée source reste intacte
     assert a.loyer_mensuel_estime == 700.0  # affichable avec la mention « est. »
+
+
+def test_caracteristiques_activite(benchmarks):
+    a = faire_annonce(
+        description=(
+            "Murs loués. Restauration sans conduit possible · Terrasse. "
+            "Toutes activités hors nuisances, local d'angle."
+        )
+    )
+    enrichir(a, benchmarks, SEUIL_DECOTE)
+    assert "Restauration légère possible (sans conduit)" in a.caracteristiques
+    assert "Terrasse" in a.caracteristiques
+    assert "Toutes activités" in a.caracteristiques
+    assert "Emplacement d'angle" in a.caracteristiques
 
 
 def test_position_benchmark_commune_prime_sur_departement(benchmarks):

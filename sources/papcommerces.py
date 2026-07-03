@@ -18,7 +18,7 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
-from pipeline.modeles import AnnonceBrute, TypeMurs
+from pipeline.modeles import AnnonceBrute
 from pipeline.texte import normaliser_texte
 from sources.base import SourceHtml
 from sources.extraction import (
@@ -28,10 +28,6 @@ from sources.extraction import (
     loyer_mensuel_depuis_texte,
 )
 
-_LIBELLES = {
-    TypeMurs.MURS_OCCUPES: "Murs occupés",
-    TypeMurs.MURS_LIBRES: "Murs libres",
-}
 _ARRONDISSEMENT = re.compile(r"paris\s*(\d{1,2})\s*e", re.IGNORECASE)
 
 
@@ -95,7 +91,9 @@ class SourcePapCommerces(SourceHtml):
             id_source=ref.group(1),
             source=self.nom,
             url=urljoin(self.BASE, href),
-            titre=f"{_LIBELLES[type_murs]} – {entete}",
+            # Titre de la SOURCE, sans préfixe ajouté : le contrôle « suspect_fonds »
+            # exige une mention des murs par l'annonceur lui-même.
+            titre=entete,
             ville=ville,
             code_postal=self._code_postal(href, str(carte), ville),
             type_murs=type_murs,

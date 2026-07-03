@@ -6,6 +6,7 @@ from pathlib import Path
 
 from pipeline.modeles import TypeMurs
 from sources.bienici import SourceBienici
+from sources.cessionpme import SourceCessionPme
 from sources.extraction import (
     deviner_type_murs,
     extraire_nombre,
@@ -190,7 +191,9 @@ class TestPapCommerces:
         assert paris.type_murs is TypeMurs.MURS_OCCUPES  # « Vendu loué »
         assert paris.loyer_mensuel == 2_087
         assert paris.image_url and "cdn.pap.fr" in paris.image_url
-        assert "murs" in paris.titre.lower()
+        # Titre de la source, sans préfixe injecté (sinon le contrôle
+        # suspect_fonds serait neutralisé)
+        assert paris.titre == "Local commercial Paris 5E"
 
     def test_carte_sans_photo_et_cp_dans_url(self):
         annonces = SourcePapCommerces().extraire(charger("papcommerces_liste.html"))
@@ -199,6 +202,31 @@ class TestPapCommerces:
         assert montreuil.type_murs is TypeMurs.MURS_LIBRES  # « local vide »
         assert montreuil.image_url is None               # visuel-nophoto ignoré
         assert montreuil.prix == 260_000
+
+
+# --- cessionpme.com ---
+
+
+class TestCessionPme:
+    def test_extraction(self):
+        annonces = SourceCessionPme().extraire(charger("cessionpme_liste.html"))
+        assert len(annonces) == 2
+
+        paris = next(a for a in annonces if a.id_source == "9900001")
+        assert paris.ville == "Paris 11e"
+        assert paris.code_postal == "75011"                 # arrondissement -> CP
+        assert paris.prix == 257_000
+        assert paris.surface_m2 == 38
+        assert paris.type_murs is TypeMurs.MURS_OCCUPES     # « vendus loués »
+        assert paris.loyer_mensuel == 1_080                 # « 1 080 Euro TTC / mois »
+        assert paris.titre == "Murs de boutique loués secteur Saint-Ambroise"
+
+    def test_cp_depuis_description(self):
+        annonces = SourceCessionPme().extraire(charger("cessionpme_liste.html"))
+        montreuil = next(a for a in annonces if a.id_source == "9900002")
+        assert montreuil.code_postal == "93100"             # depuis « (93100) »
+        assert montreuil.type_murs is TypeMurs.MURS_LIBRES  # « local vide »
+        assert montreuil.prix == 198_000
 
 
 # --- bienici.com (API JSON) ---

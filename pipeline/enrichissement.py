@@ -6,9 +6,25 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from pipeline.modeles import Annonce, TypeMurs
+from pipeline.texte import normaliser_texte
 
 # Frais d'acquisition (notaire, enregistrement…) retenus pour le rendement « acte en main ».
 TAUX_FRAIS_ACQUISITION = 1.08
+
+# Ce qu'on peut FAIRE dans le local : plus l'éventail d'activités possibles est
+# large, plus le bien se reloue facilement (moins de vacance). Détection par
+# mots-clés dans le titre/la description, affichée en étiquettes sur le dashboard.
+_CARACTERISTIQUES: list[tuple[str, tuple[str, ...]]] = [
+    ("Extraction / vraie restauration possible",
+     ("extraction", "conduit de cheminee", "conduit existant", "cheminee existant")),
+    ("Restauration légère possible (sans conduit)",
+     ("sans conduit", "restauration sans extraction")),
+    ("Toutes activités", ("toutes activites", "tout commerce", "tous commerces")),
+    ("Activités restreintes", ("sauf restauration", "sauf bouche", "hors nuisances",
+                               "sans nuisance", "activites limitees")),
+    ("Terrasse", ("terrasse",)),
+    ("Emplacement d'angle", ("d'angle", "d angle", "angle de rue", "en angle")),
+]
 
 
 @dataclass(frozen=True)
@@ -48,11 +64,24 @@ class Benchmarks:
         return self.communes.get(code_postal) or self.departements.get(departement)
 
 
+def caracteristiques_depuis_texte(texte: str) -> list[str]:
+    """Étiquettes d'usage du local (extraction, terrasse…) détectées dans le texte."""
+    t = normaliser_texte(texte)
+    return [libelle for libelle, mots in _CARACTERISTIQUES if any(m in t for m in mots)]
+
+
 def loyer_mensuel_retenu(annonce: Annonce, benchmarks: Benchmarks) -> tuple[float | None, bool]:
-    """Loyer réel si connu ; pour des murs libres, loyer estimé au benchmark (flag estimé)."""
-    if annonce.loyer_mensuel:
+    """Loyer retenu pour le rendement, et s'il est hypothétique.
+
+    Murs occupés : loyer réel du bail. Murs libres : tout loyer est hypothétique
+    — qu'il soit annoncé par le vendeur (« loyer potentiel ») ou estimé au
+    benchmark — donc marqué estimé (pénalité d'incertitude au scoring).
+    """
+    if annonce.type_murs is TypeMurs.MURS_OCCUPES:
         return annonce.loyer_mensuel, False
-    if annonce.type_murs is TypeMurs.MURS_LIBRES and annonce.surface_m2:
+    if annonce.loyer_mensuel:
+        return annonce.loyer_mensuel, True
+    if annonce.surface_m2:
         bench = benchmarks.pour(annonce.code_postal, annonce.departement)
         if bench:
             return annonce.surface_m2 * bench.loyer_m2_annuel / 12, True
@@ -85,6 +114,7 @@ def enrichir(annonce: Annonce, benchmarks: Benchmarks, seuil_decote_pct: float) 
         annonce.rendement_acte_en_main_pct = round(loyer_annuel / cout_acte_en_main * 100, 2)
 
     annonce.position_benchmark = position_vs_benchmark(annonce, benchmarks, seuil_decote_pct)
+    annonce.caracteristiques = caracteristiques_depuis_texte(annonce.texte_complet())
 
     # Comparaison au marché local, pour l'affichage (« ~12 % sous le marché »).
     bench = benchmarks.pour(annonce.code_postal, annonce.departement)

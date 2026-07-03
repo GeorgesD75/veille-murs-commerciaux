@@ -110,10 +110,35 @@ def test_points_benchmark(config):
 
 def test_points_proximite(config):
     a = faire_annonce()
-    for temps, attendu in [(10, 10.0), (30, 6.0), (55, 3.0)]:
+    for temps, attendu in [(10, 5.0), (30, 3.0), (55, 1.0)]:
         a.temps_trajet_min = temps
         scorer(a, config)
         assert a.detail_score["proximite"] == attendu
+
+
+# --- Quartier (5 pts : attachement au 18e) ---
+
+
+def test_points_quartier_18e(config):
+    a = faire_annonce(ville="Paris 18e", code_postal="75018", departement="75")
+    scorer(a, config)
+    assert a.detail_score["quartier"] == 5.0
+
+
+def test_pas_de_points_quartier_ailleurs(config):
+    a = faire_annonce(ville="Paris 17e", code_postal="75017", departement="75")
+    scorer(a, config)
+    assert a.detail_score["quartier"] == 0.0
+
+
+def test_bareme_total_fait_cent(config):
+    s = config.scoring
+    total = (
+        s["rendement"]["points"] + s["emplacement"]["paris"]
+        + s["prix_m2_vs_benchmark"]["decote_forte"]
+        + s["proximite"]["moins_de_20_min"] + s["quartier"]["points"] + 5  # bonus max
+    )
+    assert total == 100
 
 
 # --- Bonus/malus (borné à [-3 ; +5]) ---
@@ -144,6 +169,18 @@ def test_flag_rendement_anormalement_eleve(config):
     a.rendement_brut_pct = 11.0
     scorer(a, config)
     assert "rendement_anormalement_eleve" in a.flags
+
+
+def test_rendement_suspect_plafonne_le_score(config):
+    # 20 % « de rendement » à Paris = piège probable (cession de bail déguisée) :
+    # jamais en haut du panier, jamais d'email pépite.
+    a = faire_annonce(ville="Paris 10e", code_postal="75010", departement="75")
+    a.rendement_brut_pct = 20.0
+    a.position_benchmark = "decote_forte"
+    a.temps_trajet_min = 10
+    scorer(a, config)
+    assert a.score is not None
+    assert a.score < config.scoring["seuils"]["affichage"]
 
 
 def test_pas_de_flag_sous_le_seuil(config):

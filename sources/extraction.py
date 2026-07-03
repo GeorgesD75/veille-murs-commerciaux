@@ -10,10 +10,11 @@ _NOMBRE = re.compile(r"\d[\d\s  .,]*")
 _LOYER_ANNUEL = re.compile(
     r"loyer\s+annuel[^0-9€]{0,25}(\d[\d\s  .,]*)", re.IGNORECASE
 )
-# « Vendu loué : 2 087 € », « loyer : 1 500 €/mois », « loyer mensuel 900 € »…
+# « Vendu loué : 2 087 € », « loyer : 1 500 €/mois », « Loyer : 1 080 Euro TTC/mois »…
 _LOYER_GENERIQUE = re.compile(
-    r"(?:vendus?\s+lou[ée]s?|lou[ée]s?\s*:|loyer(?:\s+mensuel)?)\s*:?"
-    r"[^0-9€%]{0,15}(\d[\d\s  .,]*)\s*€\s*(/\s*an\b|annuel)?",
+    r"(?:vendus?\s+lou[ée]s?|lou[ée]s?\s*:|loyer(?:\s+mensuel|\s+exceptionnel)?)\s*:?"
+    r"[^0-9€%]{0,15}(\d[\d\s  .,]*)\s*(?:€|euros?\b)"
+    r"(?:\s*(?:ttc|ht|hc|cc)\b)*\s*(/\s*an\b|annuel|/\s*mois)?",
     re.IGNORECASE,
 )
 _RENTABILITE = re.compile(r"rentabilit\w*[^0-9%]{0,30}(\d+(?:[.,]\d+)?)\s*%", re.IGNORECASE)
@@ -88,7 +89,7 @@ def loyer_mensuel_depuis_texte(texte: str | None, prix: float | None) -> float |
     valeur = extraire_nombre(trouve.group(1))
     if not valeur:
         return None
-    if trouve.group(2):  # « /an », « annuel »
+    if trouve.group(2) and "mois" not in trouve.group(2):  # « /an », « annuel »
         valeur /= 12
     if prix:
         if valeur * 12 / prix > RENDEMENT_MAX_PLAUSIBLE:

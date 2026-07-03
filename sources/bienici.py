@@ -16,14 +16,9 @@ from urllib.parse import quote
 
 from bs4 import BeautifulSoup
 
-from pipeline.modeles import AnnonceBrute, TypeMurs
+from pipeline.modeles import AnnonceBrute
 from sources.base import SourceHtml
 from sources.extraction import deviner_type_murs, loyer_mensuel_depuis_texte
-
-_LIBELLES = {
-    TypeMurs.MURS_OCCUPES: "Murs occupés",
-    TypeMurs.MURS_LIBRES: "Murs libres",
-}
 
 
 def _texte_description(description_html: str) -> str:
@@ -88,7 +83,9 @@ class SourceBienici(SourceHtml):
                     id_source=identifiant,
                     source=self.nom,
                     url=f"{self.BASE}/annonce/{identifiant}",
-                    titre=f"{_LIBELLES[type_murs]} – {titre_source}",
+                    # Titre de la SOURCE, sans préfixe : le contrôle « suspect_fonds »
+                    # exige une mention des murs par l'annonceur lui-même.
+                    titre=titre_source,
                     ville=a.get("city", "") or "",
                     code_postal=str(a.get("postalCode", "") or ""),
                     type_murs=type_murs,

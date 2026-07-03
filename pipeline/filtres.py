@@ -29,7 +29,9 @@ def controle_coherence_prix(annonce: Annonce, config: Config) -> str | None:
     if not annonce.prix or not annonce.surface_m2:
         return None
     prix_m2 = annonce.prix / annonce.surface_m2
-    if annonce.departement in PETITE_COURONNE:
+    if annonce.departement == "75":
+        plancher = config.filtres["prix_m2_plancher_paris"]
+    elif annonce.departement in PETITE_COURONNE:
         plancher = config.filtres["prix_m2_plancher_petite_couronne"]
     elif annonce.departement in GRANDE_COURONNE:
         plancher = config.filtres["prix_m2_plancher_grande_couronne"]
