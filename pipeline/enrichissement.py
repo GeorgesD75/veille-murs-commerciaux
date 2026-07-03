@@ -158,7 +158,12 @@ def position_vs_benchmark(annonce: Annonce, benchmarks: Benchmarks, seuil_decote
     return "surcote"
 
 
-def enrichir(annonce: Annonce, benchmarks: Benchmarks, seuil_decote_pct: float) -> Annonce:
+def enrichir(
+    annonce: Annonce,
+    benchmarks: Benchmarks,
+    seuil_decote_pct: float,
+    rendement_cible_pct: float = 7.0,
+) -> Annonce:
     if annonce.prix and annonce.surface_m2:
         annonce.prix_m2 = round(annonce.prix / annonce.surface_m2)
 
@@ -170,6 +175,8 @@ def enrichir(annonce: Annonce, benchmarks: Benchmarks, seuil_decote_pct: float) 
         annonce.rendement_brut_pct = round(loyer_annuel / annonce.prix * 100, 2)
         cout_acte_en_main = annonce.prix * TAUX_FRAIS_ACQUISITION + (annonce.honoraires or 0)
         annonce.rendement_acte_en_main_pct = round(loyer_annuel / cout_acte_en_main * 100, 2)
+        # Le levier du négociateur : prix d'offre qui atteint le rendement cible
+        annonce.prix_cible_rendement = round(loyer_annuel / (rendement_cible_pct / 100))
 
     annonce.position_benchmark = position_vs_benchmark(annonce, benchmarks, seuil_decote_pct)
     annonce.caracteristiques = caracteristiques_depuis_texte(annonce.texte_complet())

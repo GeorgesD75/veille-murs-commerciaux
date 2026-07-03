@@ -30,16 +30,21 @@ def test_champs_du_lot():
     assert lot["url"].endswith("_400001")
 
 
-def test_enrichissement_des_lots(benchmarks):
-    from sources.encheres import enrichir_lots
+def test_score_enchere(benchmarks, trajets, config):
+    from sources.encheres import scorer_lots
 
-    lots = enrichir_lots(_extraire(), benchmarks)
+    lots = scorer_lots(_extraire(), benchmarks, trajets, config)
     lot = lots[0]
-    # 88,44 m² à Paris : valeur basse = 3 000 €/m² × 88,44 = 265 320 €
+    # Adjudication probable = min(2 × 50 000 ; médiane 4 750 × 88,44) = 100 000 €
+    assert lot["prix_probable"] == 100_000
+    # Valeur basse du marché = 3 000 €/m² × 88,44 = 265 320 €
     assert lot["prix_max_conseille"] == 265_320
-    # Mise à prix 50 000 € = 19 % de la valeur basse -> opportunité forte
+    # Marge 62 % -> 40/40 ; budget 20 ; emplacement Paris 25 ;
+    # dossier 4 (surface seule) ; trajet 5 -> 94
+    assert lot["score_enchere"] == 94
+    assert lot["detail_score"]["marge"] == 40
+    assert lot["haut_panier"] is True
     assert lot["opportunite"] == "forte"
-    assert lot["marche_prix_m2_bas"] == 3_000
 
 
 def test_lecture_prix_decote_travaux(benchmarks):

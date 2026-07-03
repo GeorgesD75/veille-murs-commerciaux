@@ -109,6 +109,18 @@ sources:                      # activer/désactiver une source = une ligne
   imap:            {actif: true}    # alertes email LeBonCoin/SeLoger/Geolocaux/BureauxLocaux
                                     # (s'ignore proprement tant que IMAP_USER/IMAP_PASSWORD manquent)
 
+encheres:                     # scoring dédié aux ventes aux enchères
+  multiplicateur_prix_probable: 2.0   # adjudication probable ≈ 2× la mise à prix
+                                      # (plafonnée à la valeur médiane du marché local)
+  seuil_occasion: 65          # score enchère minimal pour être une « occasion »
+  max_haut_panier: 2          # nb maximal d'occasions remontées en haut de page
+
+analyse:
+  rendement_cible_pct: 7      # « prix à offrir » = loyer annuel ÷ cible
+  financement:                # hypothèses du cash-flow indicatif (crédit 100 %)
+    taux_pct: 3.9
+    duree_ans: 20
+
 notifications:
   fournisseur: resend
   email_quotidien: true       # uniquement s'il y a de nouvelles annonces retenues

@@ -13,6 +13,8 @@ def test_rendement_brut_et_prix_m2(benchmarks):
     enrichir(a, benchmarks, SEUIL_DECOTE)
     assert a.prix_m2 == 3_000
     assert a.rendement_brut_pct == 8.0  # 24 000 / 300 000
+    # Prix à offrir pour viser 7 % brut : 24 000 / 0,07
+    assert a.prix_cible_rendement == 342_857
 
 
 def test_rendement_acte_en_main_sans_honoraires(benchmarks):

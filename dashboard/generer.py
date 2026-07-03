@@ -75,6 +75,7 @@ def preparer_payload(
                 "marche_prix_m2_bas": a.marche_prix_m2_bas,
                 "marche_prix_m2_haut": a.marche_prix_m2_haut,
                 "lecture_prix": a.lecture_prix,
+                "prix_cible_rendement": a.prix_cible_rendement,
                 "temps_trajet_min": a.temps_trajet_min,
                 "image_url": a.image_url,
                 "date_premiere_vue": a.date_premiere_vue,
@@ -129,6 +130,7 @@ def preparer_payload(
         "retenues": retenues,
         "exclues_recentes": exclues_detail,
         "encheres": meta.get("encheres", []),
+        "analyse": config["analyse"],
         "sante": meta.get("sante_sources", {}),
     }
 
@@ -323,6 +325,15 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .marche .mauvais { color: var(--alerte-texte); font-weight: 600; }
 .lecture { font-style: italic; color: var(--encre-2); margin-top: 5px;
   border-left: 3px solid var(--or); padding-left: 8px; }
+.lecture.nego { border-left-color: var(--marque); font-style: normal; }
+
+/* Méthode d'expert */
+.methode { columns: 2; column-gap: 28px; font-size: 13.5px; color: var(--encre-2); margin-top: 10px; }
+.methode h4 { font-family: Fraunces, Georgia, serif; color: var(--encre-1);
+  margin: 0 0 4px; font-size: 15px; break-after: avoid; }
+.methode ul { margin: 0 0 14px; padding-left: 18px; break-inside: avoid; }
+.methode li { margin-bottom: 3px; }
+@media (max-width: 760px) { .methode { columns: 1; } }
 
 /* Pourquoi ce score */
 .pourquoi { font-size: 12px; color: var(--encre-2); }
@@ -500,6 +511,49 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
     <table id="exclues-table"></table>
   </details>
 
+  <details class="repli">
+    <summary>La méthode Les Murs. — que vérifier avant de faire une offre</summary>
+    <div class="methode">
+      <h4>Le bail (le vrai produit que vous achetez)</h4>
+      <ul>
+        <li>Date de signature et prochaine échéance triennale — un bail récent sécurise, un bail en fin de période se renégocie.</li>
+        <li>Indexation (ILC de préférence) et loyer à jour des indexations.</li>
+        <li>Répartition des charges : article 606 (gros travaux) et taxe foncière — idéalement au locataire.</li>
+        <li>Dépôt de garantie, garanties personnelles, destination des lieux (« tous commerces » vaut de l'or).</li>
+      </ul>
+      <h4>Le locataire (celui qui paie votre retraite)</h4>
+      <ul>
+        <li>Extrait Kbis, 3 derniers bilans, ancienneté dans les lieux.</li>
+        <li>Loyer ≤ 8-10 % de son chiffre d'affaires : au-delà, il souffre, vous aussi bientôt.</li>
+        <li>Incidents de paiement — demandez les quittances des 12 derniers mois.</li>
+      </ul>
+      <h4>L'immeuble et le local</h4>
+      <ul>
+        <li>3 derniers PV d'assemblée générale : ravalement ou toiture votés = argument de négo.</li>
+        <li>État des sols/vitrine/électricité — « peu de travaux » se vérifie sur place.</li>
+        <li>Conformité de la destination au règlement de copropriété.</li>
+      </ul>
+      <h4>La rue (la valeur à 10 ans)</h4>
+      <ul>
+        <li>Comptez les rideaux baissés dans la rue — plus de 2 sur 10, méfiance.</li>
+        <li>Passez un mardi à 15 h ET un samedi à 11 h : le flux ne ment pas.</li>
+        <li>Projets urbains (tram, piétonnisation, ZAC) : mairie et PLU en ligne.</li>
+      </ul>
+      <h4>Les chiffres à refaire vous-même</h4>
+      <ul>
+        <li>Rendement ACTE EN MAIN (droits ~7,5 % + honoraires), pas le brut affiché de l'agence.</li>
+        <li>Provision vacance/impayés : comptez 1 mois de loyer par an de prudence.</li>
+        <li>Fiscalité : revenus fonciers au réel (intérêts et travaux déductibles) — un avis d'expert-comptable vaut le détour avant d'acheter.</li>
+      </ul>
+      <h4>La négociation</h4>
+      <ul>
+        <li>Utilisez la ligne « Pour 7 % brut : offrir ≤ … » de chaque carte comme ancre.</li>
+        <li>Toute offre par écrit, conditionnée à l'obtention du prêt et à la lecture du bail.</li>
+        <li>Un « non » aujourd'hui devient souvent un « oui » à 60 jours — l'annonce reste en veille ici.</li>
+      </ul>
+    </div>
+  </details>
+
   <footer>
     <div><strong>Santé des sources</strong> — dernier passage : <span id="pied-maj"></span></div>
     <div class="sante" id="sante"></div>
@@ -587,6 +641,18 @@ function jaugeMarcheHtml(a) {
   const min = Math.min(bas, a.prix_m2) * 0.85, max = Math.max(haut, a.prix_m2) * 1.1;
   const pos = v => Math.max(0, Math.min(100, (v - min) / (max - min) * 100));
   const lecture = a.lecture_prix ? `<div class="lecture">${ech(a.lecture_prix)}</div>` : "";
+  // Le levier du négociateur : à quel prix ce bien atteint l'objectif de rendement
+  let nego = "";
+  if (a.prix_cible_rendement && a.prix) {
+    const cible = D.analyse.rendement_cible_pct;
+    if (a.prix_cible_rendement >= a.prix)
+      nego = `<div class="lecture nego"><b>Au prix affiché, l'objectif de ${cible} % brut est atteint.</b></div>`;
+    else {
+      const remise = Math.round((1 - a.prix_cible_rendement / a.prix) * 100);
+      nego = `<div class="lecture nego">Pour ${cible} % brut : offrir ≤ <b>${fmtEuros(a.prix_cible_rendement)}</b>
+        (négociation de −${remise} % — ${remise <= 10 ? "jouable" : remise <= 20 ? "ambitieux mais tentable" : "peu réaliste, sauf défaut à faire valoir"}).</div>`;
+    }
+  }
   return `<div class="marche">
     <div>${fmtEuros(a.prix_m2)}/m² — ${verdictMarche(a)}
       <span style="color:var(--encre-3)" title="écart à la médiane locale">(${a.decote_pct >= 0 ? "-" : "+"}${fmtPct(Math.abs(a.decote_pct))} vs médiane)</span></div>
@@ -598,7 +664,18 @@ function jaugeMarcheHtml(a) {
     </div>
     <div>marché local : ${fmtEuros(bas)} – ${fmtEuros(haut)} /m²</div>
     ${lecture}
+    ${nego}
   </div>`;
+}
+
+function cashflowMensuel(a) {
+  // Crédit 100 % sur le coût acte en main, hors taxe foncière et gestion.
+  const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
+  if (loyer == null || a.prix == null) return null;
+  const f = D.analyse.financement;
+  const t = f.taux_pct / 100 / 12, n = f.duree_ans * 12;
+  const mensualite = (a.prix * 1.08) * t / (1 - Math.pow(1 + t, -n));
+  return Math.round(loyer - mensualite);
 }
 
 function pourquoiHtml(a) {
@@ -636,12 +713,17 @@ function carteHtml(a, options) {
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   const est = (a.loyer_mensuel == null && a.loyer_mensuel_estime != null) || a.loyer_estime
     ? " <small>est.</small>" : "";
+  const cf = cashflowMensuel(a);
+  const cfHtml = cf == null ? "—" :
+    `<span style="color:${cf >= 0 ? "var(--vert-texte)" : "var(--alerte-texte)"}"
+      title="loyer − mensualité d'un crédit 100 % du coût acte en main sur ${D.analyse.financement.duree_ans} ans à ${D.analyse.financement.taux_pct} % — hors taxe foncière et gestion">${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois</span>`;
   const metriques = [
     ["Prix", fmtEuros(a.prix)],
     ["Surface", a.surface_m2 == null ? "—" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²"],
     ["Loyer/mois", loyer == null ? "—" : fmtEuros(loyer) + est],
     ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "")],
     ["Rdt acte en main", fmtPct(a.rendement_acte_en_main_pct)],
+    ["Cash-flow crédit", cfHtml],
     ["Trajet 18e", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min"],
   ].map(([l, v]) =>
     `<div class="metrique"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
@@ -708,20 +790,23 @@ function enchereHtml(e, index) {
     ? `<img src="${ech(e.image_url)}" alt="" loading="lazy" referrerpolicy="no-referrer"
          onerror="this.parentElement.innerHTML=IC.boutique">`
     : IC.boutique;
-  const forte = e.opportunite === "forte";
+  const forte = e.haut_panier;
   const sticker = forte
-    ? `<span class="sticker sticker-marteau" title="Mise à prix très en dessous du marché local">${IC.marteau}</span>` : "";
+    ? `<span class="sticker sticker-marteau" title="Occasion : marge probable élevée même après enchères">${IC.marteau}</span>` : "";
   const marche = e.marche_prix_m2_bas
     ? `<div class="marche" style="margin-top:6px">marché local : ${fmtEuros(e.marche_prix_m2_bas)} – ${fmtEuros(e.marche_prix_m2_haut)} /m²
        ${e.prix_m2_mise_a_prix ? `— mise à prix : <b>${fmtEuros(e.prix_m2_mise_a_prix)}/m²</b>` : ""}</div>` : "";
   const plafond = e.prix_max_conseille
-    ? `<div class="plafond-conseille">Reste une affaire jusqu'à ≈ <b>${fmtEuros(e.prix_max_conseille)}</b>
-       (bas de fourchette du marché local) — au-delà, laissez filer.</div>` : "";
+    ? `<div class="plafond-conseille">Adjudication probable ≈ <b>${fmtEuros(e.prix_probable)}</b> ·
+       reste une affaire jusqu'à ≈ <b>${fmtEuros(e.prix_max_conseille)}</b> — au-delà, laissez filer.</div>` : "";
+  const d = e.detail_score || {};
+  const infobulle = `Marge probable ${d.marge ?? 0}/40 · Emplacement ${d.emplacement ?? 0}/25 · ` +
+    `Budget ${d.budget ?? 0}/20 · Dossier ${d.dossier ?? 0}/10 · Trajet ${d.proximite ?? 0}/5`;
   return `<article class="carte-enchere${forte ? " forte" : ""}" style="animation-delay:${index * 45}ms">
     ${sticker}
     <div class="carte-img">${img}</div>
     <div>
-      ${forte ? '<div><span class="tampon">Belle occasion ?</span></div>' : ""}
+      ${forte ? '<div><span class="tampon">Occasion à la barre</span></div>' : ""}
       <div class="quand">${IC.horloge} Vente le ${date} · ${ech(e.type_vente)}</div>
       <div class="carte-titre"><a href="${ech(e.url)}" target="_blank" rel="noopener">${ech(e.titre)}</a></div>
       <div class="carte-lieu">${ech(e.ville || "")}${e.ville ? " · " : ""}département ${ech(e.departement)}
@@ -733,6 +818,8 @@ function enchereHtml(e, index) {
       <div class="libelle">Mise à prix</div>
       <div class="valeur">${fmtEuros(e.mise_a_prix)}</div>
       ${e.estimation_basse ? `<div class="sous">estimé ${fmtEuros(e.estimation_basse)}–${fmtEuros(e.estimation_haute)}</div>` : ""}
+      <div class="sous" title="${infobulle}" style="margin-top:6px">
+        <span style="${forte ? "color:var(--or);font-weight:700" : ""}">score enchère ${e.score_enchere ?? "—"}/100</span></div>
     </div>
   </article>`;
 }
@@ -771,8 +858,8 @@ function rendre() {
   });
 
   let index = 0;
-  // Les enchères à forte opportunité montent dans le haut du panier
-  const occasions = (D.encheres || []).filter(e => e.opportunite === "forte");
+  // Seules les meilleures occasions (score enchère ≥ seuil, plafonnées) montent
+  const occasions = (D.encheres || []).filter(e => e.haut_panier);
   document.getElementById("bloc-prio").innerHTML =
     `<h2 class="section">${IC.trophee} Le haut du panier <span class="nb">score ≥ ${D.seuils.vert} & occasions aux enchères</span></h2>` +
     (prio.length || occasions.length
@@ -900,15 +987,23 @@ function initialiser() {
   const selDep = document.getElementById("f-dep");
   for (const d of deps) selDep.insertAdjacentHTML("beforeend", `<option value="${d}">${d}</option>`);
 
-  // Les occasions « fortes » sont déjà remontées dans le haut du panier
-  const encheres = (D.encheres || []).filter(e => e.opportunite !== "forte");
+  // Les meilleures occasions sont déjà en haut de page ; ici, le reste trié
+  // par score enchère, replié au-delà de 4 pour ne pas alourdir la page.
+  const encheres = (D.encheres || []).filter(e => !e.haut_panier);
   const nbFortes = (D.encheres || []).length - encheres.length;
+  const NB_VISIBLES = 4;
+  const visibles = encheres.slice(0, NB_VISIBLES);
+  const repliees = encheres.slice(NB_VISIBLES);
   document.getElementById("bloc-encheres").innerHTML = (D.encheres || []).length
-    ? `<h2 class="section">${IC.marteau} Sous le marteau <span class="nb">${(D.encheres || []).length} vente${(D.encheres || []).length > 1 ? "s" : ""} aux enchères à venir en IdF${nbFortes ? ` — ${nbFortes} occasion${nbFortes > 1 ? "s" : ""} déjà en haut de page` : ""}</span></h2>` +
-      encheres.map((e, i) => enchereHtml(e, i)).join("") +
-      `<div class="note-encheres">La mise à prix n'est pas le prix final (comptez souvent 1,5× à 3× au marteau).
-       Enchérir en salle exige un avocat et une consignation (~10 % de la mise à prix). Section hors scoring :
-       le « reste une affaire jusqu'à… » est votre plafond de raison.</div>`
+    ? `<h2 class="section">${IC.marteau} Sous le marteau <span class="nb">${(D.encheres || []).length} vente${(D.encheres || []).length > 1 ? "s" : ""} à venir en IdF, triées par score enchère${nbFortes ? ` — ${nbFortes} occasion${nbFortes > 1 ? "s" : ""} déjà en haut de page` : ""}</span></h2>` +
+      visibles.map((e, i) => enchereHtml(e, i)).join("") +
+      (repliees.length
+        ? `<details class="repli" style="margin-top:8px"><summary>Les ${repliees.length} autres ventes (scores plus faibles)</summary>
+           ${repliees.map((e, i) => enchereHtml(e, i)).join("")}</details>`
+        : "") +
+      `<div class="note-encheres">Score enchère : marge probable /40 (adjudication estimée ≈ 2× la mise à prix,
+       plafonnée à la médiane du marché) + emplacement /25 + budget /20 + lisibilité du dossier /10 + trajet /5.
+       Enchérir en salle exige un avocat et une consignation (~10 %). Le « reste une affaire jusqu'à… » est votre plafond de raison.</div>`
     : "";
 
   const bloc = document.getElementById("exclues-bloc");

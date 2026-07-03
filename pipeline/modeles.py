@@ -72,6 +72,7 @@ class Annonce:
     temps_trajet_min: int | None = None
     caracteristiques: list[str] = field(default_factory=list)  # extraction, terrasse…
     lecture_prix: str = ""                     # phrase : pourquoi ce prix est haut/bas
+    prix_cible_rendement: float | None = None  # prix à offrir pour viser le rendement cible
 
     # Scoring
     score: int | None = None

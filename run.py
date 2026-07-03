@@ -24,7 +24,7 @@ from pipeline.notifications import notifier
 from pipeline.scoring import scorer
 from pipeline.stockage import Stockage
 from sources import sources_actives
-from sources.encheres import CollecteurEncheres, enrichir_lots
+from sources.encheres import CollecteurEncheres, scorer_lots
 
 log = logging.getLogger("collecteur")
 
@@ -92,11 +92,13 @@ def executer() -> dict[str, Any]:
     encheres: list = []
     if (config.sources.get("encheres_publiques") or {}).get("actif"):
         try:
-            encheres = enrichir_lots(
+            encheres = scorer_lots(
                 CollecteurEncheres(
                     mise_a_prix_max=config.budget["prix_max_filtre"]
                 ).collecter(),
                 benchmarks,
+                trajets,
+                config,
             )
             sante["encheres_publiques"] = {"statut": "ok", "annonces": len(encheres)}
             log.info("enchères : %d lots IdF à venir", len(encheres))
@@ -107,6 +109,7 @@ def executer() -> dict[str, Any]:
     # Filtrage + enrichissement + scoring recalculés sur tout le stock à chaque run,
     # pour que les changements de config.yaml ou des benchmarks s'appliquent partout.
     seuil_decote = config.scoring["prix_m2_vs_benchmark"]["seuil_decote_pct"]
+    rendement_cible = config["analyse"]["rendement_cible_pct"]
     for a in annonces.values():
         a.raison_exclusion = raison_exclusion(a, config, trajets)
         a.exclue = a.raison_exclusion is not None
@@ -114,7 +117,7 @@ def executer() -> dict[str, Any]:
             a.score = None
             a.detail_score = {}
         else:
-            enrichir(a, benchmarks, seuil_decote)
+            enrichir(a, benchmarks, seuil_decote, rendement_cible)
             scorer(a, config)
 
     meta = {

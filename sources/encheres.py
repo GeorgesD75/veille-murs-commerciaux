@@ -18,8 +18,9 @@ import re
 from datetime import datetime, timezone
 from typing import Any
 
+from pipeline.config import Config
 from pipeline.enrichissement import Benchmarks
-from pipeline.geo import ILE_DE_FRANCE
+from pipeline.geo import ILE_DE_FRANCE, Trajets, categorie_emplacement
 from sources.extraction import extraire_surface
 from sources.http import ClientPoli
 
@@ -108,24 +109,98 @@ class CollecteurEncheres:
         return lots
 
 
-def enrichir_lots(lots: list[dict[str, Any]], benchmarks: Benchmarks) -> list[dict[str, Any]]:
-    """Ajoute la comparaison au marché et un « prix max conseillé » à chaque lot.
+def scorer_lots(
+    lots: list[dict[str, Any]],
+    benchmarks: Benchmarks,
+    trajets: Trajets,
+    config: Config,
+) -> list[dict[str, Any]]:
+    """Score /100 ADAPTÉ aux enchères — la mise à prix n'est pas un prix.
 
-    On ne SCORE pas une enchère (la mise à prix n'est pas un prix), mais on
-    peut dire : « au-dessus de X €, ce n'est plus une affaire » — X étant la
-    valeur basse du marché local (fourchette basse du benchmark × surface).
-    Le niveau d'opportunité compare la mise à prix à cette valeur basse.
+    Le raisonnement d'un habitué des ventes à la barre :
+    - ce qu'on paiera vraiment ≈ 2× la mise à prix (plafonné à la valeur
+      médiane du marché local) — c'est le « prix d'adjudication probable » ;
+    - la marge = ce prix probable comparé à la valeur BASSE du marché
+      (marge /40, pleine à ≥ 40 % d'écart) ;
+    - le bien doit rester finançable au prix probable (budget /20) ;
+    - même grille d'emplacement que les annonces classiques (/25) ;
+    - un dossier lisible se travaille, un dossier opaque se rate :
+      surface connue +4, estimation du commissaire +3, ville identifiée +3 (/10) ;
+    - proximité de Paris 18e (/5).
+
+    Seules les `max_haut_panier` meilleures ≥ `seuil_occasion` montent en haut
+    de page (drapeau `haut_panier`) — le reste demeure « Sous le marteau ».
     """
+    cfg = config["encheres"]
+    budget = config.budget
+    communes_dynamiques = config.scoring["communes_dynamiques"]
+    bareme_emplacement = config.scoring["emplacement"]
+
     for lot in lots:
-        bench = benchmarks.pour("", lot.get("departement", ""))
+        departement = lot.get("departement", "")
         surface = lot.get("surface_m2")
-        if bench is None or not surface:
-            lot["opportunite"] = "inconnue"
-            continue
-        valeur_basse = bench.prix_m2_bas * surface
-        lot["marche_prix_m2_bas"] = bench.prix_m2_bas
-        lot["marche_prix_m2_haut"] = bench.prix_m2_haut
-        lot["prix_max_conseille"] = round(valeur_basse)
-        ratio = lot["mise_a_prix"] / valeur_basse
-        lot["opportunite"] = "forte" if ratio <= 0.5 else ("reelle" if ratio <= 1 else "faible")
+        bench = benchmarks.pour("", departement)
+        detail: dict[str, float] = {}
+
+        prix_probable = None
+        if bench is not None and surface:
+            valeur_basse = bench.prix_m2_bas * surface
+            valeur_mediane = bench.prix_m2_median * surface
+            prix_probable = min(
+                lot["mise_a_prix"] * cfg["multiplicateur_prix_probable"], valeur_mediane
+            )
+            lot["prix_probable"] = round(prix_probable)
+            lot["prix_max_conseille"] = round(valeur_basse)
+            lot["marche_prix_m2_bas"] = bench.prix_m2_bas
+            lot["marche_prix_m2_haut"] = bench.prix_m2_haut
+            marge = (valeur_basse - prix_probable) / valeur_basse
+            detail["marge"] = round(max(0.0, min(1.0, marge / 0.40)) * 40, 1)
+        else:
+            detail["marge"] = 0.0
+
+        if prix_probable is None:
+            detail["budget"] = 0.0
+        elif prix_probable <= budget["prix_max"]:
+            detail["budget"] = 20.0
+        elif prix_probable <= budget["prix_max_filtre"]:
+            detail["budget"] = 10.0
+        else:
+            detail["budget"] = 0.0
+
+        categorie = categorie_emplacement(
+            lot.get("ville", ""), departement,
+            f"{lot.get('titre', '')} {lot.get('criteres', '')}", communes_dynamiques,
+        )
+        detail["emplacement"] = float(bareme_emplacement[categorie])
+
+        detail["dossier"] = (
+            (4.0 if surface else 0.0)
+            + (3.0 if lot.get("estimation_basse") else 0.0)
+            + (3.0 if lot.get("ville") else 0.0)
+        )
+
+        temps = trajets.temps_depuis_paris18(lot.get("ville", ""), departement)
+        if temps is None or temps > 60:
+            detail["proximite"] = 0.0
+        elif temps < 20:
+            detail["proximite"] = 5.0
+        elif temps <= 40:
+            detail["proximite"] = 3.0
+        else:
+            detail["proximite"] = 1.0
+
+        lot["detail_score"] = detail
+        lot["score_enchere"] = int(round(min(100.0, sum(detail.values()))))
+        score = lot["score_enchere"]
+        lot["opportunite"] = (
+            "forte" if score >= cfg["seuil_occasion"]
+            else ("reelle" if score >= 50 else "faible")
+        )
+
+    lots.sort(key=lambda lot: (-(lot.get("score_enchere") or 0), lot.get("date_vente") or "9999"))
+    for rang, lot in enumerate(lots):
+        lot["haut_panier"] = (
+            rang < cfg["max_haut_panier"]
+            and (lot.get("score_enchere") or 0) >= cfg["seuil_occasion"]
+        )
     return lots
