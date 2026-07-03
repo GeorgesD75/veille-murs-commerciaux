@@ -4,9 +4,9 @@
 name: Veille quotidienne
 
 on:
+  workflow_dispatch:       # bouton « Run workflow » pour lancer à la main
   schedule:
     - cron: "0 5 * * *"   # 07:00 à Paris l'été, 06:00 l'hiver (cron est en UTC)
-  workflow_dispatch: {}    # bouton « Run workflow » pour lancer à la main
 
 permissions:
   contents: write          # nécessaire pour committer données + site
