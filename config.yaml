@@ -115,7 +115,8 @@ encheres:                     # score d'INTÉRÊT dédié aux enchères (le prix
   max_haut_panier: 2          # nb maximal d'occasions remontées en haut de page
 
 analyse:
-  rendement_cible_pct: 7      # « prix à offrir » = loyer annuel ÷ cible
+  rendement_cible_pct: 7      # plancher de rentabilité : loyer annuel ÷ cible
+  negociation_usage_pct: 7    # première offre d'usage quand le prix est déjà bon (−7 %)
   financement:                # hypothèses du cash-flow indicatif (crédit 100 %)
     taux_pct: 3.9
     duree_ans: 20

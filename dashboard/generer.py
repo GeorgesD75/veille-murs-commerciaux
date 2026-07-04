@@ -366,6 +366,8 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .marche-piste .cible { position: absolute; top: 13px; width: 0; height: 0;
   border-left: 5px solid transparent; border-right: 5px solid transparent;
   border-bottom: 7px solid var(--alerte-texte); }
+.marche-piste .cible.usage { border-bottom-color: var(--vert-texte); }
+.cible-txt.usage { color: var(--vert-texte); }
 .marche-echelle { display: flex; justify-content: space-between; font-size: 11px;
   color: var(--encre-3); font-variant-numeric: tabular-nums; margin-bottom: 3px; }
 .marche-legende-bien { color: var(--or); font-weight: 700; }
@@ -700,29 +702,52 @@ function jaugeMarcheHtml(a) {
   if (a.prix_m2 == null || a.marche_prix_m2_bas == null) return "";
   const bas = a.marche_prix_m2_bas, haut = a.marche_prix_m2_haut;
   const med = (bas + haut) / 2;
-  // Repère « offre à faire » : le prix/m² qui atteint l'objectif de rendement
-  let cibleM2 = null;
-  if (a.prix_cible_rendement && a.surface_m2 && a.prix && a.prix_cible_rendement < a.prix)
-    cibleM2 = a.prix_cible_rendement / a.surface_m2;
-  const min = Math.min(bas, a.prix_m2, cibleM2 ?? Infinity) * 0.85,
+  // Deux repères d'offre distincts — on négocie TOUJOURS :
+  // - rouge : le PLANCHER de rentabilité (prix qui atteint l'objectif de
+  //   rendement) quand le prix affiché ne l'atteint pas ;
+  // - vert : la première offre D'USAGE (−7 %) quand l'objectif est déjà
+  //   atteint — bon rendement n'a jamais voulu dire payer le prix demandé.
+  let cibleM2 = null, usageM2 = null, offreUsage = null;
+  if (a.prix_cible_rendement && a.surface_m2 && a.prix) {
+    if (a.prix_cible_rendement < a.prix)
+      cibleM2 = a.prix_cible_rendement / a.surface_m2;
+    else {
+      offreUsage = Math.round(a.prix * (1 - D.analyse.negociation_usage_pct / 100));
+      usageM2 = offreUsage / a.surface_m2;
+    }
+  }
+  const min = Math.min(bas, a.prix_m2, cibleM2 ?? Infinity, usageM2 ?? Infinity) * 0.85,
         max = Math.max(haut, a.prix_m2) * 1.1;
   const pos = v => Math.max(0, Math.min(100, (v - min) / (max - min) * 100));
-  const cible = cibleM2 == null ? "" :
-    `<div class="cible" style="left:calc(${pos(cibleM2)}% - 5px)"
-       title="offre à faire pour ${D.analyse.rendement_cible_pct} % brut : ${fmtEuros(Math.round(cibleM2))}/m²"></div>`;
-  const cibleTxt = cibleM2 == null ? "" :
-    ` <span class="cible-txt">▲ offre à faire : ${fmtEuros(Math.round(cibleM2))}/m²</span>`;
+  const cible = cibleM2 != null
+    ? `<div class="cible" style="left:calc(${pos(cibleM2)}% - 5px)"
+         title="plancher de rentabilité (${D.analyse.rendement_cible_pct} % brut) : ${fmtEuros(Math.round(cibleM2))}/m²"></div>`
+    : (usageM2 != null
+      ? `<div class="cible usage" style="left:calc(${pos(usageM2)}% - 5px)"
+           title="première offre d'usage (−${D.analyse.negociation_usage_pct} %) : ${fmtEuros(Math.round(usageM2))}/m²"></div>`
+      : "");
+  const cibleTxt = cibleM2 != null
+    ? ` <span class="cible-txt">▲ plancher ${D.analyse.rendement_cible_pct} % : ${fmtEuros(Math.round(cibleM2))}/m²</span>`
+    : (usageM2 != null
+      ? ` <span class="cible-txt usage">▲ 1ʳᵉ offre : ${fmtEuros(Math.round(usageM2))}/m²</span>` : "");
   const lecture = a.lecture_prix ? `<div class="lecture">${ech(a.lecture_prix)}</div>` : "";
-  // Le levier du négociateur : à quel prix ce bien atteint l'objectif de rendement
+  // Stratégie d'offre : on négocie TOUJOURS, mais l'ancre change de nature.
   let nego = "";
   if (a.prix_cible_rendement && a.prix) {
     const cible = D.analyse.rendement_cible_pct;
-    if (a.prix_cible_rendement >= a.prix)
-      nego = `<div class="lecture nego"><b>Au prix affiché, l'objectif de ${cible} % brut est atteint.</b></div>`;
-    else {
+    if (a.prix_cible_rendement >= a.prix) {
+      // Le rendement cible est atteint au prix affiché : ce n'est PAS une
+      // raison de le payer — première offre d'usage, gain chiffré à l'appui.
+      const f = D.analyse.financement, t = f.taux_pct / 100 / 12, n = f.duree_ans * 12;
+      const gain10k = Math.round(10_800 * t / (1 - Math.pow(1 + t, -n)));
+      nego = `<div class="lecture nego">Objectif ${cible} % atteint au prix affiché — <b>négociez quand même</b> :
+        première offre d'usage ≈ <b>${fmtEuros(offreUsage)}</b> (−${D.analyse.negociation_usage_pct} %).
+        Chaque 10 000 € gagnés ≈ +${gain10k} €/mois de cash-flow.</div>`;
+    } else {
       const remise = Math.round((1 - a.prix_cible_rendement / a.prix) * 100);
-      nego = `<div class="lecture nego">Pour ${cible} % brut : offrir ≤ <b>${fmtEuros(a.prix_cible_rendement)}</b>
-        (négociation de −${remise} % — ${remise <= 10 ? "jouable" : remise <= 20 ? "ambitieux mais tentable" : "peu réaliste, sauf défaut à faire valoir"}).</div>`;
+      nego = `<div class="lecture nego">Plancher de rentabilité (${cible} % brut) : <b>${fmtEuros(a.prix_cible_rendement)}</b>
+        — au-dessus, le bien ne tient pas votre objectif. Négociation nécessaire : −${remise} %
+        (${remise <= 10 ? "jouable" : remise <= 20 ? "ambitieux mais tentable" : "peu réaliste, sauf défaut à faire valoir"}).</div>`;
     }
   }
   return `<div class="marche">
