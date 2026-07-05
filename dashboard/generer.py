@@ -542,8 +542,9 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
           <option value="murs_occupes">Murs occupés</option>
           <option value="murs_libres">Murs libres</option>
         </select></div>
-      <div class="filtre"><label for="f-dep">Département</label>
-        <select id="f-dep"><option value="tous">Tous</option></select></div>
+      <div class="filtre"><label for="f-dep">Secteur</label>
+        <select id="f-dep"><option value="tous">Tous</option>
+          <option value="18e">Paris 18e (mon quartier)</option></select></div>
       <div class="filtre"><label for="f-rdt">Rendement min (%)</label>
         <input id="f-rdt" type="number" min="0" max="15" step="0.5" placeholder="ex. 6"></div>
       <div class="filtre"><label for="f-score">Score min</label>
@@ -721,10 +722,10 @@ function jaugeMarcheHtml(a) {
   const pos = v => Math.max(0, Math.min(100, (v - min) / (max - min) * 100));
   const cible = cibleM2 != null
     ? `<div class="cible" style="left:calc(${pos(cibleM2)}% - 5px)"
-         title="plancher de rentabilité (${D.analyse.rendement_cible_pct} % brut) : ${fmtEuros(Math.round(cibleM2))}/m²"></div>`
+         title="Votre offre maximum : ${fmtEuros(Math.round(cibleM2))}/m². Au-dessus de ce prix, le bien ne rapporte plus vos ${D.analyse.rendement_cible_pct} % par an — on n'achète pas."></div>`
     : (usageM2 != null
       ? `<div class="cible usage" style="left:calc(${pos(usageM2)}% - 5px)"
-           title="première offre d'usage (−${D.analyse.negociation_usage_pct} %) : ${fmtEuros(Math.round(usageM2))}/m²"></div>`
+           title="Première offre conseillée : ${fmtEuros(Math.round(usageM2))}/m² (−${D.analyse.negociation_usage_pct} % du prix affiché). Le prix demandé se négocie toujours."></div>`
       : "");
   const cibleTxt = cibleM2 != null
     ? ` <span class="cible-txt">▲ plancher ${D.analyse.rendement_cible_pct} % : ${fmtEuros(Math.round(cibleM2))}/m²</span>`
@@ -777,11 +778,11 @@ function cashflowMensuel(a) {
 }
 
 const EXPLICATIONS = {
-  rendement: "Loyer annuel ÷ prix affiché. 0 pt à ≤ 4 % de rendement brut, maximum (40) à ≥ 9 %, linéaire entre les deux. −10 pts si le loyer est estimé ou promis plutôt que prouvé par un bail signé.",
-  emplacement: "La qualité de la rue fait la solidité du locataire : Paris 25, petite couronne dynamique (Pantin, Saint-Ouen…) 20, petite couronne 15, grande couronne centre-ville 10, autre 5.",
-  prix_m2_vs_benchmark: "Prix/m² comparé au référentiel local (modifiable dans data/benchmarks.json) : décote ≥ 20 % sous la médiane = 20 pts, dans la fourchette = 10, au-dessus = 0.",
-  proximite: "Temps de transport estimé depuis Paris 18e (table modifiable) : moins de 20 min = 5, 20-40 = 3, 40-60 = 1.",
-  quartier: "Attachement au 18e : 5 pts si le bien est dans le 75018 — économie locale, gestion à pied.",
+  rendement: "Ce que le bien vous rapporte chaque année, en % de son prix. Exemple : 1 000 €/mois de loyer sur un bien à 200 000 € = 6 % par an. Plus c'est haut, mieux c'est : 4 % ou moins = 0 pt, 9 % ou plus = 40 pts. On enlève 10 pts si le loyer n'est qu'une promesse (pas de bail signé qui le prouve).",
+  emplacement: "Où est la boutique ? Dans une rue passante, le commerçant gagne sa vie et paie son loyer ; dans une rue morte, il ferme. Paris = 25 pts, communes qui montent (Pantin, Saint-Ouen, Montreuil…) = 20, reste de la petite couronne = 15, centre-ville de grande couronne = 10, ailleurs = 5.",
+  prix_m2_vs_benchmark: "Est-ce cher pour le quartier ? On compare le prix au m² à ce qui se vend autour. Nettement moins cher que le marché (−20 %) = 20 pts. Dans les prix = 10. Plus cher que le marché = 0.",
+  proximite: "Le temps de trajet depuis chez vous (Paris 18e). Moins de 20 min = 5 pts, 20 à 40 min = 3, 40 à 60 min = 1. Un bien qu'on peut surveiller facilement se gère mieux.",
+  quartier: "Bonus de 5 pts si le bien est dans le 18e : votre quartier, que vous connaissez, et où vous pouvez passer à pied.",
 };
 
 function pourquoiHtml(a) {
@@ -922,15 +923,15 @@ function explicationsEnchere(e) {
   const jours = e.date_vente
     ? Math.max(0, Math.ceil((new Date(e.date_vente) - Date.now()) / 86400000)) : null;
   return {
-    emplacement: "Même grille que les annonces (×1,2) : Paris 30, commune dynamique 24, petite couronne 18, grande couronne centre-ville 12, autre 6 — la rue fait la valeur à 10 ans.",
-    gabarit: "La valeur de marché MÉDIANE du bien doit tenir dans votre budget : ≤ 420 000 € = 20 pts, jusqu'à +35 % = 10, au-delà = 0 (la salle vous doublera ou vous surpaierez).",
-    depart: "Espace entre la mise à prix et votre plafond de raison (valeur basse du marché) : plein score à ≥ 60 % d'espace. Plus le départ est bas, plus vous pouvez enchérir en restant une affaire.",
-    dossier: "Surface connue (6) + estimation du commissaire (5) + ville identifiée (4) : un dossier opaque se rate.",
-    proximite: "Temps de transport estimé depuis Paris 18e : moins de 20 min = 10, 20-40 = 6, 40-60 = 3.",
+    emplacement: "Où est le local ? Même logique que les annonces classiques : une bonne rue garde ses commerçants. Paris = 30 pts, communes qui montent = 24, petite couronne = 18, centre-ville de grande couronne = 12, ailleurs = 6.",
+    gabarit: "Ce que le bien VAUT vraiment (pas la mise à prix, qui est toujours basse) rentre-t-il dans votre budget de 420 000 € ? Oui = 20 pts. S'il vaut beaucoup plus, des enchérisseurs plus riches vous le prendront — ce n'est pas votre combat.",
+    depart: "L'écart entre le prix de départ et VOTRE limite (le plafond de raison). Grand écart = 15 pts : vous pouvez suivre les enchères longtemps tout en restant gagnant. Petit écart = la moindre surenchère vous éjecte.",
+    dossier: "Ce qu'on sait du bien avant d'y aller : surface connue (+6), estimation officielle du commissaire (+5), ville précisée (+4). Moins on en sait, plus on achète à l'aveugle.",
+    proximite: "Le temps de trajet depuis chez vous (Paris 18e) : moins de 20 min = 10 pts, 20-40 = 6, 40-60 = 3.",
     preparation: (e.date_vente
-      ? `Vente le ${new Date(e.date_vente).toLocaleDateString("fr-FR")}${jours != null ? ` — dans ${jours} jour${jours > 1 ? "s" : ""}` : ""}. `
+      ? `La vente a lieu le ${new Date(e.date_vente).toLocaleDateString("fr-FR")}${jours != null ? ` (dans ${jours} jour${jours > 1 ? "s" : ""})` : ""}. `
       : "Date de vente inconnue. ")
-      + "≥ 10 jours = 10 pts, ≥ 5 jours = 5, moins = 2 : en dessous, difficile de mandater un avocat, visiter et boucler le financement à temps.",
+      + "Il faut le temps de trouver un avocat, visiter le local et voir votre banque : 10 jours ou plus = 10 pts, 5 à 9 jours = 5, moins = 2 (c'est ce qui explique une note basse ici : le calendrier est trop court, pas le bien).",
   };
 }
 
@@ -1023,7 +1024,8 @@ function filtres() {
 
 function appliquer(a, f) {
   if (f.type !== "tous" && a.type_murs !== f.type) return false;
-  if (f.dep !== "tous" && a.departement !== f.dep) return false;
+  if (f.dep === "18e") { if (a.code_postal !== "75018") return false; }
+  else if (f.dep !== "tous" && a.departement !== f.dep) return false;
   if (f.rdt !== "" && (a.rendement_brut_pct == null || a.rendement_brut_pct < parseFloat(f.rdt))) return false;
   if (f.score !== "" && (a.score == null || a.score < parseFloat(f.score))) return false;
   if (f.nouv && !a.est_nouvelle) return false;

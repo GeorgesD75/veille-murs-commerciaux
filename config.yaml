@@ -87,9 +87,10 @@ scoring:
   seuil_alerte_rendement_pct: 10   # au-delà : ⚠️ « vérifier locataire et quartier » (pas un bonus)
   seuils:
     pepite: 80                # score ≥ 80 -> email immédiat 🔥
-    vert: 75                  # ≥ vert -> bandeau « à voir en priorité » du dashboard
+    vert: 75                  # ≥ vert -> « le haut du panier »
     orange: 60
-    affichage: 60             # sous ce score, l'annonce est repliée dans « le reste du marché »
+    affichage: 65             # sous ce score, l'annonce est repliée dans « le reste du marché »
+                              # (65 : « à étudier de près » ne montre pas de dossiers médiocres)
 
 sources:                      # activer/désactiver une source = une ligne
   mock:            {actif: false}   # données de démonstration (tests/démo Phase 1)
@@ -100,6 +101,7 @@ sources:                      # activer/désactiver une source = une ligne
   papcommerces:    {actif: true}   # site commerces de PAP, listing IdF
   bienici:         {actif: true, max_annonces: 100}   # API JSON, boutiques triées par date
   cessionpme:      {actif: true}   # listing « vente locaux commerciaux IdF » (1 000+ annonces)
+  geolocaux:       {actif: true}   # scraping direct (robots permissif), 1 page/département IdF
   encheres_publiques: {actif: true}  # enchères IdF — canal spécial sans scoring (mise à prix ≠ prix)
   # placedescommerces.com écarté : marché de fonds de commerce, pas de murs.
   # licitor.com : résultats chargés en AJAX, à réétudier si besoin (l'appli mobile a une API).

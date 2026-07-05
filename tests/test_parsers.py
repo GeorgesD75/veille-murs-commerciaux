@@ -14,6 +14,7 @@ from sources.extraction import (
     loyer_mensuel_depuis_texte,
     rentabilite_depuis_texte,
 )
+from sources.geolocaux import SourceGeolocaux
 from sources.hektor import SourceFlagship, SourceIburoshop
 from sources.murscommerciaux import SourceMursCommerciaux
 from sources.papcommerces import SourcePapCommerces
@@ -227,6 +228,41 @@ class TestCessionPme:
         assert montreuil.code_postal == "93100"             # depuis « (93100) »
         assert montreuil.type_murs is TypeMurs.MURS_LIBRES  # « local vide »
         assert montreuil.prix == 198_000
+
+
+# --- geolocaux.com ---
+
+
+class TestGeolocaux:
+    def test_extraction(self):
+        annonces = SourceGeolocaux().extraire(charger("geolocaux_liste.html"), "75")
+        assert len(annonces) == 2
+
+        paris = next(a for a in annonces if a.id_source == "717001")
+        assert paris.ville == "Paris 5e"
+        assert paris.code_postal == "75005"
+        assert paris.prix == 420_000
+        assert paris.surface_m2 == 55
+        assert paris.images and "900000001_1.jpg" in paris.images[0]
+        assert "Voir l'annonce" not in paris.description
+
+    def test_loyer_annuel_et_photo_par_defaut_ignoree(self):
+        annonces = SourceGeolocaux().extraire(charger("geolocaux_liste.html"), "93")
+        montreuil = next(a for a in annonces if a.id_source == "717002")
+        assert montreuil.ville == "Montreuil"
+        assert montreuil.code_postal == "93000"          # CP départemental approx.
+        assert montreuil.type_murs is TypeMurs.MURS_OCCUPES  # « vendus loués »
+        assert montreuil.loyer_mensuel == 1_200          # 14 400 € annuels / 12
+        assert montreuil.images == []                    # photo par défaut ignorée
+
+    def test_arrondissement_avec_suffixe(self):
+        # relevé live du 2026-07-05 : le site écrit aussi « Paris 17e », « Paris 1er »
+        source = SourceGeolocaux()
+        assert source._localiser("Vente local commercial Paris 17e - Épinettes", "75") == (
+            "Paris 17e", "75017")
+        assert source._localiser("Vente boutique Paris 1er - Les Halles", "75") == (
+            "Paris 1er", "75001")
+        assert source._localiser("Vente murs Paris 5ème", "75") == ("Paris 5e", "75005")
 
 
 # --- bienici.com (API JSON) ---

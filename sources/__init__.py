@@ -14,6 +14,7 @@ from pipeline.config import Config
 from sources.base import Source
 from sources.bienici import SourceBienici
 from sources.cessionpme import SourceCessionPme
+from sources.geolocaux import SourceGeolocaux
 from sources.hektor import SourceFlagship, SourceIburoshop
 from sources.imap_alertes import SourceImap
 from sources.mock import SourceMock
@@ -30,6 +31,7 @@ FABRIQUES: dict[str, Callable[..., Source]] = {
     "papcommerces": SourcePapCommerces,
     "bienici": SourceBienici,
     "cessionpme": SourceCessionPme,
+    "geolocaux": SourceGeolocaux,
     "imap": SourceImap,
 }
 
