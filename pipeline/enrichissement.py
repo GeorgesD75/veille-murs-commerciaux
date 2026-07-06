@@ -5,6 +5,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+from pipeline.comparables import LoyersComparables
 from pipeline.geo import GRANDE_COURONNE
 from pipeline.modeles import Annonce, TypeMurs
 from pipeline.texte import normaliser_texte
@@ -128,22 +129,34 @@ def lecture_prix(annonce: Annonce) -> str:
     return "Prix cohérent avec le marché local."
 
 
-def loyer_mensuel_retenu(annonce: Annonce, benchmarks: Benchmarks) -> tuple[float | None, bool]:
-    """Loyer retenu pour le rendement, et s'il est hypothétique.
+def loyer_mensuel_retenu(
+    annonce: Annonce,
+    benchmarks: Benchmarks,
+    comparables: LoyersComparables | None = None,
+) -> tuple[float | None, bool, str | None, int | None]:
+    """Loyer retenu pour le rendement, s'il est hypothétique, et sa confiance.
 
-    Murs occupés : loyer réel du bail. Murs libres : tout loyer est hypothétique
-    — qu'il soit annoncé par le vendeur (« loyer potentiel ») ou estimé au
-    benchmark — donc marqué estimé (pénalité d'incertitude au scoring).
+    Murs occupés : loyer réel du bail. Murs libres sans loyer annoncé : on
+    cherche d'abord des BAUX RÉELS voisins (même code postal, ≥ 2 pour être
+    solide) — confiance "comparables", la plus fiable. Faute de quoi,
+    référentiel générique de zone — confiance "benchmark", plus incertaine.
+    Un loyer annoncé par le vendeur sur des murs libres reste une promesse,
+    jamais un bail : toujours hypothétique, sans confiance particulière.
     """
     if annonce.type_murs is TypeMurs.MURS_OCCUPES:
-        return annonce.loyer_mensuel, False
+        return annonce.loyer_mensuel, False, None, None
     if annonce.loyer_mensuel:
-        return annonce.loyer_mensuel, True
+        return annonce.loyer_mensuel, True, None, None
     if annonce.surface_m2:
+        if comparables is not None:
+            trouve = comparables.pour(annonce.code_postal)
+            if trouve is not None:
+                loyer_m2_an, nb = trouve
+                return annonce.surface_m2 * loyer_m2_an / 12, True, "comparables", nb
         bench = benchmarks.pour(annonce.code_postal, annonce.departement)
         if bench:
-            return annonce.surface_m2 * bench.loyer_m2_annuel / 12, True
-    return None, False
+            return annonce.surface_m2 * bench.loyer_m2_annuel / 12, True, "benchmark", None
+    return None, False, None, None
 
 
 def position_vs_benchmark(annonce: Annonce, benchmarks: Benchmarks, seuil_decote_pct: float) -> str:
@@ -163,13 +176,18 @@ def enrichir(
     benchmarks: Benchmarks,
     seuil_decote_pct: float,
     rendement_cible_pct: float = 7.0,
+    comparables: LoyersComparables | None = None,
 ) -> Annonce:
     if annonce.prix and annonce.surface_m2:
         annonce.prix_m2 = round(annonce.prix / annonce.surface_m2)
 
-    loyer, estime = loyer_mensuel_retenu(annonce, benchmarks)
+    loyer, estime, confiance, nb_comparables = loyer_mensuel_retenu(
+        annonce, benchmarks, comparables
+    )
     annonce.loyer_estime = estime
     annonce.loyer_mensuel_estime = round(loyer, 2) if (estime and loyer) else None
+    annonce.loyer_confiance = confiance
+    annonce.loyer_nb_comparables = nb_comparables
     if loyer and annonce.prix:
         loyer_annuel = loyer * 12
         annonce.rendement_brut_pct = round(loyer_annuel / annonce.prix * 100, 2)

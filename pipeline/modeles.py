@@ -75,6 +75,15 @@ class Annonce:
     caracteristiques: list[str] = field(default_factory=list)  # extraction, terrasse…
     lecture_prix: str = ""                     # phrase : pourquoi ce prix est haut/bas
     prix_cible_rendement: float | None = None  # prix à offrir pour viser le rendement cible
+    loyer_confiance: str | None = None    # "comparables" (baux voisins réels) ou "benchmark" (zone)
+    loyer_nb_comparables: int | None = None
+
+    # Emplacement rue par rue (Base Adresse Nationale + OpenStreetMap), quand disponible
+    rue_evaluee: bool = False    # tentative faite (succès ou échec définitif) — évite de reboucler
+    rue_voie: str | None = None
+    rue_nb_commerces: int | None = None
+    rue_nb_vacants: int | None = None
+    rue_categorie: str | None = None  # tres_commercante / commercante / calme / peu_commercante
 
     # Scoring
     score: int | None = None

@@ -67,6 +67,8 @@ def preparer_payload(
                 "loyer_mensuel": a.loyer_mensuel,
                 "loyer_mensuel_estime": a.loyer_mensuel_estime,
                 "loyer_estime": a.loyer_estime,
+                "loyer_confiance": a.loyer_confiance,
+                "loyer_nb_comparables": a.loyer_nb_comparables,
                 "rendement_brut_pct": a.rendement_brut_pct,
                 "rendement_acte_en_main_pct": a.rendement_acte_en_main_pct,
                 "score": a.score,
@@ -80,6 +82,10 @@ def preparer_payload(
                 "lecture_prix": a.lecture_prix,
                 "prix_cible_rendement": a.prix_cible_rendement,
                 "temps_trajet_min": a.temps_trajet_min,
+                "rue_categorie": a.rue_categorie,
+                "rue_voie": a.rue_voie,
+                "rue_nb_commerces": a.rue_nb_commerces,
+                "rue_nb_vacants": a.rue_nb_vacants,
                 "image_url": a.image_url,
                 "images": a.images,
                 "date_premiere_vue": a.date_premiere_vue,
@@ -138,6 +144,7 @@ def preparer_payload(
         "exclues_recentes": exclues_detail,
         "encheres": meta.get("encheres", []),
         "analyse": config["analyse"],
+        "taux_marche": meta.get("taux_marche"),
         "sante": meta.get("sante_sources", {}),
     }
 
@@ -312,11 +319,26 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
   color: #fff8e6; font-size: 17px; }
 @keyframes fretiller { 0%, 100% { transform: rotate(7deg); } 35% { transform: rotate(-6deg) scale(1.12); } 70% { transform: rotate(10deg); } }
 .carte:hover .sticker, .carte-enchere:hover .sticker { animation: fretiller .55s ease; }
-.carte.rang-s { overflow: hidden; }
+.carte.rang-s { overflow: hidden; border-color: var(--or); position: relative;
+  transform-style: preserve-3d; perspective: 900px;
+  box-shadow: 0 0 0 1px var(--or), 0 8px 26px rgba(180, 138, 30, .16);
+  animation: surgir .4s ease both, lueur-pepite 2.6s ease-in-out infinite; }
 .carte.rang-s::after { content: ""; position: absolute; top: 0; left: -70%; width: 45%; height: 100%;
-  background: linear-gradient(105deg, transparent, rgba(214,165,50,.16), transparent);
-  transform: skewX(-18deg); transition: left .65s ease; pointer-events: none; }
+  background: linear-gradient(105deg, transparent, rgba(214,165,50,.22), transparent);
+  transform: skewX(-18deg); transition: left .65s ease; pointer-events: none; z-index: 1; }
 .carte.rang-s:hover::after { left: 130%; }
+@keyframes lueur-pepite {
+  0%, 100% { box-shadow: 0 0 0 1px var(--or), 0 8px 26px rgba(180, 138, 30, .16); }
+  50% { box-shadow: 0 0 0 1.5px var(--or-vif), 0 10px 34px rgba(214, 165, 50, .30); }
+}
+.pepite-pourquoi { margin-top: 10px; padding: 10px 13px; border-radius: 0 9px 9px 0;
+  border-left: 3px solid var(--or-vif); background: var(--or-clair); font-size: 13.5px;
+  color: var(--encre-1); }
+.pepite-pourquoi b { color: var(--marque-fonce); }
+@media (prefers-color-scheme: dark) { .pepite-pourquoi b { color: var(--or-vif); } }
+@media (prefers-reduced-motion: reduce) {
+  .carte.rang-s { animation: none; transform: none !important; }
+}
 .tampon { display: inline-block; font-family: Fraunces, Georgia, serif; font-weight: 700;
   font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
   color: var(--or); border: 2px solid var(--or); border-radius: 6px;
@@ -346,6 +368,7 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .badge-type { background: var(--gris-fond); color: var(--gris-texte); }
 .badge-nouveau { background: var(--vert-fond); color: var(--vert-texte); }
 .badge-alerte { background: var(--alerte-fond); color: var(--alerte-texte); }
+.badge-rue-plus { background: var(--vert-fond); color: var(--vert-texte); }
 .badge-autofinance { background: var(--vert-fond); color: var(--vert-texte); border: 1px solid currentColor; }
 .enclair { margin-top: 10px; padding: 9px 12px; border-left: 3px solid var(--or);
   background: var(--bande); border-radius: 0 9px 9px 0; font-size: 13.5px; color: var(--encre-2); }
@@ -378,6 +401,9 @@ a.btn-outil:hover { text-decoration: none; border-color: var(--marque); }
 .check-item .auto { font-size: 11.5px; color: var(--vert-texte); background: var(--vert-fond);
   border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
 .check-item .auto.negatif { color: var(--alerte-texte); background: var(--alerte-fond); }
+.contact-texte { width: 100%; box-sizing: border-box; background: var(--plan); color: var(--encre-1);
+  border: 1px solid var(--bord); border-radius: 9px; padding: 12px; font: 13.5px/1.55 system-ui, sans-serif;
+  resize: vertical; margin-top: 10px; }
 
 .metriques { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 10px; }
 .metrique .libelle { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--encre-3); }
@@ -592,7 +618,8 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
           <input id="p-apport" type="number" min="0" max="90" step="5"></div>
         <div class="filtre"><label for="p-taux">Mon taux (%)</label>
           <input id="p-taux" type="number" min="0.1" max="10" step="0.1"></div>
-        <div class="filtre"><label for="p-duree">Durée crédit (ans)</label>
+        <div class="filtre"><label for="p-duree">Durée crédit (ans)
+          <span class="info-i" id="p-arbitrage-i" title="Pour un cash-flow positif dès maintenant avec le moins d'apport possible : une durée plus longue (20-25 ans) allège nettement la mensualité, quitte à accepter un taux un peu supérieur — l'effet de la durée domine largement celui du taux dans les écarts pratiqués par les banques. Revers : plus d'intérêts payés au total, et un capital remboursé plus lentement. À l'inverse, une durée courte coûte moins cher au total mais exige une mensualité plus lourde dès le départ.">i</span></label>
           <input id="p-duree" type="number" min="5" max="30" step="1"></div>
         <button id="p-reset" type="button" title="Revenir aux hypothèses par défaut">↺</button>
       </div>
@@ -601,7 +628,8 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
     </div>
     <div class="profil-note">Les champs dorés forment votre <b>profil de financement</b> :
       apport, taux et durée sont mémorisés sur cet appareil et recalculent instantanément
-      les cash-flows, badges « s'autofinance » et textes « En clair » de toutes les annonces.</div>
+      les cash-flows, badges « s'autofinance » et textes « En clair » de toutes les annonces.
+      <span id="taux-marche-note"></span></div>
   </details>
 
   <section id="bloc-prio"></section>
@@ -720,7 +748,8 @@ const IC = {
   horloge: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>',
   calc: '<svg class="ic" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 7.5h7M8.5 12h.5M12 12h.5M15.5 12h.5M8.5 15.5h.5M12 15.5h.5M15.5 15.5v2.5"/></svg>',
   coche: '<svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8.5 12.5 2.5 2.5 5-5.5"/></svg>',
-  banque: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3 3.5 8.5h17L12 3Z"/><path d="M5 8.5V17M9.7 8.5V17M14.3 8.5V17M19 8.5V17M3.5 17h17M3 20.5h18"/></svg>'
+  banque: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3 3.5 8.5h17L12 3Z"/><path d="M5 8.5V17M9.7 8.5V17M14.3 8.5V17M19 8.5V17M3.5 17h17M3 20.5h18"/></svg>',
+  enveloppe: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6 8.5 7 8.5-7"/></svg>'
 };
 
 let comparaison = [];
@@ -854,25 +883,119 @@ function enClairHtml(a) {
   } else if (suspect) {
     phrases.push(`Le vendeur promet ${fmtEuros(loyer)}/mois de loyer — un niveau anormalement élevé. À prouver par un bail signé avant d'y croire.`);
   } else if (a.type_murs === "murs_libres") {
-    phrases.push(`Local vide : aucun loyer tant qu'un commerçant n'est pas trouvé. Au loyer de marché estimé (${fmtEuros(loyer)}/mois), financé ${finTxt()}, il ${cf >= 0 ? `laisserait ≈ ${fmtEuros(cf)}/mois` : `demanderait ≈ ${fmtEuros(-cf)}/mois de votre poche`}.`);
+    const base = a.loyer_confiance === "comparables"
+      ? `estimé sur ${a.loyer_nb_comparables} baux réels voisins — fiable`
+      : "estimé au référentiel du secteur — plus incertain";
+    phrases.push(`Local vide : aucun loyer tant qu'un commerçant n'est pas trouvé. Au loyer ${base} (${fmtEuros(loyer)}/mois), financé ${finTxt()}, il ${cf >= 0 ? `laisserait ≈ ${fmtEuros(cf)}/mois` : `demanderait ≈ ${fmtEuros(-cf)}/mois de votre poche`}.`);
   } else if (cf >= 0) {
     phrases.push(`Financé ${finTxt()}, le loyer en place paie le crédit et laisse ≈ ${fmtEuros(cf)}/mois, avant taxe foncière et impôts.`);
   } else {
     phrases.push(`Financé ${finTxt()}, le loyer en place ne couvre pas tout : ≈ ${fmtEuros(-cf)}/mois à sortir de votre poche${profil.apport > 0 ? "" : " — un apport ou une négociation réduit cet effort"}.`);
   }
-  const emp = (a.detail_score || {}).emplacement ?? 0;
-  if (emp >= 25) phrases.push("Emplacement le plus sûr de la grille : Paris intra-muros, où la demande de boutiques ne se tarit pas.");
-  else if (emp >= 20) phrases.push("Commune en plein essor : bon compromis entre prix d'achat et solidité de la demande de locaux.");
-  else if (emp >= 15) phrases.push("Petite couronne : demande correcte, à juger rue par rue.");
-  else phrases.push("Secteur périphérique : la valeur dépend fortement de la rue exacte — visite indispensable.");
+  // La rue MESURÉE (quand connue) prime sur le classement administratif : plus
+  // précise, elle répond directement à « est-ce un coin sûr ou pas net ? ».
+  if (a.rue_categorie === "peu_commercante")
+    phrases.push(`Rue mesurée peu commerçante (${a.rue_nb_commerces} commerce(s) actif(s) à 150 m) : malgré le secteur, le passage réel semble faible — visite impérative avant toute offre.`);
+  else if (a.rue_categorie === "tres_commercante")
+    phrases.push(`Rue mesurée très commerçante (${a.rue_nb_commerces} commerces actifs à 150 m) : un vrai passage, au-delà du classement administratif.`);
+  else {
+    const emp = (a.detail_score || {}).emplacement ?? 0;
+    if (emp >= 25) phrases.push("Emplacement le plus sûr de la grille : Paris intra-muros, où la demande de boutiques ne se tarit pas.");
+    else if (emp >= 20) phrases.push("Commune en plein essor : bon compromis entre prix d'achat et solidité de la demande de locaux.");
+    else if (emp >= 15) phrases.push("Petite couronne : demande correcte, à juger rue par rue.");
+    else phrases.push("Secteur périphérique : la valeur dépend fortement de la rue exacte — visite indispensable.");
+  }
+  if (a.rue_nb_vacants != null && a.rue_nb_vacants >= 3)
+    phrases.push(`⚠ ${a.rue_nb_vacants} locaux vacants ou fermés mesurés à 150 m : le secteur immédiat souffre peut-être d'une vacance commerciale — à vérifier sur place.`);
   if (a.temps_trajet_min != null && a.temps_trajet_min <= 20)
     phrases.push(`Et c'est à ≈ ${a.temps_trajet_min} min de chez vous : facile à surveiller.`);
   return `<div class="enclair"><span class="enclair-titre">En clair</span> ${phrases.join(" ")}</div>`;
 }
 
+function explicationPepiteHtml(a) {
+  // Rare par construction (score ≥ seuil pépite) : on détaille CONCRÈTEMENT
+  // ce qui justifie le niveau, plutôt qu'un simple superlatif.
+  const d = a.detail_score || {};
+  const atouts = [];
+  if (d.rendement >= 32)
+    atouts.push(`rendement exceptionnel (${fmtPct(a.rendement_brut_pct)} brut, ${d.rendement}/40 pts)`);
+  if (d.emplacement >= 20)
+    atouts.push(`emplacement parmi les plus sûrs de la grille (${d.emplacement}/25 pts)`);
+  if (d.prix_m2_vs_benchmark >= 15 && a.decote_pct != null)
+    atouts.push(`prix ${Math.round(a.decote_pct)} % sous la médiane locale`);
+  if ((a.bonus_detectes || []).length)
+    atouts.push(`dossier propre (${a.bonus_detectes.join(", ")})`);
+  if (a.rue_categorie === "tres_commercante" && a.rue_nb_commerces != null)
+    atouts.push(`rue mesurée très commerçante (${a.rue_nb_commerces} commerces à 150 m)`);
+  const cf = cashflowMensuel(a);
+  const cfTxt = (cf != null && cf >= 0 && !(a.flags || []).includes("rendement_anormalement_eleve"))
+    ? ` Et ${finTxt()}, le cash-flow resterait positif (+${fmtEuros(cf)}/mois).` : "";
+  const liste = atouts.length ? atouts.join(" · ") : "un cumul de tous les critères, sans point faible";
+  return `<div class="pepite-pourquoi">${IC.pepite} <b>Pourquoi une pépite :</b> ${liste}.${cfTxt}
+    Un score ≥ ${D.seuils.pepite}/100 est rare — vérifiez vite (visite, bail, copropriété) avant qu'elle ne parte.</div>`;
+}
+
+function messageContact(a) {
+  // Modèle personnalisé à partir des données déjà connues de l'annonce —
+  // à relire et adapter (nom, ton) avant envoi : jamais un envoi automatique.
+  const lignes = [];
+  lignes.push("Bonjour,", "");
+  lignes.push(`Je vous contacte au sujet de votre annonce « ${a.titre} » à ${a.ville}` +
+    `${a.code_postal ? ` (${a.code_postal})` : ""}` +
+    `${a.prix != null ? `, affichée à ${fmtEuros(a.prix)}` : ""}. Je suis un investisseur particulier, ` +
+    "en recherche active de murs commerciaux en Île-de-France, disponible pour avancer rapidement " +
+    "sur un dossier qui me convient.", "");
+  lignes.push("Serait-il possible d'organiser une visite prochainement ?", "");
+  const demandes = [];
+  if (a.type_murs === "murs_occupes")
+    demandes.push("une copie du bail en cours et des 3 dernières quittances de loyer",
+      "le montant exact de la taxe foncière");
+  else
+    demandes.push("le loyer que vous jugez réalisable pour ce local, et sur quelle base");
+  demandes.push("le règlement de copropriété et le montant des charges (si applicable)", "le DPE");
+  if (!a.images || !a.images.length) demandes.push("quelques photos supplémentaires si possible");
+  lignes.push(`Avant la visite, pourriez-vous également me communiquer ${demandes.join(", ")} ?`, "");
+  if (a.prix_cible_rendement != null && a.prix != null && a.prix_cible_rendement < a.prix) {
+    const remise = Math.round((1 - a.prix_cible_rendement / a.prix) * 100);
+    lignes.push(`Après une première analyse, une offre autour de ${fmtEuros(a.prix_cible_rendement)} ` +
+      `(environ ${remise} % sous le prix affiché) me semblerait cohérente avec le marché du secteur — ` +
+      "à affiner bien sûr après visite et vérification des documents.", "");
+  } else {
+    lignes.push("Le prix affiché me semble cohérent avec le marché du secteur ; je resterais preneur " +
+      "d'un premier échange sur une éventuelle marge de négociation.", "");
+  }
+  lignes.push("Je reste disponible pour échanger par téléphone si vous préférez.", "");
+  lignes.push("Cordialement,", "[Votre nom]");
+  return lignes.join(String.fromCharCode(10));
+}
+
+function ouvrirContact(id) {
+  const a = D.retenues.find(x => x.id === id);
+  if (!a) return;
+  document.getElementById("outil-contenu").innerHTML = `
+    <h3>${IC.enveloppe} Contacter le vendeur — ${ech(a.titre)}</h3>
+    <p style="font-size:13px;color:var(--encre-2)">Message généré à partir des informations de
+    l'annonce — relisez-le et personnalisez-le (nom, ton) avant de l'envoyer par email ou via la
+    messagerie du site.</p>
+    <textarea id="contact-texte" class="contact-texte" rows="15">${ech(messageContact(a))}</textarea>
+    <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
+      <button type="button" class="btn-outil" id="contact-copier">${IC.coche} Copier le message</button>
+      <span id="contact-copie-ok" style="font-size:13px;color:var(--vert-texte);display:none">Copié ✓</span>
+    </div>`;
+  document.getElementById("outil-fond").style.display = "block";
+}
+
 const EXPLICATIONS = {
-  rendement: "Ce que le bien vous rapporte chaque année, en % de son prix. Exemple : 1 000 €/mois de loyer sur un bien à 200 000 € = 6 % par an. Plus c'est haut, mieux c'est : 4 % ou moins = 0 pt, 9 % ou plus = 40 pts. On enlève 10 pts si le loyer n'est qu'une promesse (pas de bail signé qui le prouve).",
-  emplacement: "Où est la boutique ? Dans une rue passante, le commerçant gagne sa vie et paie son loyer ; dans une rue morte, il ferme. Paris = 25 pts, communes qui montent (Pantin, Saint-Ouen, Montreuil…) = 20, reste de la petite couronne = 15, centre-ville de grande couronne = 10, ailleurs = 5.",
+  rendement: "Ce que le bien vous rapporte chaque année, en % de son prix. Exemple : 1 000 €/mois de loyer sur un bien à 200 000 € = 6 % par an. Plus c'est haut, mieux c'est : 4 % ou moins = 0 pt, 9 % ou plus = 40 pts. On enlève 10 pts si le loyer n'est qu'une promesse (pas de bail signé qui le prouve) — seulement 4 pts si l'estimation s'appuie sur des baux RÉELS de voisins immédiats, bien plus fiable qu'une moyenne de zone.",
+  emplacement: a => {
+    let base = "Où est la boutique ? Dans une rue passante, le commerçant gagne sa vie et paie son loyer ; dans une rue morte, il ferme. Paris = 25 pts, communes qui montent (Pantin, Saint-Ouen, Montreuil…) = 20, reste de la petite couronne = 15, centre-ville de grande couronne = 10, ailleurs = 5. Quand une rue précise est citée dans l'annonce, un signal mesuré (Base Adresse Nationale + densité de commerces OpenStreetMap à 150 m) ajuste ce chiffre de −4 à +4 pts, et pénalise les locaux vacants voisins.";
+    if (a && a.rue_categorie) {
+      const LIB = {tres_commercante: "très commerçante", commercante: "commerçante",
+        calme: "calme", peu_commercante: "peu commerçante"};
+      base += ` Ici : rue mesurée « ${LIB[a.rue_categorie] || a.rue_categorie} » (${a.rue_nb_commerces} commerce(s) actif(s) à 150 m${a.rue_nb_vacants ? `, ${a.rue_nb_vacants} vacant(s)` : ""}).`;
+    }
+    return base;
+  },
   prix_m2_vs_benchmark: "Est-ce cher pour le quartier ? On compare le prix au m² à ce qui se vend autour. Nettement moins cher que le marché (−20 %) = 20 pts. Dans les prix = 10. Plus cher que le marché = 0.",
   proximite: "Le temps de trajet depuis chez vous (Paris 18e). Moins de 20 min = 5 pts, 20 à 40 min = 3, 40 à 60 min = 1. Un bien qu'on peut surveiller facilement se gère mieux.",
   quartier: "Bonus de 5 pts si le bien est dans le 18e : votre quartier, que vous connaissez, et où vous pouvez passer à pied.",
@@ -882,8 +1005,10 @@ function pourquoiHtml(a) {
   const d = a.detail_score || {};
   const lignes = Object.entries(D.maxima).map(([cle, max]) => {
     const v = d[cle] ?? 0;
+    const brut = EXPLICATIONS[cle];
+    const exp = typeof brut === "function" ? brut(a) : brut;
     return `<div class="jauge"><span>${LIBELLES_SCORE[cle]}
-        <span class="info-i" data-exp="${ech(EXPLICATIONS[cle] || "")}">i</span></span>
+        <span class="info-i" data-exp="${ech(exp || "")}">i</span></span>
       <div class="piste"><div data-l="${Math.max(0, Math.min(100, v / max * 100))}"></div></div>
       <span class="val">${v}/${max}</span></div>`;
   });
@@ -907,6 +1032,15 @@ function carteHtml(a, options) {
       ? `Le loyer du bail en place couvre la mensualité (financement ${finTxt()}, hors taxe foncière et gestion) : le bien se paie tout seul.`
       : `Au loyer ESTIMÉ, le bien couvrirait son crédit (${finTxt()}) — à prouver par un bail.`}">${IC.etincelle} ${reel ? "s'autofinance" : "s'autofinancerait"}</span>`);
   }
+  // Emplacement mesuré RUE PAR RUE (Base Adresse Nationale + densité de
+  // commerces OpenStreetMap à 150 m) — un signal au-delà du simple classement
+  // administratif, pour repérer une rue vraiment isolée dans un bon secteur.
+  if (a.rue_categorie === "peu_commercante")
+    badges.push(`<span class="badge badge-alerte" title="Mesuré autour de « ${ech(a.rue_voie || "")} » : ${a.rue_nb_commerces} commerce(s) actif(s) seulement à 150 m (données OpenStreetMap). Rue probablement peu passante — vérifiez sur place avant d'acheter.">${IC.alerte} rue peu commerçante</span>`);
+  else if (a.rue_categorie === "tres_commercante")
+    badges.push(`<span class="badge badge-rue-plus" title="Mesuré autour de « ${ech(a.rue_voie || "")} » : ${a.rue_nb_commerces} commerces actifs à 150 m (données OpenStreetMap) — un vrai signal de passage, pas qu'un classement administratif.">${IC.loupe} rue commerçante mesurée</span>`);
+  if (a.rue_nb_vacants != null && a.rue_nb_vacants >= 3)
+    badges.push(`<span class="badge badge-alerte" title="${a.rue_nb_vacants} locaux vacants ou fermés détectés à 150 m (OpenStreetMap) : signal de vacance commerciale du secteur, à vérifier sur place.">${IC.alerte} vacance commerciale proche</span>`);
 
   // Carrousel : toutes les photos connues du bien
   const photos = (a.images && a.images.length) ? a.images : (a.image_url ? [a.image_url] : []);
@@ -937,8 +1071,11 @@ function carteHtml(a, options) {
     .join("");
 
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
-  const est = (a.loyer_mensuel == null && a.loyer_mensuel_estime != null) || a.loyer_estime
-    ? " <small>est.</small>" : "";
+  const estimeSansBail = (a.loyer_mensuel == null && a.loyer_mensuel_estime != null) || a.loyer_estime;
+  const estTitre = a.loyer_confiance === "comparables"
+    ? `Estimé à partir de ${a.loyer_nb_comparables} baux RÉELS de voisins immédiats (même code postal) — plus fiable qu'une moyenne de zone.`
+    : "Estimation générique du secteur (référentiel de zone), ou loyer promis par le vendeur non prouvé par un bail — à vérifier.";
+  const est = estimeSansBail ? ` <small title="${ech(estTitre)}">est.</small>` : "";
   const cfHtml = cf == null ? "—" :
     `<span style="color:${cf >= 0 ? "var(--vert-texte)" : "var(--alerte-texte)"}">${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois</span>` +
     (suspect ? `<span title="Calculé sur le loyer PROMIS par le vendeur — un tel niveau est
@@ -982,6 +1119,7 @@ function carteHtml(a, options) {
       <div class="metriques">${metriques}</div>
       ${jaugeMarcheHtml(a)}
       ${enClairHtml(a)}
+      ${lettreRang === "S" ? explicationPepiteHtml(a) : ""}
     </div>
     ${pourquoiHtml(a)}
     <div class="carte-score">
@@ -992,6 +1130,8 @@ function carteHtml(a, options) {
         ${IC.balance} ${dansComp ? "Comparé" : "Comparer"}</button>
       <button type="button" class="btn-outil" data-sim="${ech(a.id)}">${IC.calc} Financer</button>
       <button type="button" class="btn-outil" data-check="${ech(a.id)}">${IC.coche} ${nbChecklist(a)}</button>
+      <button type="button" class="btn-outil" data-contact="${ech(a.id)}"
+        title="Génère un message personnalisé à copier-coller pour contacter le vendeur : visite, offre, documents manquants.">${IC.enveloppe} Contacter</button>
       ${a.dossier ? `<a class="btn-outil" href="${ech(a.dossier)}" download
         title="Classeur Excel pré-rempli à présenter au banquier : plan de financement, cash-flow, ratios (DSCR, LTV), tableau d'amortissement — toutes les hypothèses restent modifiables.">${IC.banque} Dossier banque</a>` : ""}
     </div>
@@ -1470,6 +1610,22 @@ document.addEventListener("mouseup", ev => {
   glisseX = glisseBoite = null;
 });
 
+// Effet 3D des cartes pépite (rang S) : discret, réservé aux vraies raretés.
+const SANS_MOUVEMENT = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+if (!SANS_MOUVEMENT) {
+  document.addEventListener("mousemove", ev => {
+    const carte = ev.target.closest?.(".carte.rang-s");
+    document.querySelectorAll(".carte.rang-s").forEach(c => { if (c !== carte) c.style.transform = ""; });
+    if (!carte) return;
+    const r = carte.getBoundingClientRect();
+    const px = (ev.clientX - r.left) / r.width - 0.5, py = (ev.clientY - r.top) / r.height - 0.5;
+    carte.style.transform = `perspective(900px) rotateY(${(px * 5).toFixed(2)}deg) rotateX(${(-py * 5).toFixed(2)}deg) translateY(-2px)`;
+  });
+  document.addEventListener("mouseleave", ev => {
+    if (ev.target?.classList?.contains("carte") ?? false) ev.target.style.transform = "";
+  }, true);
+}
+
 document.addEventListener("click", ev => {
   // Carrousel photo
   const car = ev.target.closest(".car-btn");
@@ -1496,6 +1652,20 @@ document.addEventListener("click", ev => {
   if (sim) { ouvrirSimulateur(sim.dataset.sim); return; }
   const chk = ev.target.closest("[data-check]");
   if (chk) { ouvrirChecklist(chk.dataset.check); return; }
+  const contact = ev.target.closest("[data-contact]");
+  if (contact) { ouvrirContact(contact.dataset.contact); return; }
+  if (ev.target.id === "contact-copier") {
+    const champ = document.getElementById("contact-texte");
+    const confirmer = () => {
+      const ok = document.getElementById("contact-copie-ok");
+      if (ok) { ok.style.display = "inline"; setTimeout(() => { ok.style.display = "none"; }, 2500); }
+    };
+    const repli = () => { champ.select(); document.execCommand("copy"); confirmer(); };
+    if (navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(champ.value).then(confirmer).catch(repli);
+    else repli();
+    return;
+  }
   if (ev.target.id === "comp-ouvrir") ouvrirComparateur();
   if (ev.target.id === "comp-vider") { comparaison = []; localStorage.setItem(CLE_COMP, "[]"); rendre(); }
   if (ev.target.id === "comp-fermer" || ev.target.id === "comparateur-fond")
@@ -1518,6 +1688,13 @@ function initialiser() {
     `<span class="maj">Dernière tournée : ${new Date(D.derniere_execution).toLocaleString("fr-FR", {day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"})}</span>`;
   document.getElementById("pied-maj").textContent =
     new Date(D.derniere_execution).toLocaleString("fr-FR");
+
+  // Le taux « Mon taux (%) » démarre sur le taux de MARCHÉ du jour (pas une
+  // valeur figée) : OAT France (Eurostat) + marge pro, actualisé à chaque
+  // tournée. Transparence sur la source, sinon le repli de config.yaml.
+  document.getElementById("taux-marche-note").textContent = D.taux_marche
+    ? ` Taux de départ actualisé : ${D.taux_marche.taux_pct} % (OAT France ${D.taux_marche.mois_reference} : ${D.taux_marche.oat_pct} % + marge pro ${D.taux_marche.marge_pct} pt) — pas une offre bancaire réelle, à confirmer auprès de vos établissements.`
+    : " Taux de départ : valeur par défaut (le taux de marché n'a pas pu être récupéré à la dernière tournée).";
 
   const NOMS_DEP = {"75": "Paris", "77": "Seine-et-Marne", "78": "Yvelines",
     "91": "Essonne", "92": "Hauts-de-Seine", "93": "Seine-Saint-Denis",

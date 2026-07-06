@@ -19,7 +19,13 @@ def _points_rendement(annonce: Annonce, cfg: dict) -> float:
     part = (r - p["pct_plancher"]) / (p["pct_plafond"] - p["pct_plancher"])
     points = max(0.0, min(1.0, part)) * p["points"]
     if annonce.loyer_estime:
-        points = max(0.0, points - cfg["penalite_loyer_estime"])
+        # Un loyer adossé à des baux RÉELS voisins est bien plus solide qu'une
+        # moyenne de zone (ou qu'une promesse de vendeur) : pénalité réduite.
+        if annonce.loyer_confiance == "comparables":
+            penalite = cfg.get("penalite_loyer_estime_comparables", cfg["penalite_loyer_estime"])
+        else:
+            penalite = cfg["penalite_loyer_estime"]
+        points = max(0.0, points - penalite)
     return points
 
 
@@ -27,7 +33,21 @@ def _points_emplacement(annonce: Annonce, cfg: dict) -> float:
     categorie = categorie_emplacement(
         annonce.ville, annonce.departement, annonce.texte_complet(), cfg["communes_dynamiques"]
     )
-    return float(cfg["emplacement"][categorie])
+    points = float(cfg["emplacement"][categorie])
+    # Signal rue par rue (Base Adresse Nationale + OpenStreetMap), quand disponible :
+    # ajuste le palier administratif sans jamais dépasser son enveloppe (25 pts).
+    rue_cfg = cfg.get("rue") or {}
+    if annonce.rue_categorie:
+        points += float((rue_cfg.get("ajustement") or {}).get(annonce.rue_categorie, 0))
+        seuil_vacance = rue_cfg.get("malus_vacance_seuil")
+        if (
+            seuil_vacance is not None
+            and annonce.rue_nb_vacants is not None
+            and annonce.rue_nb_vacants >= seuil_vacance
+        ):
+            points += float(rue_cfg.get("malus_vacance_points", 0))
+    plafond = float(cfg["emplacement"]["paris"])  # enveloppe maximale de la catégorie
+    return max(0.0, min(plafond, points))
 
 
 def _points_benchmark(annonce: Annonce, cfg: dict) -> float:

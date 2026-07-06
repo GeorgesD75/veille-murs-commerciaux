@@ -97,6 +97,69 @@ def test_emplacement_grande_couronne_autre(config):
     assert a.detail_score["emplacement"] == 5.0
 
 
+def test_penalite_loyer_estime_comparables_reduite(config):
+    # Un loyer adossé à des baux réels voisins pèse moins qu'une estimation
+    # générique de zone : la pénalité d'incertitude est plus faible.
+    a = faire_annonce()
+    a.rendement_brut_pct = 9.0
+    a.loyer_estime = True
+    a.loyer_confiance = "comparables"
+    scorer(a, config)
+    assert a.detail_score["rendement"] == 36.0  # 40 - 4 (comparables) au lieu de 40 - 10
+
+
+def test_penalite_loyer_estime_benchmark_inchangee(config):
+    a = faire_annonce()
+    a.rendement_brut_pct = 9.0
+    a.loyer_estime = True
+    a.loyer_confiance = "benchmark"
+    scorer(a, config)
+    assert a.detail_score["rendement"] == 30.0  # 40 - 10, comme avant
+
+
+# --- Emplacement rue par rue (ajustement du palier administratif) ---
+
+
+def test_rue_tres_commercante_ajoute_des_points(config):
+    a = faire_annonce(ville="Meaux", code_postal="77100", departement="77")  # 5 pts de base
+    a.rue_categorie = "tres_commercante"
+    a.rue_nb_vacants = 0
+    scorer(a, config)
+    assert a.detail_score["emplacement"] == 9.0  # 5 + 4
+
+
+def test_rue_peu_commercante_retire_des_points(config):
+    a = faire_annonce(ville="Paris 18e", code_postal="75018", departement="75")  # 25 pts de base
+    a.rue_categorie = "peu_commercante"
+    a.rue_nb_vacants = 0
+    scorer(a, config)
+    assert a.detail_score["emplacement"] == 21.0  # 25 - 4
+
+
+def test_rue_vacance_commerciale_ajoute_un_malus(config):
+    a = faire_annonce(ville="Paris 18e", code_postal="75018", departement="75")
+    a.rue_categorie = "calme"       # 0 ajustement
+    a.rue_nb_vacants = 5             # >= seuil (3) -> malus supplémentaire
+    scorer(a, config)
+    assert a.detail_score["emplacement"] == 22.0  # 25 + 0 - 3
+
+
+def test_rue_ajustement_ne_depasse_jamais_le_plafond(config):
+    a = faire_annonce(ville="Paris 18e", code_postal="75018", departement="75")  # déjà 25/25
+    a.rue_categorie = "tres_commercante"  # +4, mais plafonné
+    a.rue_nb_vacants = 0
+    scorer(a, config)
+    assert a.detail_score["emplacement"] == 25.0
+
+
+def test_rue_non_evaluee_score_inchange(config):
+    # rue_categorie=None (valeur par défaut) : comportement strictement identique
+    # à avant l'introduction du signal de rue.
+    a = faire_annonce(ville="Meaux", code_postal="77100", departement="77")
+    scorer(a, config)
+    assert a.detail_score["emplacement"] == 5.0
+
+
 # --- Prix/m² vs benchmark (20 pts) et proximité (10 pts) ---
 
 

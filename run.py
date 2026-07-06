@@ -13,6 +13,7 @@ import sys
 from typing import Any
 
 from dashboard.generer import generer_dashboard
+from pipeline.comparables import LoyersComparables
 from pipeline.config import RACINE, Config
 from pipeline.dedoublonnage import fusionner, trouver_similaire
 from pipeline.enrichissement import Benchmarks, enrichir
@@ -21,8 +22,10 @@ from pipeline.geo import Trajets
 from pipeline.modeles import Annonce, AnnonceBrute
 from pipeline.normalisation import maintenant_iso, normaliser
 from pipeline.notifications import notifier
+from pipeline.rue import evaluer_annonces
 from pipeline.scoring import scorer
 from pipeline.stockage import Stockage
+from pipeline.taux_marche import taux_credit_estime
 from sources import sources_actives
 from sources.encheres import CollecteurEncheres, scorer_lots
 
@@ -82,8 +85,23 @@ def integrer(
     return nouvelles
 
 
+def actualiser_taux_marche(config: Config) -> dict[str, Any] | None:
+    """Remplace le taux de crédit statique par le taux de marché du jour, si
+    disponible ; sinon le taux de config.yaml reste en place, sans erreur."""
+    marge = config["analyse"]["financement"].get("marge_credit_pro_pct", 0)
+    resultat = taux_credit_estime(marge)
+    if resultat is not None:
+        config.donnees["analyse"]["financement"]["taux_pct"] = resultat["taux_pct"]
+        log.info(
+            "taux de marché : %.2f %% (OAT France %s : %.2f %% + marge %.2f pt)",
+            resultat["taux_pct"], resultat["mois_reference"], resultat["oat_pct"], resultat["marge_pct"],
+        )
+    return resultat
+
+
 def executer() -> dict[str, Any]:
     config = Config.charger()
+    taux_marche = actualiser_taux_marche(config)
     trajets = Trajets.charger(RACINE / "data" / "trajets.json")
     benchmarks = Benchmarks.charger(RACINE / "data" / "benchmarks.json")
     stockage = Stockage(RACINE / "data" / "annonces.json")
@@ -123,17 +141,28 @@ def executer() -> dict[str, Any]:
     for a in annonces.values():
         a.raison_exclusion = raison_exclusion(a, config, trajets)
         a.exclue = a.raison_exclusion is not None
+
+    # Emplacement rue par rue (API publiques, volume plafonné par run) : calculé
+    # à part, AVANT le scoring, pour que ses points soient déjà là ce run-ci.
+    try:
+        evaluer_annonces(annonces, config)
+    except Exception:  # noqa: BLE001 — enrichissement optionnel, jamais bloquant
+        log.exception("évaluation des rues en échec, on continue sans")
+
+    comparables = LoyersComparables.depuis(a for a in annonces.values() if not a.exclue)
+    for a in annonces.values():
         if a.exclue:
             a.score = None
             a.detail_score = {}
         else:
-            enrichir(a, benchmarks, seuil_decote, rendement_cible)
+            enrichir(a, benchmarks, seuil_decote, rendement_cible, comparables=comparables)
             scorer(a, config)
 
     meta = {
         "derniere_execution": quand,
         "sante_sources": sante,
         "nouvelles_ce_run": nouvelles,
+        "taux_marche": taux_marche,
         "encheres": encheres,
         "encheres_ecartees": encheres_ecartees,
         # Mémoire anti-doublon des emails pépite (complétée par notifier)

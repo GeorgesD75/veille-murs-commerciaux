@@ -39,7 +39,10 @@ scoring:
     points: 40
     pct_plancher: 4           # ≤ 4 % de rendement brut -> 0 pt
     pct_plafond: 9            # ≥ 9 % -> 40 pts
-  penalite_loyer_estime: 10   # murs libres (loyer estimé au benchmark) : incertitude + vacance
+  penalite_loyer_estime: 10   # murs libres (référentiel de zone générique, ou promesse du
+                              # vendeur) : forte incertitude + vacance
+  penalite_loyer_estime_comparables: 4   # murs libres estimés via ≥ 2 baux RÉELS voisins
+                              # (même code postal) : bien plus fiable qu'une moyenne de zone
   emplacement:                # 25 pts max
     paris: 25
     petite_couronne_dynamique: 20
@@ -68,6 +71,23 @@ scoring:
     moins_de_20_min: 5
     de_20_a_40_min: 3
     de_40_a_60_min: 1
+  rue:                         # emplacement RUE PAR RUE (gratuit, sans clé) : Base Adresse
+                                # Nationale (géocodage) + OpenStreetMap/Overpass (densité de
+                                # commerces à 150 m) — ajuste le palier administratif ci-dessus
+                                # sans jamais dépasser son enveloppe (25 pts). Seulement quand
+                                # un nom de rue explicite figure dans l'annonce (jamais deviné).
+    ajustement:
+      tres_commercante: 4      # ≥ 15 commerces actifs à 150 m
+      commercante: 2           # 8 à 14
+      calme: 0                 # 3 à 7
+      peu_commercante: -4      # 0 à 2 : rue isolée, peu de passage commercial
+    malus_vacance_seuil: 3     # à partir de N locaux vacants/fermés à 150 m…
+    malus_vacance_points: -3   # …signal de vacance commerciale du secteur
+    max_par_run: 20            # limite de requêtes API par tournée (politesse + Overpass
+                                # est un service public parfois saturé)
+    budget_secondes: 120       # garde-fou de TEMPS : Overpass peut être lent à échouer ;
+                                # on s'arrête net au budget plutôt que de rallonger la
+                                # tournée (3 fois/jour, ne doit jamais bloquer la suivante)
   quartier:                   # 5 pts : attachement au 18e, économie locale
     points: 5
     codes_postaux: ["75018"]
@@ -121,8 +141,12 @@ analyse:
   rendement_cible_pct: 7      # plancher de rentabilité : loyer annuel ÷ cible
   negociation_usage_pct: 7    # première offre d'usage quand le prix est déjà bon (−7 %)
   financement:                # hypothèses du cash-flow indicatif (crédit 100 %)
-    taux_pct: 3.9
+    taux_pct: 3.9              # repli si le taux de marché (ci-dessous) est indisponible
     duree_ans: 20
+    marge_credit_pro_pct: 0.9  # marge bancaire typique ajoutée à l'OAT France pour
+                               # approcher un taux de crédit professionnel (estimation,
+                               # pas une offre réelle) — taux_pct est ACTUALISÉ à chaque
+                               # tournée à partir de ce référentiel (pipeline/taux_marche.py)
   dossier_banque:             # classeurs Excel « à présenter au banquier »
     seuil_score: 60           # généré pour toute annonce retenue à score ≥ seuil
     apport_pct: 20            # hypothèses par défaut du classeur — toutes
