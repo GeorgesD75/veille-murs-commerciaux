@@ -255,6 +255,10 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
   border: 1px solid var(--bord); border-radius: 7px; padding: 6px 8px; font: inherit; font-size: 14px; }
 .filtre input[type=number] { width: 86px; }
 .filtres .compteur { margin-left: auto; color: var(--encre-2); font-size: 13px; }
+.profil-groupe { display: flex; align-items: end; gap: 14px;
+  border-left: 3px solid var(--or); padding-left: 16px; margin-left: 4px; }
+.profil-groupe .filtre label { color: var(--or); font-weight: 700; }
+.profil-note { font-size: 12.5px; color: var(--encre-3); margin: -4px 0 10px; }
 .filtres button { background: none; border: none; color: var(--marque); cursor: pointer;
   font: inherit; font-size: 13px; padding: 6px 0; text-decoration: underline; }
 @media (prefers-color-scheme: dark) { .filtres button { color: #8fbfa9; } }
@@ -563,9 +567,21 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
         <input id="f-score" type="number" min="0" max="100" step="5" placeholder="ex. 60"></div>
       <div class="filtre"><label for="f-nouv">Fraîcheur</label>
         <label style="font-size:14px;color:var(--encre-1);padding:6px 0"><input id="f-nouv" type="checkbox"> Nouveautés seulement</label></div>
+      <div class="profil-groupe" title="Votre profil de financement : il recalcule tous les cash-flows du site.">
+        <div class="filtre"><label for="p-apport">Mon apport (%)</label>
+          <input id="p-apport" type="number" min="0" max="90" step="5"></div>
+        <div class="filtre"><label for="p-taux">Mon taux (%)</label>
+          <input id="p-taux" type="number" min="0.1" max="10" step="0.1"></div>
+        <div class="filtre"><label for="p-duree">Durée crédit (ans)</label>
+          <input id="p-duree" type="number" min="5" max="30" step="1"></div>
+        <button id="p-reset" type="button" title="Revenir aux hypothèses par défaut">↺</button>
+      </div>
       <button id="f-reset" type="button">Réinitialiser</button>
       <span class="compteur" id="compteur"></span>
     </div>
+    <div class="profil-note">Les champs dorés forment votre <b>profil de financement</b> :
+      apport, taux et durée sont mémorisés sur cet appareil et recalculent instantanément
+      les cash-flows, badges « s'autofinance » et textes « En clair » de toutes les annonces.</div>
   </details>
 
   <section id="bloc-prio"></section>
@@ -650,6 +666,20 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 const D = JSON.parse(document.getElementById("donnees").textContent);
 const CLE_FILTRES = "veille-murs-filtres";
 const CLE_COMP = "veille-murs-comparateur";
+const CLE_PROFIL = "veille-murs-profil";
+
+// Profil de financement de l'utilisateur : pilote TOUS les cash-flows du site
+// (métriques, badges « s'autofinance », blocs « En clair », simulateur).
+const PROFIL_DEFAUT = {apport: 0, taux: D.analyse.financement.taux_pct,
+                       duree: D.analyse.financement.duree_ans};
+let profil = {...PROFIL_DEFAUT};
+try { profil = {...PROFIL_DEFAUT, ...JSON.parse(localStorage.getItem(CLE_PROFIL) || "{}")}; }
+catch (e) {}
+
+function finTxt() {  // description du financement courant, pour textes et infobulles
+  return (profil.apport > 0 ? `avec ${profil.apport} % d'apport` : "en crédit 100 %")
+    + `, sur ${profil.duree} ans à ${String(profil.taux).replace(".", ",")} %`;
+}
 const LIBELLES_SCORE = {
   rendement: "Rendement", emplacement: "Emplacement",
   prix_m2_vs_benchmark: "Prix vs marché", proximite: "Trajet 18e", quartier: "Quartier 18e"
@@ -781,13 +811,15 @@ function jaugeMarcheHtml(a) {
 }
 
 function cashflowMensuel(a) {
-  // Crédit 100 % sur le coût acte en main, hors taxe foncière et gestion.
+  // Coût acte en main (prix × 1,08) financé selon le PROFIL de l'utilisateur
+  // (apport, taux, durée) — hors taxe foncière et gestion.
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   if (loyer == null || a.prix == null) return null;
-  const f = D.analyse.financement;
-  const t = f.taux_pct / 100 / 12, n = f.duree_ans * 12;
-  const mensualite = (a.prix * 1.08) * t / (1 - Math.pow(1 + t, -n));
-  return Math.round(loyer - mensualite);
+  const emprunt = (a.prix * 1.08) * (1 - profil.apport / 100);
+  if (emprunt <= 0) return Math.round(loyer);
+  const t = profil.taux / 100 / 12, n = profil.duree * 12;
+  const m = emprunt * t / (1 - Math.pow(1 + t, -n));
+  return Math.round(loyer - m);
 }
 
 function enClairHtml(a) {
@@ -797,17 +829,16 @@ function enClairHtml(a) {
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   const cf = cashflowMensuel(a);
   const suspect = (a.flags || []).includes("rendement_anormalement_eleve");
-  const f = D.analyse.financement;
   if (cf == null) {
     phrases.push("Ni loyer ni estimation fiable : impossible de dire ce que ce bien rapporte sans creuser l'annonce.");
   } else if (suspect) {
     phrases.push(`Le vendeur promet ${fmtEuros(loyer)}/mois de loyer — un niveau anormalement élevé. À prouver par un bail signé avant d'y croire.`);
   } else if (a.type_murs === "murs_libres") {
-    phrases.push(`Local vide : aucun loyer tant qu'un commerçant n'est pas trouvé. Au loyer de marché estimé (${fmtEuros(loyer)}/mois), un crédit 100 % sur ${f.duree_ans} ans ${cf >= 0 ? `laisserait ≈ ${fmtEuros(cf)}/mois` : `demanderait ≈ ${fmtEuros(-cf)}/mois de votre poche`}.`);
+    phrases.push(`Local vide : aucun loyer tant qu'un commerçant n'est pas trouvé. Au loyer de marché estimé (${fmtEuros(loyer)}/mois), financé ${finTxt()}, il ${cf >= 0 ? `laisserait ≈ ${fmtEuros(cf)}/mois` : `demanderait ≈ ${fmtEuros(-cf)}/mois de votre poche`}.`);
   } else if (cf >= 0) {
-    phrases.push(`Le loyer en place paie le crédit (100 % sur ${f.duree_ans} ans à ${f.taux_pct} %) et laisse ≈ ${fmtEuros(cf)}/mois, avant taxe foncière et impôts.`);
+    phrases.push(`Financé ${finTxt()}, le loyer en place paie le crédit et laisse ≈ ${fmtEuros(cf)}/mois, avant taxe foncière et impôts.`);
   } else {
-    phrases.push(`Le loyer en place ne couvre pas tout le crédit : ≈ ${fmtEuros(-cf)}/mois à sortir de votre poche en crédit 100 % — un apport ou une négociation réduit cet effort.`);
+    phrases.push(`Financé ${finTxt()}, le loyer en place ne couvre pas tout : ≈ ${fmtEuros(-cf)}/mois à sortir de votre poche${profil.apport > 0 ? "" : " — un apport ou une négociation réduit cet effort"}.`);
   }
   const emp = (a.detail_score || {}).emplacement ?? 0;
   if (emp >= 25) phrases.push("Emplacement le plus sûr de la grille : Paris intra-muros, où la demande de boutiques ne se tarit pas.");
@@ -853,8 +884,8 @@ function carteHtml(a, options) {
   if (cf != null && cf >= 0 && !suspect) {
     const reel = a.loyer_mensuel != null && !a.loyer_estime;
     badges.push(`<span class="badge badge-autofinance" title="${reel
-      ? "Le loyer du bail en place couvre la mensualité d'un crédit 100 % (hors taxe foncière et gestion) : le bien se paie tout seul."
-      : "Au loyer ESTIMÉ, le bien couvrirait un crédit 100 % — à prouver par un bail."}">${IC.etincelle} ${reel ? "s'autofinance" : "s'autofinancerait"}</span>`);
+      ? `Le loyer du bail en place couvre la mensualité (financement ${finTxt()}, hors taxe foncière et gestion) : le bien se paie tout seul.`
+      : `Au loyer ESTIMÉ, le bien couvrirait son crédit (${finTxt()}) — à prouver par un bail.`}">${IC.etincelle} ${reel ? "s'autofinance" : "s'autofinancerait"}</span>`);
   }
 
   // Carrousel : toutes les photos connues du bien
@@ -893,14 +924,14 @@ function carteHtml(a, options) {
     (suspect ? `<span title="Calculé sur le loyer PROMIS par le vendeur — un tel niveau est
       presque toujours irréaliste : à prouver par un bail avant d'y croire."> ⚠</span>` : "") +
     `<span class="info-i" data-sim="${ech(a.id)}"
-      title="Loyer − mensualité d'un crédit 100 % du coût acte en main (prix × 1,08) sur ${D.analyse.financement.duree_ans} ans à ${D.analyse.financement.taux_pct} % — hors taxe foncière, assurance et gestion. Cliquez pour simuler avec votre apport.">i</span>`;
+      title="Loyer − mensualité du coût acte en main (prix × 1,08) financé selon VOTRE profil : ${finTxt()} — hors taxe foncière, assurance et gestion. Réglable dans « Filtres & réglages » ou en cliquant ici.">i</span>`;
   const metriques = [
     ["Prix", fmtEuros(a.prix)],
     ["Surface", a.surface_m2 == null ? "—" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²"],
     ["Loyer/mois", loyer == null ? "—" : fmtEuros(loyer) + est],
     ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "")],
     ["Rdt acte en main", fmtPct(a.rendement_acte_en_main_pct)],
-    ["Cash-flow crédit", cfHtml],
+    [profil.apport > 0 ? `Cash-flow (${profil.apport} % apport)` : "Cash-flow crédit 100 %", cfHtml],
     ["Trajet 18e", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min"],
   ].map(([l, v]) =>
     `<div class="metrique"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
@@ -1189,17 +1220,17 @@ function mensualite(capital, tauxPct, ans) {
   return capital * t / (1 - Math.pow(1 + t, -n));
 }
 
-// Apport 0 par défaut : le simulateur s'ouvre sur EXACTEMENT le même calcul
-// que la métrique « Cash-flow crédit » de la carte (crédit 100 %).
+// Le simulateur s'ouvre sur EXACTEMENT le même calcul que la métrique
+// cash-flow de la carte : le PROFIL de l'utilisateur (apport, taux, durée).
 let simId = null;
-let simEtat = {prix: 0, apport: 0, taux: D.analyse.financement.taux_pct,
-               duree: D.analyse.financement.duree_ans};
+let simEtat = {prix: 0, apport: profil.apport, taux: profil.taux, duree: profil.duree};
 
 function ouvrirSimulateur(id) {
   const a = D.retenues.find(x => x.id === id);
   if (!a || a.prix == null) return;
   simId = id;
-  simEtat.prix = Math.round(a.prix);
+  simEtat = {prix: Math.round(a.prix), apport: profil.apport,
+             taux: profil.taux, duree: profil.duree};
   rendreSimulateur();
   document.getElementById("outil-fond").style.display = "block";
 }
@@ -1522,6 +1553,28 @@ function initialiser() {
 
   for (const id of ["f-type", "f-dep", "f-rdt", "f-score", "f-nouv"])
     document.getElementById(id).addEventListener("input", rendre);
+
+  // Profil de financement : chaque changement recalcule tout le site.
+  const BORNES = {apport: [0, 90], taux: [0.1, 10], duree: [5, 30]};
+  for (const [id, cle] of [["p-apport", "apport"], ["p-taux", "taux"], ["p-duree", "duree"]]) {
+    const champ = document.getElementById(id);
+    champ.value = profil[cle];
+    champ.addEventListener("input", () => {
+      const v = parseFloat(champ.value);
+      if (isNaN(v)) return;                     // champ vidé : on garde l'ancien
+      const [min, max] = BORNES[cle];
+      profil[cle] = Math.max(min, Math.min(max, v));
+      localStorage.setItem(CLE_PROFIL, JSON.stringify(profil));
+      rendre();
+    });
+  }
+  document.getElementById("p-reset").addEventListener("click", () => {
+    profil = {...PROFIL_DEFAUT};
+    localStorage.removeItem(CLE_PROFIL);
+    for (const [id, cle] of [["p-apport", "apport"], ["p-taux", "taux"], ["p-duree", "duree"]])
+      document.getElementById(id).value = profil[cle];
+    rendre();
+  });
   document.getElementById("f-reset").addEventListener("click", () => {
     localStorage.removeItem(CLE_FILTRES);
     document.getElementById("f-type").value = "tous";
