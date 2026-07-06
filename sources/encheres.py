@@ -14,15 +14,20 @@ le HTML. Une requête par run.
 from __future__ import annotations
 
 import json
+import logging
 import re
+import time
 from datetime import date, datetime, timezone
 from typing import Any
 
 from pipeline.config import Config
 from pipeline.enrichissement import Benchmarks
 from pipeline.geo import ILE_DE_FRANCE, Trajets, categorie_emplacement
+from pipeline.rue import ClientGeo, evaluer_rue, extraire_voie
 from sources.extraction import extraire_surface
 from sources.http import ClientPoli
+
+log = logging.getLogger("collecteur.encheres")
 
 _NEXT_DATA = re.compile(
     r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', re.S
@@ -121,7 +126,10 @@ def scorer_lots(
     Le prix d'adjudication est imprévisible (1× à 6× la mise à prix selon la
     salle) : toute « marge probable » serait une supposition. On note donc ce
     qui est CONNAISSABLE avant la vente :
-    - emplacement /30 (même grille que les annonces, ×1,2) ;
+    - emplacement /30 (même grille que les annonces, ×1,2 — y compris
+      l'ajustement rue par rue, quand un nom de voie explicite est trouvé
+      dans le dossier : une salle mal remplie sur une belle rue reste une
+      affaire, un beau quartier sur une rue morte ne l'est pas) ;
     - gabarit vs budget /25 : la valeur de marché MÉDIANE du bien tient-elle
       dans le budget ? Si elle le dépasse largement, la salle vous doublera
       ou vous surpaierez — ce bien n'est pas pour vous ;
@@ -143,6 +151,15 @@ def scorer_lots(
     budget = config.budget
     communes_dynamiques = config.scoring["communes_dynamiques"]
     bareme_emplacement = config.scoring["emplacement"]
+    plafond_emplacement = float(bareme_emplacement["paris"]) * 1.2
+
+    # Peu de lots par run (liste rafraîchie entièrement à chaque fois, pas de
+    # mémoire à plafonner en volume) : un budget de TEMPS suffit comme
+    # garde-fou contre un Overpass lent à échouer.
+    rue_cfg = config.scoring.get("rue") or {}
+    client_rue = ClientGeo() if rue_cfg.get("max_par_run", 0) > 0 else None
+    debut_rue = time.monotonic()
+    budget_rue_s = float(rue_cfg.get("budget_secondes", 120))
 
     gardes: list[dict[str, Any]] = []
     nb_ecartes = 0
@@ -176,6 +193,32 @@ def scorer_lots(
             f"{lot.get('titre', '')} {lot.get('criteres', '')}", communes_dynamiques,
         )
         detail["emplacement"] = round(float(bareme_emplacement[categorie]) * 1.2, 1)
+
+        if client_rue is not None and time.monotonic() - debut_rue < budget_rue_s:
+            voie = extraire_voie(f"{lot.get('titre', '')} {lot.get('criteres', '')}")
+            if voie is not None:
+                try:
+                    densite = evaluer_rue(voie, lot.get("ville", ""), departement, client_rue)
+                except Exception:  # noqa: BLE001 — jamais bloquant pour la collecte
+                    log.exception("évaluation de rue en échec pour le lot %s", lot.get("id"))
+                    densite = None
+                if densite is not None:
+                    lot["rue_voie"] = voie
+                    lot["rue_categorie"] = densite.categorie
+                    lot["rue_nb_commerces"] = densite.nb_commerces
+                    lot["rue_nb_vacants"] = densite.nb_vacants
+                    ajustement = float(
+                        (rue_cfg.get("ajustement") or {}).get(densite.categorie, 0)
+                    ) * 1.2
+                    seuil_vacance = rue_cfg.get("malus_vacance_seuil")
+                    if (
+                        seuil_vacance is not None
+                        and densite.nb_vacants >= seuil_vacance
+                    ):
+                        ajustement += float(rue_cfg.get("malus_vacance_points", 0)) * 1.2
+                    detail["emplacement"] = max(
+                        0.0, min(plafond_emplacement, detail["emplacement"] + ajustement)
+                    )
 
         if valeur_mediane is None:
             detail["gabarit"] = 0.0

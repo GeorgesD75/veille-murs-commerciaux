@@ -69,10 +69,22 @@ ne marque rien d'autre.
    Resend n'envoie qu'à l'adresse du compte).
 2. Menu **API Keys → Create API key** → copiez la clé (c'est `RESEND_API_KEY`).
 
-### Étape 5 — Renseigner les 4 secrets
+### Étape 4 bis — Critique IA (optionnel)
+
+Chaque annonce bien classée peut recevoir une critique honnête et sceptique
+générée par Claude Haiku (le modèle le moins cher d'Anthropic) : bouton
+« Critique IA » sur le dashboard. Sans cette clé, le bouton affiche juste
+« pas encore disponible » — le reste du site n'est pas affecté.
+
+1. Créez un compte sur [console.anthropic.com](https://console.anthropic.com).
+2. **API Keys → Create Key** → copiez la clé (c'est `ANTHROPIC_API_KEY`).
+3. Coût : quelques centimes par mois pour ~15 critiques/jour (Haiku est très
+   bon marché) — surveillable dans la console Anthropic.
+
+### Étape 5 — Renseigner les secrets
 
 Sur GitHub : **Settings → Secrets and variables → Actions → New repository secret**,
-quatre fois :
+une fois par ligne :
 
 | Nom du secret | Valeur |
 |---|---|
@@ -80,6 +92,7 @@ quatre fois :
 | `IMAP_PASSWORD` | le mot de passe d'application 16 caractères (étape 3) |
 | `RESEND_API_KEY` | la clé Resend (étape 4) |
 | `EMAIL_TO` | votre adresse Gmail (la même) |
+| `ANTHROPIC_API_KEY` | la clé Anthropic (étape 4 bis) — optionnel |
 
 ### Étape 6 — Créer les alertes sur les portails
 

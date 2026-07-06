@@ -104,6 +104,11 @@ scoring:
     - nom: travaux
       points: -3
       mots: ["travaux à prévoir", "prévoir des travaux", "à rénover", "gros travaux"]
+    - nom: dette_copropriete   # information vitale : l'acheteur hérite de la quote-part
+      points: -3               # de dette au prorata — se négocie, mais ne se découvre pas après coup
+      mots: ["dette de copropriété", "dettes de copropriété", "charges impayées",
+             "impayés de charges", "copropriété en difficulté", "procédure de copropriété",
+             "carence de copropriété", "syndic judiciaire", "administrateur provisoire"]
   seuil_alerte_rendement_pct: 10   # au-delà : ⚠️ « vérifier locataire et quartier » (pas un bonus)
   seuils:
     pepite: 80                # score ≥ 80 -> email immédiat 🔥
@@ -123,6 +128,8 @@ sources:                      # activer/désactiver une source = une ligne
   cessionpme:      {actif: true}   # listing « vente locaux commerciaux IdF » (1 000+ annonces)
   geolocaux:       {actif: true, prix_max: 420000}   # pages communales SSR découvertes via les pages
                                    # département ; prix_max (= prix_max_filtre) épargne les communes hors budget
+  bureauxlocaux:   {actif: true, max_pages: 5}   # JSON react-context par département IdF ; is_occupied /
+                                   # is_sale_of_business_assets structurés (pas de mots-clés à deviner)
   encheres_publiques: {actif: true}  # enchères IdF — canal spécial sans scoring (mise à prix ≠ prix)
   # placedescommerces.com écarté : marché de fonds de commerce, pas de murs.
   # licitor.com : résultats chargés en AJAX, à réétudier si besoin (l'appli mobile a une API).
@@ -154,6 +161,10 @@ analyse:
     taxe_fonciere_mois_loyer: 1
     provision_entretien_pct: 5
     assurance_pno_eur_an: 300
+  critique_ia:                # critique sceptique générée par Claude Haiku (pipeline/critique.py)
+    seuil_score: 60           # générée une seule fois par annonce retenue à score ≥ seuil
+    max_par_run: 15           # plafond d'appels API par tournée (coût + temps) ; sans
+                              # ANTHROPIC_API_KEY, la fonctionnalité s'ignore proprement
 
 notifications:
   fournisseur: resend

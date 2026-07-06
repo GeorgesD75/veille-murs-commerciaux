@@ -13,6 +13,7 @@ from typing import Callable
 from pipeline.config import Config
 from sources.base import Source
 from sources.bienici import SourceBienici
+from sources.bureauxlocaux import SourceBureauxLocaux
 from sources.cessionpme import SourceCessionPme
 from sources.geolocaux import SourceGeolocaux
 from sources.hektor import SourceFlagship, SourceIburoshop
@@ -32,6 +33,7 @@ FABRIQUES: dict[str, Callable[..., Source]] = {
     "bienici": SourceBienici,
     "cessionpme": SourceCessionPme,
     "geolocaux": SourceGeolocaux,
+    "bureauxlocaux": SourceBureauxLocaux,
     "imap": SourceImap,
 }
 

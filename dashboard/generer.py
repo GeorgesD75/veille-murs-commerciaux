@@ -82,10 +82,12 @@ def preparer_payload(
                 "lecture_prix": a.lecture_prix,
                 "prix_cible_rendement": a.prix_cible_rendement,
                 "temps_trajet_min": a.temps_trajet_min,
+                "historique_prix": a.historique_prix,
                 "rue_categorie": a.rue_categorie,
                 "rue_voie": a.rue_voie,
                 "rue_nb_commerces": a.rue_nb_commerces,
                 "rue_nb_vacants": a.rue_nb_vacants,
+                "critique_ia": a.critique_ia,
                 "image_url": a.image_url,
                 "images": a.images,
                 "date_premiere_vue": a.date_premiere_vue,
@@ -404,6 +406,10 @@ a.btn-outil:hover { text-decoration: none; border-color: var(--marque); }
 .contact-texte { width: 100%; box-sizing: border-box; background: var(--plan); color: var(--encre-1);
   border: 1px solid var(--bord); border-radius: 9px; padding: 12px; font: 13.5px/1.55 system-ui, sans-serif;
   resize: vertical; margin-top: 10px; }
+.critique-texte { background: var(--plan); border-left: 3px solid var(--marque); border-radius: 0 9px 9px 0;
+  padding: 14px 16px; font-size: 14px; line-height: 1.6; color: var(--encre-1); white-space: pre-wrap; }
+.critique-note { font-size: 12.5px; color: var(--encre-3); margin-top: 10px; }
+.btn-outil.a-critique { border-color: var(--marque); color: var(--marque); }
 
 .metriques { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 10px; }
 .metrique .libelle { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--encre-3); }
@@ -749,7 +755,8 @@ const IC = {
   calc: '<svg class="ic" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 7.5h7M8.5 12h.5M12 12h.5M15.5 12h.5M8.5 15.5h.5M12 15.5h.5M15.5 15.5v2.5"/></svg>',
   coche: '<svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8.5 12.5 2.5 2.5 5-5.5"/></svg>',
   banque: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3 3.5 8.5h17L12 3Z"/><path d="M5 8.5V17M9.7 8.5V17M14.3 8.5V17M19 8.5V17M3.5 17h17M3 20.5h18"/></svg>',
-  enveloppe: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6 8.5 7 8.5-7"/></svg>'
+  enveloppe: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6 8.5 7 8.5-7"/></svg>',
+  esprit: '<svg class="ic" viewBox="0 0 24 24"><path d="M9 3.5a4 4 0 0 0-3.8 5.3A3.5 3.5 0 0 0 6 15.5v.5a4 4 0 0 0 4 4h1.5"/><path d="M15 3.5a4 4 0 0 1 3.8 5.3A3.5 3.5 0 0 1 18 15.5v.5a4 4 0 0 1-4 4h-1.5"/><path d="M9 3.5v16.5M15 3.5v16.5M9 8h2.5M12.5 12H15M9 15h2"/></svg>'
 };
 
 let comparaison = [];
@@ -985,6 +992,22 @@ function ouvrirContact(id) {
   document.getElementById("outil-fond").style.display = "block";
 }
 
+function ouvrirCritique(id) {
+  const a = D.retenues.find(x => x.id === id);
+  if (!a) return;
+  const corps = a.critique_ia
+    ? `<div class="critique-texte">${ech(a.critique_ia)}</div>
+       <p class="critique-note">Généré automatiquement par Claude Haiku — un avis, pas une
+       vérité : croisez-le toujours avec une visite et les pièces du dossier.</p>`
+    : `<p class="critique-note">Pas encore disponible pour ce bien. La critique est générée pour
+       les meilleures annonces, dans la limite du budget de chaque tournée — repassez plus tard,
+       ou c'est que la fonctionnalité n'est pas configurée pour ce site.</p>`;
+  document.getElementById("outil-contenu").innerHTML = `
+    <h3>${IC.esprit} Critique IA — ${ech(a.titre)}</h3>
+    ${corps}`;
+  document.getElementById("outil-fond").style.display = "block";
+}
+
 const EXPLICATIONS = {
   rendement: "Ce que le bien vous rapporte chaque année, en % de son prix. Exemple : 1 000 €/mois de loyer sur un bien à 200 000 € = 6 % par an. Plus c'est haut, mieux c'est : 4 % ou moins = 0 pt, 9 % ou plus = 40 pts. On enlève 10 pts si le loyer n'est qu'une promesse (pas de bail signé qui le prouve) — seulement 4 pts si l'estimation s'appuie sur des baux RÉELS de voisins immédiats, bien plus fiable qu'une moyenne de zone.",
   emplacement: a => {
@@ -1041,6 +1064,22 @@ function carteHtml(a, options) {
     badges.push(`<span class="badge badge-rue-plus" title="Mesuré autour de « ${ech(a.rue_voie || "")} » : ${a.rue_nb_commerces} commerces actifs à 150 m (données OpenStreetMap) — un vrai signal de passage, pas qu'un classement administratif.">${IC.loupe} rue commerçante mesurée</span>`);
   if (a.rue_nb_vacants != null && a.rue_nb_vacants >= 3)
     badges.push(`<span class="badge badge-alerte" title="${a.rue_nb_vacants} locaux vacants ou fermés détectés à 150 m (OpenStreetMap) : signal de vacance commerciale du secteur, à vérifier sur place.">${IC.alerte} vacance commerciale proche</span>`);
+  if ((a.flags || []).includes("dette_copropriete"))
+    badges.push(`<span class="badge badge-alerte" title="L'annonce mentionne des dettes ou une procédure de copropriété. Cela peut se négocier (le prix en tient parfois déjà compte), mais exigez le pré-état daté et le montant exact AVANT toute offre — un acheteur hérite de la quote-part de dette au prorata de sa surface.">${IC.alerte} dettes de copropriété</span>`);
+
+  // Historique de prix : un vendeur qui baisse son prix dans le temps est un
+  // signal de négociation précieux, pas seulement une donnée de plus.
+  const hist = a.historique_prix || [];
+  if (hist.length >= 2) {
+    const premier = hist[0].prix, dernier = hist[hist.length - 1].prix;
+    if (dernier < premier) {
+      const baisse = Math.round((1 - dernier / premier) * 100);
+      badges.push(`<span class="badge badge-rue-plus" title="Prix baissé de ${fmtEuros(premier)} à ${fmtEuros(dernier)} (−${baisse} %) depuis le ${fmtDate(hist[0].date)} — ${hist.length - 1} changement(s) observé(s). Un vendeur qui baisse son prix dans le temps est prêt à négocier : bon point d'appui pour une offre.">${IC.etincelle} prix baissé −${baisse} %</span>`);
+    } else if (dernier > premier) {
+      const hausse = Math.round((dernier / premier - 1) * 100);
+      badges.push(`<span class="badge badge-type" title="Prix relevé de ${fmtEuros(premier)} à ${fmtEuros(dernier)} depuis le ${fmtDate(hist[0].date)}.">prix relevé +${hausse} %</span>`);
+    }
+  }
 
   // Carrousel : toutes les photos connues du bien
   const photos = (a.images && a.images.length) ? a.images : (a.image_url ? [a.image_url] : []);
@@ -1132,6 +1171,8 @@ function carteHtml(a, options) {
       <button type="button" class="btn-outil" data-check="${ech(a.id)}">${IC.coche} ${nbChecklist(a)}</button>
       <button type="button" class="btn-outil" data-contact="${ech(a.id)}"
         title="Génère un message personnalisé à copier-coller pour contacter le vendeur : visite, offre, documents manquants.">${IC.enveloppe} Contacter</button>
+      <button type="button" class="btn-outil${a.critique_ia ? " a-critique" : ""}" data-critique="${ech(a.id)}"
+        title="${a.critique_ia ? "Critique honnête générée par une IA (Claude Haiku) : ce qui pourrait clocher, au-delà du score." : "Critique IA : pas encore générée pour ce bien."}">${IC.esprit} Critique IA</button>
       ${a.dossier ? `<a class="btn-outil" href="${ech(a.dossier)}" download
         title="Classeur Excel pré-rempli à présenter au banquier : plan de financement, cash-flow, ratios (DSCR, LTV), tableau d'amortissement — toutes les hypothèses restent modifiables.">${IC.banque} Dossier banque</a>` : ""}
     </div>
@@ -1225,7 +1266,14 @@ function enchereHtml(e, index) {
   const badges = [
     `<span class="badge badge-type">${IC.marteau} Enchère · ${ech(e.type_vente)}</span>`,
     `<span class="badge badge-nouveau">${IC.horloge} vente le ${dateVente}</span>`,
-  ].join("");
+  ];
+  if (e.rue_categorie === "peu_commercante")
+    badges.push(`<span class="badge badge-alerte" title="Mesuré autour de « ${ech(e.rue_voie || "")} » : ${e.rue_nb_commerces} commerce(s) actif(s) seulement à 150 m. Rue probablement peu passante — vérifiez sur place avant d'enchérir.">${IC.alerte} rue peu commerçante</span>`);
+  else if (e.rue_categorie === "tres_commercante")
+    badges.push(`<span class="badge badge-rue-plus" title="Mesuré autour de « ${ech(e.rue_voie || "")} » : ${e.rue_nb_commerces} commerces actifs à 150 m — un vrai signal de passage, pas qu'un classement administratif.">${IC.loupe} rue commerçante mesurée</span>`);
+  if (e.rue_nb_vacants != null && e.rue_nb_vacants >= 3)
+    badges.push(`<span class="badge badge-alerte" title="${e.rue_nb_vacants} locaux vacants ou fermés détectés à 150 m : signal de vacance commerciale du secteur.">${IC.alerte} vacance commerciale proche</span>`);
+  const badgesHtml = badges.join("");
   const metriques = [
     ["Mise à prix", fmtEuros(e.mise_a_prix)],
     ["Surface", e.surface_m2 ? e.surface_m2 + " m²" : "—"],
@@ -1240,7 +1288,7 @@ function enchereHtml(e, index) {
     <div>
       ${forte ? '<div><span class="tampon">Occasion à la barre</span></div>' : ""}
       <div class="carte-titre"><a href="${ech(e.url)}" target="_blank" rel="noopener">${ech(e.titre)}</a>
-        <span class="badges">${badges}</span></div>
+        <span class="badges">${badgesHtml}</span></div>
       <div class="carte-lieu">${ech(e.ville || "")}${e.ville ? " · " : ""}département ${ech(e.departement)}${e.criteres ? " · " + ech(e.criteres) : ""}</div>
       <div class="metriques">${metriques}</div>
       ${jaugeEnchereHtml(e)}
@@ -1654,6 +1702,8 @@ document.addEventListener("click", ev => {
   if (chk) { ouvrirChecklist(chk.dataset.check); return; }
   const contact = ev.target.closest("[data-contact]");
   if (contact) { ouvrirContact(contact.dataset.contact); return; }
+  const critique = ev.target.closest("[data-critique]");
+  if (critique) { ouvrirCritique(critique.dataset.critique); return; }
   if (ev.target.id === "contact-copier") {
     const champ = document.getElementById("contact-texte");
     const confirmer = () => {

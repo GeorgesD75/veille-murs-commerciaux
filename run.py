@@ -15,6 +15,7 @@ from typing import Any
 from dashboard.generer import generer_dashboard
 from pipeline.comparables import LoyersComparables
 from pipeline.config import RACINE, Config
+from pipeline.critique import generer_critiques
 from pipeline.dedoublonnage import fusionner, trouver_similaire
 from pipeline.enrichissement import Benchmarks, enrichir
 from pipeline.filtres import raison_exclusion
@@ -66,6 +67,15 @@ def integrer(
         if a.id in annonces:
             existante = annonces[a.id]
             existante.date_derniere_vue = quand
+            if a.prix is not None and existante.prix is not None and a.prix != existante.prix:
+                # Premier changement observé : on horodate aussi le prix DE DÉPART
+                # (jusque-là implicite), puis le nouveau — un vendeur qui baisse
+                # son prix au fil du temps est un signal de négociation précieux.
+                if not existante.historique_prix:
+                    existante.historique_prix.append(
+                        {"date": existante.date_premiere_vue, "prix": existante.prix}
+                    )
+                existante.historique_prix.append({"date": quand, "prix": a.prix})
             existante.prix = a.prix  # suit les baisses de prix
             existante.loyer_mensuel = a.loyer_mensuel or existante.loyer_mensuel
             # Les infos de présentation se rafraîchissent aussi (photos ajoutées
@@ -157,6 +167,13 @@ def executer() -> dict[str, Any]:
         else:
             enrichir(a, benchmarks, seuil_decote, rendement_cible, comparables=comparables)
             scorer(a, config)
+
+    # Critique IA (Claude Haiku, optionnelle) : le score final est requis pour
+    # choisir qui critiquer — appelée en dernier, jamais bloquante.
+    try:
+        generer_critiques(annonces, config)
+    except Exception:  # noqa: BLE001 — enrichissement optionnel, jamais bloquant
+        log.exception("critique IA en échec, on continue sans")
 
     meta = {
         "derniere_execution": quand,

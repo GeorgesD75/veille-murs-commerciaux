@@ -60,6 +60,9 @@ class Annonce:
     date_derniere_vue: str
     urls_multiples: list[str] = field(default_factory=list)
     images: list[str] = field(default_factory=list)  # toutes les photos connues
+    # Rempli seulement à partir du premier changement observé — vide sinon
+    # (pas de bruit pour les 99 % d'annonces à prix stable).
+    historique_prix: list[dict[str, Any]] = field(default_factory=list)  # [{date, prix}]
 
     # Enrichissement
     prix_m2: float | None = None
@@ -84,6 +87,9 @@ class Annonce:
     rue_nb_commerces: int | None = None
     rue_nb_vacants: int | None = None
     rue_categorie: str | None = None  # tres_commercante / commercante / calme / peu_commercante
+
+    # Critique IA (Claude Haiku) : générée une fois, jamais régénérée (pipeline/critique.py)
+    critique_ia: str | None = None
 
     # Scoring
     score: int | None = None

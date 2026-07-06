@@ -31,11 +31,15 @@ def test_champs_du_lot():
     assert lot["url"].endswith("_400001")
 
 
-def test_score_enchere(benchmarks, trajets, config):
+def test_score_enchere(benchmarks, trajets, config, monkeypatch):
     from datetime import date
 
     from sources.encheres import scorer_lots
 
+    # Le fixture cite "rue Exemple" : sans ce mock, le test ferait un VRAI
+    # appel réseau (BAN/Overpass). None = "pas de données", comportement
+    # identique à avant l'introduction du signal de rue.
+    monkeypatch.setattr("sources.encheres.evaluer_rue", lambda *a, **k: None)
     lots, nb_ecartes = scorer_lots(_extraire(), benchmarks, trajets, config,
                                    maintenant=date(2026, 7, 3))
     assert nb_ecartes == 1          # le lot fantôme de 2017 est écarté
@@ -56,17 +60,75 @@ def test_score_enchere(benchmarks, trajets, config):
     assert lot["haut_panier"] is True
 
 
-def test_mise_a_prix_au_dessus_du_plafond_ecartee(benchmarks, trajets, config):
+def test_mise_a_prix_au_dessus_du_plafond_ecartee(benchmarks, trajets, config, monkeypatch):
     from datetime import date
 
     from sources.encheres import scorer_lots
 
+    monkeypatch.setattr("sources.encheres.evaluer_rue", lambda *a, **k: None)
     lots = [lot for lot in _extraire() if lot["id"] == "400001"]
     lots[0]["mise_a_prix"] = 300_000  # > plafond de raison 265 320 € : départ mort
     gardes, nb_ecartes = scorer_lots(lots, benchmarks, trajets, config,
                                      maintenant=date(2026, 7, 3))
     assert nb_ecartes == 1
     assert gardes == []
+
+
+class TestSignalDeRueEncheres:
+    def test_rue_commercante_ajoute_des_points_bornes_au_plafond(
+        self, benchmarks, trajets, config, monkeypatch
+    ):
+        from datetime import date
+
+        from pipeline.rue import DensiteRue
+        from sources.encheres import scorer_lots
+
+        # Paris = déjà 30/30 (plafond) : l'ajustement +4,8 (4 × 1,2) ne doit
+        # jamais faire dépasser l'enveloppe de la catégorie.
+        monkeypatch.setattr(
+            "sources.encheres.evaluer_rue",
+            lambda voie, ville, dep, client: DensiteRue(nb_commerces=20, nb_vacants=0),
+        )
+        lots, _ = scorer_lots(_extraire(), benchmarks, trajets, config, maintenant=date(2026, 7, 3))
+        lot = lots[0]
+        assert lot["rue_categorie"] == "tres_commercante"
+        assert lot["rue_voie"].startswith("rue Exemple à Paris")
+        assert lot["detail_score"]["emplacement"] == 30.0
+
+    def test_rue_peu_commercante_baisse_l_emplacement(
+        self, benchmarks, trajets, config, monkeypatch
+    ):
+        from datetime import date
+
+        from pipeline.rue import DensiteRue
+        from sources.encheres import scorer_lots
+
+        monkeypatch.setattr(
+            "sources.encheres.evaluer_rue",
+            lambda voie, ville, dep, client: DensiteRue(nb_commerces=1, nb_vacants=4),
+        )
+        lots, _ = scorer_lots(_extraire(), benchmarks, trajets, config, maintenant=date(2026, 7, 3))
+        lot = lots[0]
+        assert lot["rue_categorie"] == "peu_commercante"
+        assert lot["rue_nb_vacants"] == 4
+        # 30 (Paris) - 4×1,2 (peu commerçante) - 3×1,2 (vacance) = 21,6
+        assert lot["detail_score"]["emplacement"] == 21.6
+
+    def test_pas_de_voie_pas_d_appel_reseau(self, benchmarks, trajets, config, monkeypatch):
+        from datetime import date
+
+        from sources.encheres import scorer_lots
+
+        appele = []
+        monkeypatch.setattr(
+            "sources.encheres.evaluer_rue",
+            lambda *a, **k: appele.append(1) or None,
+        )
+        lots = [lot for lot in _extraire() if lot["id"] == "400001"]
+        lots[0]["titre"] = "Local commercial sans adresse précise"
+        lots[0]["criteres"] = "Paris"
+        scorer_lots(lots, benchmarks, trajets, config, maintenant=date(2026, 7, 3))
+        assert appele == []
 
 
 def test_lecture_prix_decote_travaux(benchmarks):

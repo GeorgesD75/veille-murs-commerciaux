@@ -101,6 +101,10 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
     annonce.flags = []
     if annonce.loyer_estime:
         annonce.flags.append("loyer_estime")
+    if "dette_copropriete" in annonce.bonus_detectes:
+        # Information vitale, distincte d'un simple malus de score : l'acheteur
+        # hérite de la dette au prorata — signalé en clair, jamais juste chiffré.
+        annonce.flags.append("dette_copropriete")
     if (
         annonce.rendement_brut_pct is not None
         and annonce.rendement_brut_pct > cfg["seuil_alerte_rendement_pct"]

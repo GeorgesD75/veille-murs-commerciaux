@@ -224,6 +224,22 @@ def test_malus_travaux(config):
     assert a.detail_score["bonus_malus"] == -3.0
 
 
+def test_dette_copropriete_flag_prominent(config):
+    # Information vitale : signalée par un flag dédié (pas juste un malus de
+    # score), pour un badge visible sur le dashboard, distinct du travail.
+    a = faire_annonce(description="Murs loués, mais dettes de copropriété en cours.")
+    scorer(a, config)
+    assert "dette_copropriete" in a.bonus_detectes
+    assert "dette_copropriete" in a.flags
+    assert a.detail_score["bonus_malus"] == -3.0
+
+
+def test_pas_de_flag_dette_copropriete_sans_mention(config):
+    a = faire_annonce(description="Murs loués, aucun souci signalé.")
+    scorer(a, config)
+    assert "dette_copropriete" not in a.flags
+
+
 # --- Flags ---
 
 
