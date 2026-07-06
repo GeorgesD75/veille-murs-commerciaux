@@ -123,6 +123,13 @@ analyse:
   financement:                # hypothèses du cash-flow indicatif (crédit 100 %)
     taux_pct: 3.9
     duree_ans: 20
+  dossier_banque:             # classeurs Excel « à présenter au banquier »
+    seuil_score: 60           # généré pour toute annonce retenue à score ≥ seuil
+    apport_pct: 20            # hypothèses par défaut du classeur — toutes
+    frais_acquisition_pct: 8  # modifiables dans Excel (cellules jaunes)
+    taxe_fonciere_mois_loyer: 1
+    provision_entretien_pct: 5
+    assurance_pno_eur_an: 300
 
 notifications:
   fournisseur: resend

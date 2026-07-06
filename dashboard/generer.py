@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from dashboard.dossier_banque import generer_dossiers
 from pipeline.config import Config
 from pipeline.modeles import Annonce
 
@@ -38,6 +39,7 @@ def preparer_payload(
     meta: dict[str, Any],
     config: Config,
     maintenant: datetime,
+    dossiers: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Données embarquées dans la page, prêtes à afficher."""
     seuil_nouveaute = maintenant - timedelta(hours=HEURES_NOUVEAUTE)
@@ -82,6 +84,8 @@ def preparer_payload(
                 "images": a.images,
                 "date_premiere_vue": a.date_premiere_vue,
                 "est_nouvelle": _iso(a.date_premiere_vue) >= seuil_nouveaute,
+                # classeur Excel « dossier banque », si généré pour ce bien
+                "dossier": f"dossiers/{dossiers[a.id]}" if dossiers and a.id in dossiers else None,
             }
         )
 
@@ -151,8 +155,10 @@ def generer_dashboard(
     maintenant: datetime | None = None,
 ) -> Path:
     maintenant = maintenant or datetime.now().astimezone()
-    payload = preparer_payload(annonces, meta, config, maintenant)
     dossier.mkdir(parents=True, exist_ok=True)
+    # Dossiers banque Excel d'abord : le payload référence leurs fichiers.
+    dossiers_banque = generer_dossiers(annonces, config, dossier / "dossiers")
+    payload = preparer_payload(annonces, meta, config, maintenant, dossiers_banque)
     cible = dossier / "index.html"
     cible.write_text(generer_html(payload), encoding="utf-8")
     # Site volontairement non référencé.
@@ -320,6 +326,12 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .badge-type { background: var(--gris-fond); color: var(--gris-texte); }
 .badge-nouveau { background: var(--vert-fond); color: var(--vert-texte); }
 .badge-alerte { background: var(--alerte-fond); color: var(--alerte-texte); }
+.badge-autofinance { background: var(--vert-fond); color: var(--vert-texte); border: 1px solid currentColor; }
+.enclair { margin-top: 10px; padding: 9px 12px; border-left: 3px solid var(--or);
+  background: var(--bande); border-radius: 0 9px 9px 0; font-size: 13.5px; color: var(--encre-2); }
+.enclair-titre { font-weight: 700; color: var(--encre-1); font-variant: small-caps; margin-right: 4px; }
+a.btn-outil { text-decoration: none; }
+a.btn-outil:hover { text-decoration: none; border-color: var(--marque); }
 .etiquettes { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 9px; }
 .etiquette { font-size: 11.5px; color: var(--encre-2); border: 1px solid var(--filet);
   border-radius: 6px; padding: 1px 7px; background: var(--plan); }
@@ -657,7 +669,8 @@ const IC = {
   alerte: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4Z"/><path d="M12 10v5M12 17.5v.5"/></svg>',
   horloge: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>',
   calc: '<svg class="ic" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 7.5h7M8.5 12h.5M12 12h.5M15.5 12h.5M8.5 15.5h.5M12 15.5h.5M15.5 15.5v2.5"/></svg>',
-  coche: '<svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8.5 12.5 2.5 2.5 5-5.5"/></svg>'
+  coche: '<svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8.5 12.5 2.5 2.5 5-5.5"/></svg>',
+  banque: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3 3.5 8.5h17L12 3Z"/><path d="M5 8.5V17M9.7 8.5V17M14.3 8.5V17M19 8.5V17M3.5 17h17M3 20.5h18"/></svg>'
 };
 
 let comparaison = [];
@@ -777,6 +790,35 @@ function cashflowMensuel(a) {
   return Math.round(loyer - mensualite);
 }
 
+function enClairHtml(a) {
+  // Résumé pour quelqu'un qui ne connaît ni le score ni le jargon : l'argent
+  // d'abord (cash-flow), la sûreté ensuite (emplacement), toujours honnête.
+  const phrases = [];
+  const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
+  const cf = cashflowMensuel(a);
+  const suspect = (a.flags || []).includes("rendement_anormalement_eleve");
+  const f = D.analyse.financement;
+  if (cf == null) {
+    phrases.push("Ni loyer ni estimation fiable : impossible de dire ce que ce bien rapporte sans creuser l'annonce.");
+  } else if (suspect) {
+    phrases.push(`Le vendeur promet ${fmtEuros(loyer)}/mois de loyer — un niveau anormalement élevé. À prouver par un bail signé avant d'y croire.`);
+  } else if (a.type_murs === "murs_libres") {
+    phrases.push(`Local vide : aucun loyer tant qu'un commerçant n'est pas trouvé. Au loyer de marché estimé (${fmtEuros(loyer)}/mois), un crédit 100 % sur ${f.duree_ans} ans ${cf >= 0 ? `laisserait ≈ ${fmtEuros(cf)}/mois` : `demanderait ≈ ${fmtEuros(-cf)}/mois de votre poche`}.`);
+  } else if (cf >= 0) {
+    phrases.push(`Le loyer en place paie le crédit (100 % sur ${f.duree_ans} ans à ${f.taux_pct} %) et laisse ≈ ${fmtEuros(cf)}/mois, avant taxe foncière et impôts.`);
+  } else {
+    phrases.push(`Le loyer en place ne couvre pas tout le crédit : ≈ ${fmtEuros(-cf)}/mois à sortir de votre poche en crédit 100 % — un apport ou une négociation réduit cet effort.`);
+  }
+  const emp = (a.detail_score || {}).emplacement ?? 0;
+  if (emp >= 25) phrases.push("Emplacement le plus sûr de la grille : Paris intra-muros, où la demande de boutiques ne se tarit pas.");
+  else if (emp >= 20) phrases.push("Commune en plein essor : bon compromis entre prix d'achat et solidité de la demande de locaux.");
+  else if (emp >= 15) phrases.push("Petite couronne : demande correcte, à juger rue par rue.");
+  else phrases.push("Secteur périphérique : la valeur dépend fortement de la rue exacte — visite indispensable.");
+  if (a.temps_trajet_min != null && a.temps_trajet_min <= 20)
+    phrases.push(`Et c'est à ≈ ${a.temps_trajet_min} min de chez vous : facile à surveiller.`);
+  return `<div class="enclair"><span class="enclair-titre">En clair</span> ${phrases.join(" ")}</div>`;
+}
+
 const EXPLICATIONS = {
   rendement: "Ce que le bien vous rapporte chaque année, en % de son prix. Exemple : 1 000 €/mois de loyer sur un bien à 200 000 € = 6 % par an. Plus c'est haut, mieux c'est : 4 % ou moins = 0 pt, 9 % ou plus = 40 pts. On enlève 10 pts si le loyer n'est qu'une promesse (pas de bail signé qui le prouve).",
   emplacement: "Où est la boutique ? Dans une rue passante, le commerçant gagne sa vie et paie son loyer ; dans une rue morte, il ferme. Paris = 25 pts, communes qui montent (Pantin, Saint-Ouen, Montreuil…) = 20, reste de la petite couronne = 15, centre-ville de grande couronne = 10, ailleurs = 5.",
@@ -801,11 +843,19 @@ function pourquoiHtml(a) {
 }
 
 function carteHtml(a, options) {
+  const cf = cashflowMensuel(a);
+  const suspect = (a.flags || []).includes("rendement_anormalement_eleve");
   const badges = [];
   badges.push(`<span class="badge badge-type">${a.type_murs === "murs_occupes" ? "Murs occupés" : "Murs libres"}</span>`);
   if (a.est_nouvelle) badges.push(`<span class="badge badge-nouveau">${IC.etincelle} nouveau</span>`);
-  if ((a.flags || []).includes("rendement_anormalement_eleve"))
+  if (suspect)
     badges.push(`<span class="badge badge-alerte">${IC.alerte} rendement à vérifier</span>`);
+  if (cf != null && cf >= 0 && !suspect) {
+    const reel = a.loyer_mensuel != null && !a.loyer_estime;
+    badges.push(`<span class="badge badge-autofinance" title="${reel
+      ? "Le loyer du bail en place couvre la mensualité d'un crédit 100 % (hors taxe foncière et gestion) : le bien se paie tout seul."
+      : "Au loyer ESTIMÉ, le bien couvrirait un crédit 100 % — à prouver par un bail."}">${IC.etincelle} ${reel ? "s'autofinance" : "s'autofinancerait"}</span>`);
+  }
 
   // Carrousel : toutes les photos connues du bien
   const photos = (a.images && a.images.length) ? a.images : (a.image_url ? [a.image_url] : []);
@@ -838,8 +888,6 @@ function carteHtml(a, options) {
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   const est = (a.loyer_mensuel == null && a.loyer_mensuel_estime != null) || a.loyer_estime
     ? " <small>est.</small>" : "";
-  const cf = cashflowMensuel(a);
-  const suspect = (a.flags || []).includes("rendement_anormalement_eleve");
   const cfHtml = cf == null ? "—" :
     `<span style="color:${cf >= 0 ? "var(--vert-texte)" : "var(--alerte-texte)"}">${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois</span>` +
     (suspect ? `<span title="Calculé sur le loyer PROMIS par le vendeur — un tel niveau est
@@ -882,6 +930,7 @@ function carteHtml(a, options) {
       ${etiquettes ? `<div class="etiquettes">${etiquettes}</div>` : ""}
       <div class="metriques">${metriques}</div>
       ${jaugeMarcheHtml(a)}
+      ${enClairHtml(a)}
     </div>
     ${pourquoiHtml(a)}
     <div class="carte-score">
@@ -892,6 +941,8 @@ function carteHtml(a, options) {
         ${IC.balance} ${dansComp ? "Comparé" : "Comparer"}</button>
       <button type="button" class="btn-outil" data-sim="${ech(a.id)}">${IC.calc} Financer</button>
       <button type="button" class="btn-outil" data-check="${ech(a.id)}">${IC.coche} ${nbChecklist(a)}</button>
+      ${a.dossier ? `<a class="btn-outil" href="${ech(a.dossier)}" download
+        title="Classeur Excel pré-rempli à présenter au banquier : plan de financement, cash-flow, ratios (DSCR, LTV), tableau d'amortissement — toutes les hypothèses restent modifiables.">${IC.banque} Dossier banque</a>` : ""}
     </div>
   </article>`;
 }

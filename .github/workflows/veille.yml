@@ -1,4 +1,4 @@
-# La tournée du matin : GitHub exécute ce fichier tout seul, c'est le « serveur
+# La tournée : GitHub exécute ce fichier tout seul, c'est le « serveur
 # gratuit » du projet. Elle collecte, filtre, score, régénère le site et envoie
 # les emails s'il y a du nouveau, puis committe les données mises à jour.
 name: Veille quotidienne
@@ -6,10 +6,12 @@ name: Veille quotidienne
 on:
   workflow_dispatch:       # bouton « Run workflow » pour lancer à la main
   schedule:
-    - cron: "17 5 * * *"  # ~07:17 à Paris l'été (cron en UTC) ; minute creuse :
-                          # les crons « minute 0 » sont si demandés que GitHub
-                          # les retarde de plusieurs heures, voire les saute
-                          # (constaté les 5 et 6 juillet 2026)
+    # 3 tournées/jour (~07:17, 15:17, 23:17 à Paris l'été — cron en UTC) :
+    # matin pour le café, après-midi pour les annonces de la journée, soir
+    # pour ne rien rater la nuit. Minute creuse volontaire : les crons
+    # « minute 0 » sont si demandés que GitHub les retarde de plusieurs
+    # heures, voire les saute (constaté les 5 et 6 juillet 2026).
+    - cron: "17 5,13,21 * * *"
 
 permissions:
   contents: write          # nécessaire pour committer données + site
