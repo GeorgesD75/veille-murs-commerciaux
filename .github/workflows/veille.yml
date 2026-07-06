@@ -6,7 +6,10 @@ name: Veille quotidienne
 on:
   workflow_dispatch:       # bouton « Run workflow » pour lancer à la main
   schedule:
-    - cron: "0 5 * * *"   # 07:00 à Paris l'été, 06:00 l'hiver (cron est en UTC)
+    - cron: "17 5 * * *"  # ~07:17 à Paris l'été (cron en UTC) ; minute creuse :
+                          # les crons « minute 0 » sont si demandés que GitHub
+                          # les retarde de plusieurs heures, voire les saute
+                          # (constaté les 5 et 6 juillet 2026)
 
 permissions:
   contents: write          # nécessaire pour committer données + site
