@@ -255,6 +255,19 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
   border: 1px solid var(--bord); border-radius: 7px; padding: 6px 8px; font: inherit; font-size: 14px; }
 .filtre input[type=number] { width: 86px; }
 .filtres .compteur { margin-left: auto; color: var(--encre-2); font-size: 13px; }
+.multi { position: relative; }
+.multi summary { list-style: none; cursor: pointer; background: var(--surface);
+  color: var(--encre-1); border: 1px solid var(--bord); border-radius: 7px;
+  padding: 6px 8px; font-size: 14px; min-width: 132px; max-width: 210px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.multi summary::-webkit-details-marker { display: none; }
+.multi summary::after { content: " ▾"; color: var(--encre-3); }
+.multi-liste { position: absolute; z-index: 30; top: calc(100% + 5px); left: 0;
+  min-width: 220px; background: var(--surface); border: 1px solid var(--bord);
+  border-radius: 9px; box-shadow: 0 8px 22px rgba(0,0,0,.16); padding: 9px 11px;
+  display: flex; flex-direction: column; gap: 6px; }
+.multi-liste label { display: flex; gap: 8px; align-items: center; font-size: 13.5px;
+  color: var(--encre-1); cursor: pointer; white-space: nowrap; }
 .profil-groupe { display: flex; align-items: end; gap: 14px;
   border-left: 3px solid var(--or); padding-left: 16px; margin-left: 4px; }
 .profil-groupe .filtre label { color: var(--or); font-weight: 700; }
@@ -291,7 +304,10 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .sticker-or { background: radial-gradient(circle at 35% 30%, var(--or-vif), var(--or));
   color: #fff8e6; font-size: 19px; }
 .sticker-vert { background: radial-gradient(circle at 35% 30%, #2f7c40, var(--vert-texte));
-  color: #eaf7ec; border-radius: 999px; }
+  color: #eaf7ec; border-radius: 999px; flex-direction: column; line-height: 1.1;
+  pointer-events: auto; cursor: help; }
+.sticker-vert small { font-size: 7.5px; font-weight: 600; letter-spacing: .03em;
+  text-transform: uppercase; }
 .sticker-marteau { background: radial-gradient(circle at 35% 30%, var(--or-vif), var(--or));
   color: #fff8e6; font-size: 17px; }
 @keyframes fretiller { 0%, 100% { transform: rotate(7deg); } 35% { transform: rotate(-6deg) scale(1.12); } 70% { transform: rotate(10deg); } }
@@ -558,9 +574,13 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
           <option value="murs_occupes">Murs occupés</option>
           <option value="murs_libres">Murs libres</option>
         </select></div>
-      <div class="filtre"><label for="f-dep">Secteur</label>
-        <select id="f-dep"><option value="tous">Tous</option>
-          <option value="18e">Paris 18e (mon quartier)</option></select></div>
+      <div class="filtre"><label>Secteur (choix multiples)</label>
+        <details class="multi" id="f-dep-boite">
+          <summary id="f-dep-resume">Tous</summary>
+          <div class="multi-liste" id="f-dep-liste">
+            <label><input type="checkbox" value="18e"> Paris 18e (mon quartier)</label>
+          </div>
+        </details></div>
       <div class="filtre"><label for="f-rdt">Rendement min (%)</label>
         <input id="f-rdt" type="number" min="0" max="15" step="0.5" placeholder="ex. 6"></div>
       <div class="filtre"><label for="f-score">Score min</label>
@@ -946,7 +966,7 @@ function carteHtml(a, options) {
   if (lettreRang === "S")
     sticker = `<span class="sticker sticker-or" title="Pépite — score ≥ ${D.seuils.pepite}">${IC.pepite}</span>`;
   else if ((a.decote_pct ?? 0) >= 15 && !(a.flags || []).includes("rendement_anormalement_eleve"))
-    sticker = `<span class="sticker sticker-vert" title="Nettement sous la médiane du marché local">−${Math.round(a.decote_pct)}%</span>`;
+    sticker = `<span class="sticker sticker-vert" title="Prix affiché ${Math.round(a.decote_pct)} % sous le prix/m² MÉDIAN du marché local (référentiel du quartier, détail sur la jauge « marché » de la carte). Une vraie décote… ou un défaut caché : lisez la ligne d'explication du prix.">−${Math.round(a.decote_pct)}%<small>vs marché</small></span>`;
 
   return `<article class="carte${options.prio ? " prio" : ""}${options.medaille === 0 ? " podium-1" : ""}${lettreRang === "S" ? " rang-s" : ""}"
       style="animation-delay:${(options.index || 0) * 45}ms">
@@ -1097,7 +1117,7 @@ function enchereHtml(e, index) {
 function filtres() {
   return {
     type: document.getElementById("f-type").value,
-    dep: document.getElementById("f-dep").value,
+    dep: [...document.querySelectorAll("#f-dep-liste input:checked")].map(c => c.value),
     rdt: document.getElementById("f-rdt").value,
     score: document.getElementById("f-score").value,
     nouv: document.getElementById("f-nouv").checked,
@@ -1106,17 +1126,26 @@ function filtres() {
 
 function appliquer(a, f) {
   if (f.type !== "tous" && a.type_murs !== f.type) return false;
-  if (f.dep === "18e") { if (a.code_postal !== "75018") return false; }
-  else if (f.dep !== "tous" && a.departement !== f.dep) return false;
+  // secteurs cochés : union — le bien passe s'il est dans L'UN d'eux
+  if (f.dep.length && !f.dep.some(v =>
+      v === "18e" ? a.code_postal === "75018" : a.departement === v)) return false;
   if (f.rdt !== "" && (a.rendement_brut_pct == null || a.rendement_brut_pct < parseFloat(f.rdt))) return false;
   if (f.score !== "" && (a.score == null || a.score < parseFloat(f.score))) return false;
   if (f.nouv && !a.est_nouvelle) return false;
   return true;
 }
 
+function majResumeSecteurs(f) {
+  const libelles = f.dep.map(v => v === "18e" ? "Paris 18e" : v);
+  document.getElementById("f-dep-resume").textContent =
+    !libelles.length ? "Tous" : libelles.length <= 2 ? libelles.join(" + ")
+    : `${libelles.length} secteurs`;
+}
+
 function rendre() {
   const f = filtres();
   localStorage.setItem(CLE_FILTRES, JSON.stringify(f));
+  majResumeSecteurs(f);
   const visibles = D.retenues.filter(a => appliquer(a, f));
   const prio = visibles.filter(a => (a.score ?? 0) >= D.seuils.vert);
   const etudier = visibles.filter(a => (a.score ?? 0) >= D.seuils.affichage && (a.score ?? 0) < D.seuils.vert);
@@ -1490,9 +1519,18 @@ function initialiser() {
   document.getElementById("pied-maj").textContent =
     new Date(D.derniere_execution).toLocaleString("fr-FR");
 
+  const NOMS_DEP = {"75": "Paris", "77": "Seine-et-Marne", "78": "Yvelines",
+    "91": "Essonne", "92": "Hauts-de-Seine", "93": "Seine-Saint-Denis",
+    "94": "Val-de-Marne", "95": "Val-d'Oise"};
   const deps = [...new Set(D.retenues.map(a => a.departement).filter(Boolean))].sort();
-  const selDep = document.getElementById("f-dep");
-  for (const d of deps) selDep.insertAdjacentHTML("beforeend", `<option value="${d}">${d}</option>`);
+  const listeDep = document.getElementById("f-dep-liste");
+  for (const d of deps) listeDep.insertAdjacentHTML("beforeend",
+    `<label><input type="checkbox" value="${d}"> ${NOMS_DEP[d] || d} (${d})</label>`);
+  // clic hors de la liste : on referme le menu déroulant
+  document.addEventListener("click", e => {
+    const boite = document.getElementById("f-dep-boite");
+    if (boite.open && !boite.contains(e.target)) boite.open = false;
+  });
 
   // Les meilleures occasions sont en haut de page ; le reste est REPLIÉ par
   // défaut (pas du top = pas d'espace), mêmes cartes une fois ouvert.
@@ -1544,15 +1582,19 @@ function initialiser() {
   try {
     const memo = JSON.parse(localStorage.getItem(CLE_FILTRES) || "{}");
     if (memo.type) document.getElementById("f-type").value = memo.type;
-    if (memo.dep && [...selDep.options].some(o => o.value === memo.dep))
-      document.getElementById("f-dep").value = memo.dep;
+    // ancien format : dep était une chaîne unique ("tous" / "18e" / "93")
+    const depMemo = Array.isArray(memo.dep) ? memo.dep
+      : (memo.dep && memo.dep !== "tous" ? [memo.dep] : []);
+    for (const case_ of listeDep.querySelectorAll("input"))
+      case_.checked = depMemo.includes(case_.value);
     if (memo.rdt) document.getElementById("f-rdt").value = memo.rdt;
     if (memo.score) document.getElementById("f-score").value = memo.score;
     if (memo.nouv) document.getElementById("f-nouv").checked = true;
   } catch (e) { /* filtres mémorisés illisibles : on repart à zéro */ }
 
-  for (const id of ["f-type", "f-dep", "f-rdt", "f-score", "f-nouv"])
+  for (const id of ["f-type", "f-rdt", "f-score", "f-nouv"])
     document.getElementById(id).addEventListener("input", rendre);
+  listeDep.addEventListener("input", rendre);
 
   // Profil de financement : chaque changement recalcule tout le site.
   const BORNES = {apport: [0, 90], taux: [0.1, 10], duree: [5, 30]};
@@ -1578,7 +1620,7 @@ function initialiser() {
   document.getElementById("f-reset").addEventListener("click", () => {
     localStorage.removeItem(CLE_FILTRES);
     document.getElementById("f-type").value = "tous";
-    document.getElementById("f-dep").value = "tous";
+    for (const case_ of listeDep.querySelectorAll("input")) case_.checked = false;
     document.getElementById("f-rdt").value = "";
     document.getElementById("f-score").value = "";
     document.getElementById("f-nouv").checked = false;
