@@ -1,13 +1,10 @@
 {
  "meta": {
-  "derniere_execution": "2026-07-06T10:59:34+02:00",
+  "derniere_execution": "2026-07-06T12:11:04+02:00",
   "sante_sources": {
    "pointdevente": {
     "statut": "ok",
-    "annonces": 38,
-    "avertissements": [
-     "/fr/acheter-murs-commerciaux-paris/lf393/50/1/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
-    ]
+    "annonces": 56
    },
    "murscommerciaux": {
     "statut": "ok",
@@ -27,7 +24,7 @@
    },
    "bienici": {
     "statut": "ok",
-    "annonces": 8
+    "annonces": 9
    },
    "cessionpme": {
     "statut": "ok",
@@ -47,55 +44,8 @@
    }
   },
   "nouvelles_ce_run": [
-   "cb63976b9d772e11",
-   "7b171b1c19a4c83f",
-   "b97cf4a72bd14d20",
-   "a95e409e0c6e1622",
-   "88290fba1242f55d",
-   "870eba8f3b39206f",
-   "a232eefa9a3f4145",
-   "7e65fba925e19c88",
-   "da363e649f54c89c",
-   "4fb1fc2e6a520117",
-   "3ab380368bbbd464",
-   "6001e874d63e5054",
-   "d6c139b104e19273",
-   "dad30d8471812311",
-   "144ba1de8d8f5c02",
-   "d0051f15be78e72c",
-   "223b40ba1b3040d9",
-   "f509b1e8e81cd661",
-   "8b2fe798f7cd16a6",
-   "e854a1ef873c6353",
-   "fd732a0a29f3780b",
-   "7a61971227d7d5de",
-   "5eafa9698a684f6c",
-   "5c3e0fc4f1dc9f03",
-   "4d757272947a9151",
-   "d24fd64addc9d13a",
-   "91b281f494a2ce8a",
-   "391840f4b1d76ae8",
-   "6033d01b35d67a1d",
-   "c780fdd9bb8079f2",
-   "4764341620be04d7",
-   "546a4fabf83e2821",
-   "da59cef6b345a506",
-   "9a1690e636bd3cd8",
-   "99ab9b0a79c4ea64",
-   "dbf8325a481950c6",
-   "3ba3de92d331573c",
-   "3efb6bb54ec00db6",
-   "b8154687bebb7cc0",
-   "4f92380b353c009a",
-   "3615e05250b1ab7b",
-   "2ae9744ffe58d373",
-   "e4050943159b532f",
-   "372bcf5b119d4618",
-   "ba427dc7a7f09017",
-   "1c58bc97800b926b",
-   "e7472065604552d2",
-   "6c3c8dfab76f960e",
-   "bc4cc63b1d17c3bc"
+   "bf4ce70f9a0960a5",
+   "a196c5b7241a8a46"
   ],
   "encheres": [
    {
@@ -131,11 +81,11 @@
     "haut_panier": true
    }
   ],
-  "encheres_ecartees": 13,
+  "encheres_ecartees": 14,
   "pepites_notifiees": [],
   "notifications": {
    "pepites": 0,
-   "quotidien": 5,
+   "quotidien": 1,
    "statut": "ok"
   }
  },
@@ -157,7 +107,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-15e-75015/d274/2749495/b1034d61f033a7aa625bcb834e3b516e_a3ca18302347acba8657dc6031b18b41f3c0ac2b_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose : Paris 15ème RESTAURANT de 40 couverts. Cuisine de plain-pied avec extraction. Réserve avec chambre froide. Loyer annuel : 27 600 euros HC. Sans reprise de personnel. Prix du fonds : 290 000 euros net vendeur. Métro Cambronne (6), Ségur (10)",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-15e-75015/d274/2749495/b1034d61f033a7aa625bcb834e3b516e_a3ca18302347acba8657dc6031b18b41f3c0ac2b_rect_400-300-ffffff_.jpg"
@@ -210,7 +160,7 @@
    "image_url": "https://www.iburoshop.fr/datas/biens/images/4393/4393_00-2026-02-27-0203.jpg",
    "description": "Iburoshop vous propose en exclusivité ce local vendu occupé au cœur de la galerie 102 Hyper marché carrefour local avec un bail 3/6/9 même activité depuis 2019 avec une bonne clientèle rentabilité (avant révision )7% la…",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.iburoshop.fr/datas/biens/images/4393/4393_00-2026-02-27-0203.jpg",
@@ -261,7 +211,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-6e-75006/d275/2750109/29403b0c0b0aed30c57e1a6848207d82_983cbdc17559ed1ed6f40a665a6c8c5a5a34ef27_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose un restaurant 75006 d'une capacité de 24 couverts et une cuisine de plain pieds avec extraction de 400 tenu depuis 13 ans par un cuisinier japonais réalisant une cuisine bistrotière. Affaire clé en mains le matériel est récent et bien entretenu. Terrasse éphémère de 14 places. Le CA annuel moyen sur les trois dernières années est de 255K euros .Loyer de 2252 euros ttc cc /mois. Prix de cession 200K euros net vendeur. Fermeture dimanche et lundi midi. Disponibilité : Immédiate Bus Maine - Vaugirard (28, 82, 89, 92), Duroc (86), Vaneau - Saint-Romain (70) Métro Duroc (1",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-6e-75006/d275/2750109/29403b0c0b0aed30c57e1a6848207d82_983cbdc17559ed1ed6f40a665a6c8c5a5a34ef27_rect_400-300-ffffff_.jpg"
@@ -316,7 +266,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-acheter-local-commercial-boutique-garancieres-78890/d275/2750430/bab49301eb82642f1371c6c57bef3c9d_76d17557d7bc2ed9e276bb040c25172ff17a780d_rect_400-300-ffffff_.jpg",
    "description": "- Local commercial à vendre – 148 m² – Garancières (78890) Situé au cOEur de Garancières, ce local commercial de 148 m² offre un fort potentiel pour accueillir une activité professionnelle, libérale, artisanale ou des bureaux. Le bien se compose de plusieurs espaces fonctionnels permettant une grande modularité selon vos besoins : * Bureaux * Salle d’attente * Espaces de stockage / archives * Parties communes * Circulations Le local est en partie libre, offrant la possibilité d’une occupation rapide ou d’un investissement locatif avec potentiel de valorisation. Les atouts : * Surface totale",
    "date_premiere_vue": "2026-07-04T09:45:36+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-acheter-local-commercial-boutique-garancieres-78890/d275/2750430/bab49301eb82642f1371c6c57bef3c9d_76d17557d7bc2ed9e276bb040c25172ff17a780d_rect_400-300-ffffff_.jpg"
@@ -367,7 +317,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/0c3daf43-7e50-4162-801c-9489eeda9e4e_j00.jpg",
    "description": "Ce local commercial de 78 m² est idéalement situé dans le 12ème arrondissement de Paris, proche des transports en commun. Il offre un emplacement stratégique pour développer votre activité.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/0c3daf43-7e50-4162-801c-9489eeda9e4e_j00.jpg"
@@ -622,7 +572,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348959/photos/murs-occupes_92300_levallois-perret_6a47a50a9ce71_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348959/photos/murs-occupes_92300_levallois-perret_6a47a50a9ce71_r.jpg"
@@ -673,7 +623,7 @@
    "image_url": "https://www.iburoshop.fr/datas/biens/images/3087/3087_00-2025-11-07-0331.png",
    "description": "Iburoshop vous propose des Murs d'un local commercial LIBRE local rue guy moquet belle vitrine, copropriété saine Local de 35M2 en rch et un sous sol relié environnement commerçant Préconisation locative vous permettant…",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.iburoshop.fr/datas/biens/images/3087/3087_00-2025-11-07-0331.png",
@@ -727,7 +677,7 @@
    "image_url": "https://www.iburoshop.fr/datas/biens/images/4117/4117_00-2025-03-14-1439.jpg",
    "description": "L’équipe Iburoshop vous recommande ce local commercial de 65 m² entièrement rénové, comprenant 50 m² en rez-de-chaussée et 15 m² au sous-sol, quartier Jourdain (20e). Ce bien, entièrement rénové et équipé, ne nécessite aucun…",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.iburoshop.fr/datas/biens/images/4117/4117_00-2025-03-14-1439.jpg",
@@ -779,7 +729,7 @@
    "image_url": "https://www.flagship.fr/datas/biens/images/3060/3060_00-2026-07-01-1455.jpg",
    "description": "L'agence FLAGSHIP vous propose une boutique d'environ 35.5 m² composée d'un rez- de-chaussée de 35.5 m² et une cave de 7,95 m² environ, directement accessible par un escalier intérieur. Activités idéales : Cabinet…",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [
     "https://www.pointdevente.fr/fr/commerce/murs-occupes/paris/chateau-d-eau-lancry/p348048"
    ],
@@ -832,7 +782,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348974/photos/murs-libres_78350_jouy-en-josas_6a47ad02db9e7_r.jpg",
    "description": "",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348974/photos/murs-libres_78350_jouy-en-josas_6a47ad02db9e7_r.jpg"
@@ -883,7 +833,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348972/photos/murs-libres_78350_jouy-en-josas_6a47ad02db9e7_r.jpg",
    "description": "",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348972/photos/murs-libres_78350_jouy-en-josas_6a47ad02db9e7_r.jpg"
@@ -934,7 +884,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/639131407521293186.jpg",
    "description": "Boutique en rez-de-chaussée avec arrière-boutique, réserve et cave. Immeuble en brique, rideau de fer, WC extérieurs et bail commercial en cours.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/639131407521293186.jpg"
@@ -983,7 +933,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348792/photos/murs-libres_78350_jouy-en-josas_6a465589b98fa_r.jpg",
    "description": "",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348792/photos/murs-libres_78350_jouy-en-josas_6a465589b98fa_r.jpg"
@@ -1034,7 +984,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348971/photos/murs-libres_78350_jouy-en-josas_6a47ad9a5e0d8_r.jpg",
    "description": "",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348971/photos/murs-libres_78350_jouy-en-josas_6a47ad9a5e0d8_r.jpg"
@@ -1085,7 +1035,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348430/photos/murs-occupes_92500_rueil-malmaison_6a47ca0236249_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T18:53:37+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348430/photos/murs-occupes_92500_rueil-malmaison_6a47ca0236249_r.jpg"
@@ -1136,7 +1086,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348782/photos/murs-libres_75016_paris_6a46476f47ade_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348782/photos/murs-libres_75016_paris_6a46476f47ade_r.jpg"
@@ -1238,7 +1188,7 @@
    "image_url": "https://www.iburoshop.fr/datas/biens/images/3459/3459_00-2024-09-06-0215.png",
    "description": "IBUROSHOP Vous présente des murs à vendre d'un très beau local du 5ème arrondissement, près de port royal. rue très commerçante, local en très bon état.",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.iburoshop.fr/datas/biens/images/3459/3459_00-2024-09-06-0215.png",
@@ -1288,7 +1238,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63917986802206691636_1.jpg",
    "description": "Boutique de plain-pied en excellent état, avec accès indépendant et sécurisé. Espace lumineux, linéaire de vitrine de 5m et marquise. Idéale pour investisseurs.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63917986802206691636_1.jpg"
@@ -1339,7 +1289,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63868963687383842036_1.jpg",
    "description": "Boutique en RDC de 39 m² avec vitrine de 3 m, sanitaires et accès PMR. Axe commercial animé, bail commercial 3/6/9 ans en cours. Disponible dès juin 2026.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63868963687383842036_1.jpg"
@@ -1388,7 +1338,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63899198789370645536_1.jpg",
    "description": "Boutique entièrement rénovée de 31 m² en rez-de-chaussée avec un sous-sol de 17 m². Idéale pour tous commerces sans extraction. Disponibilité immédiate.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63899198789370645536_1.jpg"
@@ -1426,6 +1376,57 @@
    "raison_exclusion": null
   },
   {
+   "id": "a196c5b7241a8a46",
+   "id_source": "2745434",
+   "source": "cessionpme",
+   "url": "https://www.cessionpme.com/annonce,immo-entreprise-acheter-commerce-snacking-restauration-rapide-paris,2745434,A,offre.html",
+   "titre": "Vente local commercial 17m² à Paris 75004 Marais",
+   "ville": "Paris 4e",
+   "code_postal": "75004",
+   "departement": "75",
+   "type_murs": "murs_occupes",
+   "prix": 170000.0,
+   "surface_m2": 17.0,
+   "loyer_mensuel": 262.5,
+   "honoraires": null,
+   "image_url": "https://www.cessionpme.com/photo/immo-entreprise-acheter-commerce-snacking-restauration-rapide-paris/d274/2745434/971545636181707c0ca54fdc32f19f8c_b5eaedadb8ba4c68e511e4b5cf1c102d6c5935ac_rect_400-300-ffffff_.jpg",
+   "description": "Marais 75004 Paris Le Groupe vous propose, en plein cœur du Marais un local commercial ultra bien placé dans l'un des quartiers les plus prisés et animés de la capitale, bénéficiant d'un fort flux piéton quotidien et d'un excellent environnement commercial. Ce commerce dispose d'une surface totale de 17 m² en rez-de-chaussée, avec une belle façade de 4 mètres offrant une visibilité optimale. Il est équipé d'un point d'eau et de sanitaires. Le local bénéficie d'un conduit de cheminée de 300 mm, idéal pour des activités de restauration avec cuisson. Les + du bien : Emplacement numéro 1, à très",
+   "date_premiere_vue": "2026-07-06T12:11:04+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
+   "urls_multiples": [],
+   "images": [
+    "https://www.cessionpme.com/photo/immo-entreprise-acheter-commerce-snacking-restauration-rapide-paris/d274/2745434/971545636181707c0ca54fdc32f19f8c_b5eaedadb8ba4c68e511e4b5cf1c102d6c5935ac_rect_400-300-ffffff_.jpg"
+   ],
+   "prix_m2": 10000,
+   "loyer_estime": false,
+   "loyer_mensuel_estime": null,
+   "rendement_brut_pct": 1.85,
+   "rendement_acte_en_main_pct": 1.72,
+   "position_benchmark": "surcote",
+   "decote_pct": -110.5,
+   "marche_prix_m2_bas": 3000,
+   "marche_prix_m2_haut": 6500,
+   "temps_trajet_min": 15,
+   "caracteristiques": [
+    "Extraction / vraie restauration possible"
+   ],
+   "lecture_prix": "Prime explicable : les petites surfaces se paient plus cher au m² ; emplacement parisien recherché ; la possibilité de restauration est un atout rare.",
+   "prix_cible_rendement": 45000,
+   "score": 30,
+   "detail_score": {
+    "rendement": 0.0,
+    "emplacement": 25.0,
+    "prix_m2_vs_benchmark": 0.0,
+    "proximite": 5.0,
+    "quartier": 0.0,
+    "bonus_malus": 0.0
+   },
+   "flags": [],
+   "bonus_detectes": [],
+   "exclue": false,
+   "raison_exclusion": null
+  },
+  {
    "id": "3af18869fa1611ea",
    "id_source": "348973",
    "source": "pointdevente",
@@ -1442,7 +1443,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348973/photos/murs-libres_78350_jouy-en-josas_6a47ad02db9e7_r.jpg",
    "description": "",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348973/photos/murs-libres_78350_jouy-en-josas_6a47ad02db9e7_r.jpg"
@@ -1602,7 +1603,7 @@
    "image_url": null,
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-05T09:56:17+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [],
    "prix_m2": 10000,
@@ -1651,7 +1652,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000258090/photos/murs-libres_78430_louveciennes_66eb041c0119a_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000258090/photos/murs-libres_78430_louveciennes_66eb041c0119a_r.jpg"
@@ -1704,7 +1705,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000346911/photos/murs-libres_92100_boulogne-billancourt_6a4794c337a23_r.jpg",
    "description": "Licence IV · Restauration sans conduit possible · Conduit de cheminée existant",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000346911/photos/murs-libres_92100_boulogne-billancourt_6a4794c337a23_r.jpg"
@@ -1746,7 +1747,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348964/photos/murs-occupes_13002_marseille_6a4798a0de55c_r.jpg",
    "description": "Restauration sans conduit possible · Conduit de cheminée existant · Terrasse",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348964/photos/murs-occupes_13002_marseille_6a4798a0de55c_r.jpg"
@@ -1788,7 +1789,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000347784/photos/murs-libres_92250_la-garenne-colombes_6a3bcd093e4a4_r.jpg",
    "description": "",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000347784/photos/murs-libres_92250_la-garenne-colombes_6a3bcd093e4a4_r.jpg"
@@ -1830,7 +1831,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000347913/photos/murs-occupes_95880_enghien-les-bains_6a479a1d8e034_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000347913/photos/murs-occupes_95880_enghien-les-bains_6a479a1d8e034_r.jpg"
@@ -1872,7 +1873,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348962/photos/murs-occupes_13002_marseille_6a4798a0de55c_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348962/photos/murs-occupes_13002_marseille_6a4798a0de55c_r.jpg"
@@ -1914,7 +1915,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348949/photos/murs-occupes_13002_marseille_6a47814eaf7c1_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348949/photos/murs-occupes_13002_marseille_6a47814eaf7c1_r.jpg"
@@ -1956,7 +1957,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348948/photos/murs-occupes_94600_choisy-le-roi_6a47808e23434_r.jpg",
    "description": "Restauration sans conduit possible · Conduit de cheminée existant",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348948/photos/murs-occupes_94600_choisy-le-roi_6a47808e23434_r.jpg"
@@ -1998,7 +1999,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348944/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348944/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg"
@@ -2040,7 +2041,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348794/photos/location-pure_95880_enghien-les-bains_6a2297b839a2a_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348794/photos/location-pure_95880_enghien-les-bains_6a2297b839a2a_r.jpg"
@@ -2082,7 +2083,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348942/photos/murs-occupes_13002_marseille_6a47769890e68_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348942/photos/murs-occupes_13002_marseille_6a47769890e68_r.jpg"
@@ -2124,7 +2125,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348940/photos/murs-occupes_13002_marseille_6a47749b199ca_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348940/photos/murs-occupes_13002_marseille_6a47749b199ca_r.jpg"
@@ -2166,7 +2167,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348409/photos/murs-libres_95100_argenteuil_6a425940ea76f_r.jpg",
    "description": "Restauration sans conduit possible · Conduit de cheminée existant · Terrasse",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348409/photos/murs-libres_95100_argenteuil_6a425940ea76f_r.jpg"
@@ -2208,7 +2209,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348939/photos/murs-occupes_13002_marseille_6a4770c85c07e_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348939/photos/murs-occupes_13002_marseille_6a4770c85c07e_r.jpg"
@@ -2250,7 +2251,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348938/photos/murs-occupes_13002_marseille_6a476e0203f2b_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348938/photos/murs-occupes_13002_marseille_6a476e0203f2b_r.jpg"
@@ -2292,7 +2293,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348937/photos/murs-occupes_13002_marseille_6a476bb5c67ce_r.jpg",
    "description": "Restauration sans conduit possible · Terrasse",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348937/photos/murs-occupes_13002_marseille_6a476bb5c67ce_r.jpg"
@@ -2334,7 +2335,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348935/photos/murs-occupes_13002_marseille_6a47696f401cd_r.jpg",
    "description": "Restauration sans conduit possible · Conduit de cheminée existant · Terrasse",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348935/photos/murs-occupes_13002_marseille_6a47696f401cd_r.jpg"
@@ -2376,7 +2377,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348932/photos/murs-occupes_13002_marseille_6a47679c077cf_r.jpg",
    "description": "Restauration sans conduit possible · Conduit de cheminée existant · Terrasse",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348932/photos/murs-occupes_13002_marseille_6a47679c077cf_r.jpg"
@@ -2418,7 +2419,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348930/photos/murs-occupes_13002_marseille_6a47622e96b89_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348930/photos/murs-occupes_13002_marseille_6a47622e96b89_r.jpg"
@@ -2460,7 +2461,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348929/photos/murs-occupes_13002_marseille_6a476083d321b_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348929/photos/murs-occupes_13002_marseille_6a476083d321b_r.jpg"
@@ -2502,7 +2503,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348928/photos/murs-occupes_13002_marseille_6a475f0c31121_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348928/photos/murs-occupes_13002_marseille_6a475f0c31121_r.jpg"
@@ -2544,7 +2545,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348926/photos/murs-occupes_13002_marseille_6a475c9356ddc_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348926/photos/murs-occupes_13002_marseille_6a475c9356ddc_r.jpg"
@@ -2586,7 +2587,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348925/photos/murs-occupes_13002_marseille_6a475a5d8ae60_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348925/photos/murs-occupes_13002_marseille_6a475a5d8ae60_r.jpg"
@@ -2628,7 +2629,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348822/photos/murs-occupes_13001_marseille_6a46ad223dd9f_r.jpg",
    "description": "Restauration sans conduit possible · Terrasse",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348822/photos/murs-occupes_13001_marseille_6a46ad223dd9f_r.jpg"
@@ -2670,7 +2671,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348821/photos/murs-libres_13002_marseille_6a46a931f22a0_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348821/photos/murs-libres_13002_marseille_6a46a931f22a0_r.jpg"
@@ -2712,7 +2713,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348820/photos/murs-libres_13002_marseille_6a46a931f22a0_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348820/photos/murs-libres_13002_marseille_6a46a931f22a0_r.jpg"
@@ -2754,7 +2755,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348804/photos/murs-occupes_13002_marseille_6a46645a80c8b_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348804/photos/murs-occupes_13002_marseille_6a46645a80c8b_r.jpg"
@@ -2796,7 +2797,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348801/photos/murs-occupes_13002_marseille_6a4662430ff37_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348801/photos/murs-occupes_13002_marseille_6a4662430ff37_r.jpg"
@@ -2838,7 +2839,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348772/photos/murs-occupes_13002_marseille_6a462807df459_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348772/photos/murs-occupes_13002_marseille_6a462807df459_r.jpg"
@@ -3122,7 +3123,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6208M_4305;_38820_1782832865ILLE-3.png",
    "description": "MARSEILLE (13) Situés dans le 2éme arrondissement murs en rez-de-chaussée d'environ 147m² occupés par restaurant. Bail 3 6 9 en date du 17 janvier 2023 à échéance le 16 janvier 2032. Loyer annuel : 43 470 € HT HC payable mensuellement. Assujetti à TVA. Indexation annuelle. Dépot de garantie : 7 000 €. Toutes les charges sont supportées par le ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6208M_4305;_38820_1782832865ILLE-3.png"
@@ -3164,7 +3165,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6207M_4304;_38811_1782830347.png",
    "description": "BOUCHES-DU-RHÔNE (13) En pleine propriété : murs (R+2) comprenant un rez-de-chaussée d'environ 105m² et 190m² environ pour les 2 étages occupés par enseigne O'Tacos. Bail de 10 ans dont 6 fermes en date du 1er avril 2023 à échéance le 31 mars 2033. Loyer annuel : 64 862 € HT HC. Assujetti à TVA. Indexation annuelle. Dépot de garantie : ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6207M_4304;_38811_1782830347.png"
@@ -3206,7 +3207,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6206M_4303;_38802_1782834708-EN-BLOC.png",
    "description": "PARIS (75010) Murs de boutique Opticien de 20m² en rez-de-chaussée et sous-sol 10m² et Bijouterie parfumerie de40 m² en rez-de-chaussée et sous-sol de 30m². Située, dans une rue commerçante dans un quartier résidentiel, à quelques pas des transports en commun- bail 1 - Opticien - 3 6 9 du 11 décembre 2017 à échéance 10 décembre 2026.(renouvellement en projet) Loyer annuel ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6206M_4303;_38802_1782834708-EN-BLOC.png"
@@ -3248,7 +3249,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6204M_4302;_38793_1782747812VOX---Murs-Ciaux---A-vendre.png",
    "description": "HAUTE-SAVOIE (74) murs de Crêche occupés de 251m² environ en rez-de-chaussée et espace de jeux de 150m² + emplacement parking 7 places Situés dans le centre résidentiel permettant un environnement sain et calme, proche écoles de la communes - Immeuble neuf livré en février 2025. Bail 3/6/9 du 1er février 2025 échéance au 1er février 2034 Loyer annuel ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6204M_4302;_38793_1782747812VOX---Murs-Ciaux---A-vendre.png"
@@ -3290,7 +3291,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6205M_4301;_38784_1782485377.png",
    "description": "HENIN-BEAUMONT (62) En pleine propriété : murs (R+2) dont 80m² environ au rez-de-chaussée occupés par boutique spécialisée dans la vente de produits à base de CBD . Bail 3 6 9 en date du 7 juillet 2022 à échéance le 6 juillet 2031. Loyer annuel : 9 552,20 € HT HC payable trimestriellement. Indexation annuelle. Dépot de garantie : 2 ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6205M_4301;_38784_1782485377.png"
@@ -3332,7 +3333,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6203_4300;_38775_1782382971954-234d-4469-b2ab-b392ef09788d.png",
    "description": "VAL DE MARNE (94) Murs occupés de restaurant asiatique d'une surface totale de 147m². Les murs sont composés d'un RDC de 128m2 bénéficiant d'une belle façade linéaire de 15m et d'un sous sol de 19m2. Le locataire est en place depuis 2025 suite au rachat du fonds de commerce pour 30 000 €. Bail 3 6 9 du 1er juin 2025 ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6203_4300;_38775_1782382971954-234d-4469-b2ab-b392ef09788d.png"
@@ -3374,7 +3375,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6201M_4299;_38766_1781863806rie.png",
    "description": "LEVALLOIS-PERRET (92) murs de laverie automatique de 65 m² en rez-de-chaussée + cave en sous-sol. Boutique en angle avec vitrines. Bail commercial 3 6 9 ans de 2026 à échéance 2035. Loyer annuel 34 800 € HT HC non assujetti à la TVA payable mensuellement d'avance. Dépôt de garantie 3 mois de loyer. Taxe foncière à la charge du locataire ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6201M_4299;_38766_1781863806rie.png"
@@ -3416,7 +3417,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6200_4298;_38757_178179155740c-cba3-42cf-b8db-b38cd8a74e59.jpg",
    "description": "Le Groupe Coysevox vous propose en exclusivité la vente d'un local commercial occupé par une enseigne spécialisée dans les fenêtres et menuiseries sur mesure. Le bien développe une surface de 38 m² en rez-de-chaussée, complétée par un sous-sol de 14 m² directement accessible et pleinement exploitable. Le locataire est en place dans le cadre d’un bail commercial 3/6/9 ans datant du 15 ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6200_4298;_38757_178179155740c-cba3-42cf-b8db-b38cd8a74e59.jpg"
@@ -3458,7 +3459,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6186M_4284;_38631_1781534447PT-Image-15-juin-2026--16_39_47--1-.png",
    "description": "Le Groupe Coysevox vous propose en exclusivité un local commercial libre de toute occupation, d’une superficie de 75,14 m² Carrez en rez-de-chaussée, complétée par une cave de 16,44 m² en sous-sol, directement accessible depuis le local qui est bétonné est seine. Local avec climatisation réversible. Aucune restriction d’activité n’est prévue par le règlement de copropriété. Le bien bénéficie d’une configuration particulièrement fonctionnelle, ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6186M_4284;_38631_1781534447PT-Image-15-juin-2026--16_39_47--1-.png"
@@ -3500,7 +3501,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/M1888_4273;_38532_1779376196a-vendre.png",
    "description": "PARIS (75012) NATION - Murs a vendre libre de 789m² Grand local commercial de plain-pied situé à proximité immédiate de la place de la Nation, dans un secteur à fort trafic piéton et bénéficiant d'une desserte multimodale de premier plan. Le rez-de-chaussée de 789 m² est totalement libre de tout poteau ou poutre structurelle, offrant une flexibilité maximale pour tout projet ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/M1888_4273;_38532_1779376196a-vendre.png"
@@ -3542,7 +3543,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6164M_4251;_38325_1776948484.jpg",
    "description": "Paris 20e – Belleville – Bureau / Appartement lumineux de 80 m² à fort potentiel À deux pas du métro Belleville, rue des Amandiers, découvrez ce bien rare situé au 1er étage, d’une surface d’environ 80 m². Il se compose : d’une spacieuse pièce principale baignée de lumière grâce à de grandes fenêtres, d’une seconde pièce d’environ 15 m², d’une cuisine indépendante, de toilettes séparées. Vous serez ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6164M_4251;_38325_1776948484.jpg"
@@ -3584,7 +3585,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6133M_4204;_37902_1772012628.png",
    "description": "GRENOBLE (38) centre-ville, murs libres de 155 m² en rez-de-chaussée (3 vitrines) + 30 m² en sous-sol accessible par un escalier, très bien placés et avec visibilité. Tous commerces sauf nuisances et restauration avec extraction. Bon état général, climatisation, porte automatique et issue de secours. Taxe foncière 5277 €. Charges de copropriété 400 € / trimestre. Flux piétons important et environnement ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6133M_4204;_37902_1772012628.png"
@@ -3626,7 +3627,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6122M_4193;_37803_1776668888.jpg",
    "description": "BOURGOGNE FRANCHE-COMTE (89) EMPLACEMENT N° 1 - Centre Ville - Immeuble mixte commercial Libre de 400m², idéal investisseur. Situés, coeur du centre-ville, ce local de 397 m² offre un beau volume réparti sur deux niveaux + sous-sol de 74m². Anciennement occupé par un restaurant en rez-de-chaussée et une salle de cinéma à l'étage, il présente un fort potentiel pour divers projets ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6122M_4193;_37803_1776668888.jpg"
@@ -3668,7 +3669,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6104M_4177;_37659_1770718421ces-MURSCO--33-.png",
    "description": "GARD (30) affaire à saisir : murs et fonds d'un ensemble immobilier à usage d'hôtel-restaurant 4 étoiles-location de salles pour séminaires et réception, avec 54 chambres rénovées sur un terrain de 5680 m². Endroit très agréable au coeur de la Provence. Loyer annuel potentiel 250 000 € HT HC. Capacité salles de réception 2500 personnes. Capacité hôtel 110 personnes. Piscine extérieure, ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6104M_4177;_37659_1770718421ces-MURSCO--33-.png"
@@ -3710,7 +3711,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6100M_4174;_37632_1769442218_3675-_33141_1741097388.png",
    "description": "SUD FINISTERE (29) Hyper-centre ville, murs de boutique libres de 94m2 accessibles au public avec réserve de 81 m2 à l'étage offrant une belle vitrine de 8 ml donnant sur rue piétonne. Anciennement boutique de prêt-à-porter à l'enseigne BLUE BOX au piotentiel locatif de 3700 € HC/HT par mois. Commercialisation en cours. Dans un petit immeuble de 14 lots avec beaucoup ...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6100M_4174;_37632_1769442218_3675-_33141_1741097388.png"
@@ -3752,7 +3753,7 @@
    "image_url": "https://www.murscommerciaux.com/admin/photos/6071M_4149;_37407_1771935425ces-MURSCO--38-.png",
    "description": "PARIS (75) immeuble de 640 m² avec permis de construire purgé de tout recours permettant la réalisation d'un ensemble immobilier de 19 logements et 1 commerce. Parkings en sous-sol. PRIX DE VENTE : 4 240 000 € Honoraires d'agence inclus / REF : 6071M",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.murscommerciaux.com/admin/photos/6071M_4149;_37407_1771935425ces-MURSCO--38-.png"
@@ -3794,7 +3795,7 @@
    "image_url": "https://www.iburoshop.fr/datas/biens/images/4372/4372_00-2026-02-04-0112.png",
    "description": "IBUROSHOP vous propose un produit de placement idéal pour un produit sécure Quartier haut de gamme /activité pérenne / local à taille humaine bail couvrant l'ensemble des charges et taxe foncière rentabilité plus de…",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.iburoshop.fr/datas/biens/images/4372/4372_00-2026-02-04-0112.png",
@@ -3837,7 +3838,7 @@
    "image_url": "https://www.iburoshop.fr/datas/biens/images/3625/3625_00-2024-09-06-0217.png",
    "description": "IBUROSHOP vous propose, Paris IX Murs à vendre Occupés. Produits Investisseurs En plein cœur de Paris, un restaurant d'une superficie de 92m² en RDC + 62m² et 30m2 au sous-sol accessible par un escalier intérieur. Très belle…",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.iburoshop.fr/datas/biens/images/3625/3625_00-2024-09-06-0217.png",
@@ -3883,7 +3884,7 @@
    "image_url": "https://www.iburoshop.fr/datas/biens/images/4358/4358_00-2026-01-20-0251.png",
    "description": "L’équipe Iburoshop vous propose des murs libres d’une surface totale de 62 m², idéalement situés à proximité du Panthéon. Le bien se compose d’une boutique de 29 m², d’un sous-sol de 13 m² accessible directement par un…",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.iburoshop.fr/datas/biens/images/4358/4358_00-2026-01-20-0251.png",
@@ -3926,7 +3927,7 @@
    "image_url": "https://www.iburoshop.fr/datas/biens/images/4319/4319_00-2025-11-25-0208.png",
    "description": "IBUROSHOP vous propose des murs libres au coeur du quartier Paul Bert / Faidherbe environnement très commerçant, local disposant d'une belle façade de plus de 6m d'une superficie de 48M2 en rez de chaussée et un sous sol de…",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.iburoshop.fr/datas/biens/images/4319/4319_00-2025-11-25-0208.png",
@@ -3970,7 +3971,7 @@
    "image_url": "https://www.iburoshop.fr/datas/biens/images/4231/4231_00-2025-07-24-0313.png",
    "description": "L'équipe Iburoshop vous propose des murs commerciaux libres à vendre de 65 m² situé dans le quartier animé de Bastille, à deux pas du métro. Ce bien se compose de deux grandes pièces, d’une cuisine indépendante ainsi que de…",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.iburoshop.fr/datas/biens/images/4231/4231_00-2025-07-24-0313.png",
@@ -4013,7 +4014,7 @@
    "image_url": "https://www.iburoshop.fr/datas/biens/images/4179/4179_00-2025-05-14-0314.png",
    "description": "L’équipe Iburoshop vous propose à la vente un local de 62 m² situé en plein cœur du 10ᵉ arrondissement, dans le quartier vivant du Canal Saint-Martin. Secteur très commerçant, animé par une clientèle à la fois parisienne et…",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.iburoshop.fr/datas/biens/images/4179/4179_00-2025-05-14-0314.png",
@@ -4057,7 +4058,7 @@
    "image_url": "https://www.iburoshop.fr/datas/biens/images/3925/3925_00-2024-09-06-0214.png",
    "description": "L'équipe Iburoshop vous recommence un magnifique local de 84m2 avec verrière au rdc en plein coeur du 11ème, à proximité du métro oberkampf et de la place de la République. Pas de travaux à prévoir. Idéal cabinet médical,…",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.iburoshop.fr/datas/biens/images/3925/3925_00-2024-09-06-0214.png",
@@ -4100,7 +4101,7 @@
    "image_url": "https://www.flagship.fr/datas/biens/images/3048/3048_00-2026-06-29-1442.jpg",
    "description": "L'agence FLAGSHIP vous propose un appartement atypique avec un jardin en plein Paris ! Le bien se compose d'un appartement de 56.02m² en RDJ comprenant grand séjour (avec cuisine ouverte toute équipée) de 31,65 m², un…",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.flagship.fr/datas/biens/images/3048/3048_00-2026-06-29-1442.jpg"
@@ -4142,7 +4143,7 @@
    "image_url": null,
    "description": "Paris 5e. **Produit premium** **Vendu loué : 2087€** Grande boutique de 20m2 place du Panthéon Avec grande vitrine Pignon sur rue Dans immeuble ancien, belle hauteur sous plafond. Proximité Mairie du 5ème",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [],
    "prix_m2": null,
@@ -4182,7 +4183,7 @@
    "image_url": "https://cdn.pap.fr/photos/pap/41/01/41010cdfb9d5ba64cea23bae2408f20a/4-p3.jpg",
    "description": "Paris 9e. Paris 9e – 92 rue Saint-Lazare. Local commercial idéalement situé au pied du métro, bénéficiant d'une belle façade et d'un emplacement très recherché à fort passage piéton. Le bien est actuellement occupé et loué, pour...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://cdn.pap.fr/photos/pap/41/01/41010cdfb9d5ba64cea23bae2408f20a/4-p3.jpg"
@@ -4224,7 +4225,7 @@
    "image_url": "https://cdn.pap.fr/photos/pap/b8/f8/b8f8a1d2bfff26af3c5f2208492cbd4a/b-p3.jpg",
    "description": "Paris 19e. Direct exploitant, cession droit au bail, belle surface de 70 m² donnant sur le Bassin de la Villette - climatisation - vitrine en façade de 10 m - box fermé en sous-sol - proche métro Jaurès (ligne 2, 5 et 7), quartier...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://cdn.pap.fr/photos/pap/b8/f8/b8f8a1d2bfff26af3c5f2208492cbd4a/b-p3.jpg"
@@ -4266,7 +4267,7 @@
    "image_url": "https://cdn.pap.fr/photos/pap/ad/69/ad69abd3ba24562c6329087a1e519694/a-p3.jpg",
    "description": "Paris 5e. PARIS 5ème à proximité du Val de Grâce, et de et Facultés Campus **Port Royal Lourcile. Paris Panthéon**. Le Val de Grâce allant être aménagés pour un foyer étudiants. Rue commerçante, passage autobus 21. **Local...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://cdn.pap.fr/photos/pap/ad/69/ad69abd3ba24562c6329087a1e519694/a-p3.jpg"
@@ -4308,7 +4309,7 @@
    "image_url": "https://cdn.pap.fr/photos/pap/e3/62/e3628852a7e4a5b7351c00050bb851fc/e-p3.jpg",
    "description": "Paris 9e. **Urgent**. Cause retraite de mon papa. **Cession bail**, tout commerce sauf restauration. Bail commercial dans le secteur très recherché de la rue des Martyrs/Notre Dame de Lorette (Paris 9ème) réputé pour son...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://cdn.pap.fr/photos/pap/e3/62/e3628852a7e4a5b7351c00050bb851fc/e-p3.jpg"
@@ -4350,7 +4351,7 @@
    "image_url": "https://cdn.pap.fr/photos/pap/07/03/07038206ed5c8069b4c36a68c0fc5f4c/0-p3.jpg",
    "description": "Paris 9e. A VENDRE Local commercial Rez-de-chaussée rue 50 m du métro Saint Georges Rez-de-chaussée 41 m² + sous-sol aménagé 27 m² / cuisine équipée / Salle de bains /WC Chauffage collectif charge : 2500€ par an impôts foncier...",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://cdn.pap.fr/photos/pap/07/03/07038206ed5c8069b4c36a68c0fc5f4c/0-p3.jpg"
@@ -4392,7 +4393,7 @@
    "image_url": "https://cdn.pap.fr/photos/pap/00/50/005041c8bbd664e538c31452d9ad49bf/0-p3.jpg",
    "description": "Paris 11e. Opportunité à saisir Bastille : Boulevard Richard Lenoir une **très belle boutique de plain-pied** avec une façade de plus de 9 m au pied du métro Chemin Vert et à proximité de la Place de la Bastille et du Marais.",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://cdn.pap.fr/photos/pap/00/50/005041c8bbd664e538c31452d9ad49bf/0-p3.jpg"
@@ -4560,7 +4561,7 @@
    "image_url": "https://photos.ubiflow.net/66398/538908185/photos/1.jpg?INSOON_EB_5512801818_20260703121245",
    "description": "A proximité du futurs hôtel de police dans un quartier dynamique et proche de la coulée verte, cette agréable boutique de 42m2 bénéficie d'une belle visibilité et d'un environnement passant et commerçant. Elle se compose d'une surface de vente de 39m2 et d'une réserve avec WC de 3m2, possibilité de poursuivre l'activité existante ou développer un nouveau concept (hors restauration) Loyer : 621€+40 charges+48 provisions sur charges=709€cc Taxe foncière : 600€/an Chiffre d'affaires annuel : env. 80 000€ Stock actuel : env. 13 500€ Vente: cause départ à la retraite. loyer 709euro/mois charges inc",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://photos.ubiflow.net/66398/538908185/photos/1.jpg?INSOON_EB_5512801818_20260703121245",
@@ -4604,7 +4605,7 @@
    "image_url": "https://images.century21.fr/202/3727/c21_202_3727_743_1_D794E783-2A23-4148-B1A3-53C3C14AA9BA.jpg",
    "description": "Ensemble immobilier de caractère Potentiel commercial & investissement Bourret Ancien restaurant « Les Jardins de la Fanette », implanté sur une parcelle de 4 676 m², ce bien rare allie volumes, cachet et fort potentiel de valorisation. - Partie commerciale 413 m² (2 niveaux) Espace principal avec hall d'accueil, bar et salle de réception. Cheminée à foyer ouvert avec système intégré de récupération des cendres, apportant charme et authenticité. Climatisation. Deux terrasses prolongent les espaces : 27 m² couverte 70 m² extérieure avec accès direct au parking Une seconde zone indépendante p",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://images.century21.fr/202/3727/c21_202_3727_743_1_D794E783-2A23-4148-B1A3-53C3C14AA9BA.jpg",
@@ -4651,7 +4652,7 @@
    "image_url": "https://photos.ubiflow.net/442891/538826960/photos/1.jpg?INSOON_EB_5512801818_20260703002629",
    "description": "Secteur gare Nord, proche du centre ville Restaurant de spécialités Salle de 24 couverts Ouvert du mardi soir au samedi soir (9 services) Cuisine aux normes, espace de stockage. Surface salle 28m2 + cuisine 8 m2 + espace stockage 12 m2 Prix 50 000 € honoraires exclus. Honoraires de 4250 TTC à la charge de l'acquéreur. Les informations sur les risques auxquels ce bien est exposé sont disponibles sur le site Géorisques : www.georisques.gouv.fr .",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://photos.ubiflow.net/442891/538826960/photos/1.jpg?INSOON_EB_5512801818_20260703002629",
@@ -5259,7 +5260,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-antony-92160/d275/2750176/8306ce4e6789549143f731ed83d2794c_05655e73f0f7caea6549045442d870ffcc6872ee_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose sur le secteur D'Antony, un bâtiment de 333 m² sur plusieurs niveaux sur une parcelle de 311 m². Ce bâtiment est composé d'une partie habitation et une partie commerciale avec extraction et petite terrasse privée. Bâtiment bénéficiant d'une très belle visibilité, nécessitant des travaux d'aménagement. L'opération est une vente murs et fonds de commerce. Plus d'info sur demande Bus Blanche de Castille (197, N21) SNCF Chemin-D'Antony (Gare SNCF) RER Fontaine Michalon (B), Chemin d'Antony (C) Grand Paris Express Antonypôle (L18 Fin 2027) Orly VAL Antony (ORLYVAL) Autorou",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-antony-92160/d275/2750176/8306ce4e6789549143f731ed83d2794c_05655e73f0f7caea6549045442d870ffcc6872ee_rect_400-300-ffffff_.jpg"
@@ -5301,7 +5302,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-antony-92160/d275/2750175/6b5aeac792159d7b42daadf51329437d_05655e73f0f7caea6549045442d870ffcc6872ee_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose sur le secteur D'Antony, un bâtiment de 333 m² sur plusieurs niveaux sur une parcelle de 311 m². Ce bâtiment est composé d'une partie habitation et une partie commerciale avec extraction et petite terrasse privée. Bâtiment bénéficiant d'une très belle visibilité, nécessitant des travaux d'aménagement. Plus d'info sur demande Bus Blanche de Castille (197, N21) SNCF Chemin-D'Antony (Gare SNCF) RER Fontaine Michalon (B), Chemin d'Antony (C) Grand Paris Express Antonypôle (L18 Fin 2027) Orly VAL Antony (ORLYVAL) Autoroute A 10 (Entrée évry, Lyon, Chilly, Mazarin), A 10, A",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-antony-92160/d275/2750175/6b5aeac792159d7b42daadf51329437d_05655e73f0f7caea6549045442d870ffcc6872ee_rect_400-300-ffffff_.jpg"
@@ -5343,7 +5344,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-achat-local-commercial-boutique-paris-10e-75010/d275/2750146/70cf33618aa003f46cd5fd6e3c6dcdbb_050aa22db12ab6105e77a0ca3da861b54bfcea79_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose : Paris 10ème RESTAURANT d'une surface d'environ 68 m². Véranda. Possibilité terrasse estivale. Cuisine de plain-pied avec extraction. Chambre froide. Grande cave. Loyer annuel : 32 400 euros HC. Prix du fonds : 160 000 euros net vendeur. Métro Jacques Bonsergent (5), Strasbourg - Saint-Denis (4, 8, 9), Arts et Métiers (11), Temple (3)",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-achat-local-commercial-boutique-paris-10e-75010/d275/2750146/70cf33618aa003f46cd5fd6e3c6dcdbb_050aa22db12ab6105e77a0ca3da861b54bfcea79_rect_400-300-ffffff_.jpg"
@@ -5385,7 +5386,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-6e-75006/d275/2750145/beb16ee4d5b220860b33a1f6046b9ef9_05655e73f0f7caea6549045442d870ffcc6872ee_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose des murs libres à vendre sur cour, d'une surface totale de 153m² environ. Au Rez-de-Chaussée le local dispose d'une superficie de 88m² et au sous-sol de 65m². Le local se situe en plein coeur du 6e arrondissement, dans le quartier de l'Odéon. RER Saint-Michel Notre Dame (B, C) Metro Odéon (4, 10), Saint-Michel (4, 10) Metro Saint-Germain des Prés (4) Bus Saint-Germain - Odéon (BUS-96, BUS-70, BUS-58, BUS-N12, BUS-Noctilien N13), Seine - Buci (BUS-86, BUS-87, BUS-63), Sénat (BUS-89)",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [
     "https://www.geolocaux.com/annonce/local-commercial-a-vendre-paris-6-quartier-de-l-odeon-692692.html"
    ],
@@ -5429,7 +5430,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-9e-75009/d275/2750105/ab4daa27ac717988515984eb3e1e4bbd_a3ca18302347acba8657dc6031b18b41f3c0ac2b_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose : Paris 9ème CAVE A VINS, possibilité activité de BAR A VINS, d'une surface totale de 59 m² dont 44 m² au rez-de-chaussée. Loyer annuel : 34 074 euros HT/HC. Prix du fonds : 120 000 euros net vendeur. Métro Grands Boulevards (8, 9), Cadet (7), Notre-Dame-de-Lorette (12)",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-9e-75009/d275/2750105/ab4daa27ac717988515984eb3e1e4bbd_a3ca18302347acba8657dc6031b18b41f3c0ac2b_rect_400-300-ffffff_.jpg"
@@ -5471,7 +5472,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-17e-75017/d275/2750104/d4a6e48879f03c447e94778575287171_a3ca18302347acba8657dc6031b18b41f3c0ac2b_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose : Paris 17ème CAVE A VINS d'une surface d'environ 45 m² de plain-pied. Réserve. Loyer annuel : 26 784 euros charges comprises. Prix du fonds : 100 000 euros net vendeur. Métro Malesherbes (3), Villiers (2), Pont Cardinet (14)",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-17e-75017/d275/2750104/d4a6e48879f03c447e94778575287171_a3ca18302347acba8657dc6031b18b41f3c0ac2b_rect_400-300-ffffff_.jpg"
@@ -5513,7 +5514,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-15e-75015/d275/2750102/879f80d6d6347098380d3e96cbe8d355_a3ca18302347acba8657dc6031b18b41f3c0ac2b_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose : Paris 15ème Quartier Beaugrenelle CAVE A VINS d'une surface d'environ 85 m² de plain-pied. Loyer annuel : 24 444 euros HC. Prix du fonds : 100 000 euros net vendeur. Métro Charles Michels (10)",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-15e-75015/d275/2750102/879f80d6d6347098380d3e96cbe8d355_a3ca18302347acba8657dc6031b18b41f3c0ac2b_rect_400-300-ffffff_.jpg"
@@ -5555,7 +5556,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-17e-75017/d275/2750086/0c8a2449fb26ecc004d6bb4bda68ba87_a3ca18302347acba8657dc6031b18b41f3c0ac2b_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose : Paris 17ème BOULANGERIE SALON DE THE d'une surface totale d'environ 150 m² dont 110 m² au rez-de-chaussée. Grande cuisine de plain-pied avec extraction. Grande réserve au sous-sol. Sans reprise de personnel. Loyer annuel : 28 800 euros HT/HC. Chiffre d'affaires 2024 : 194 000 euros HT. Prix du fonds : 160 000 euros net vendeur Métro Place de Clichy",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-17e-75017/d275/2750086/0c8a2449fb26ecc004d6bb4bda68ba87_a3ca18302347acba8657dc6031b18b41f3c0ac2b_rect_400-300-ffffff_.jpg"
@@ -5597,7 +5598,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-achat-local-commercial-boutique-montrouge-92120/d275/2750052/3a468b9f017061fa3026bc983cf33610_8e9d95dbbeeb992e439060190212025875f1a719_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose ce local brut de béton de 121 m², à la vente ou à la location, au sein d'un immeuble industriel de standing, situé sur une place agréable et animée. À la vente : 121m² -423 500 euros net vendeur À la location : 280 euros/m² soit 33 880 euros HT HC/an Un cadre de travail moderne, inspirant et unique, idéal pour entreprises ambitieuses ou projets d'investissement. Bus JULES FERRY (MONTMAR), LEON GAMBETTA (187, 188, 197, 297) RER Laplace (B, D) Metro Mairie de Montrouge (Ligne 4)",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-achat-local-commercial-boutique-montrouge-92120/d275/2750052/3a468b9f017061fa3026bc983cf33610_8e9d95dbbeeb992e439060190212025875f1a719_rect_400-300-ffffff_.jpg"
@@ -5639,7 +5640,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-montrouge-92120/d275/2750051/bc813b8b03eeeadfec823525d6749b84_8e9d95dbbeeb992e439060190212025875f1a719_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose un local brut de béton de 696 m², situé dans un immeuble industriel de qualité au coeur d'une place dynamique et agréable. À la vente : 696 m² - 3 864 667 euros net vendeur À la location : 280 euros/m² soit 194 880 euros HT HC/an Idéal pour entreprises en développement ou investisseurs, ce bien rare allie emplacement stratégique et cadre professionnel unique. Bus JULES FERRY (MONTMAR), LEON GAMBETTA (187, 188, 197, 297) RER Laplace (B, D) Metro Mairie de Montrouge (Ligne 4)",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-montrouge-92120/d275/2750051/bc813b8b03eeeadfec823525d6749b84_8e9d95dbbeeb992e439060190212025875f1a719_rect_400-300-ffffff_.jpg"
@@ -5681,7 +5682,7 @@
    "image_url": "https://www.cessionpme.com/static/bouche-trou.svg",
    "description": "Notre équipe vous propose des murs libres à la vente d'une surface totale de 156m². Le Rez-de-Chaussée dispose de 106,90m² et le sous-sol de 49m². L'ensemble étant relié par escalier intérieur. Le local se situe sur le Boulevard Voltaire, à proximité de la Rue de Charonne. Bus Charonne (56), Charonne - Chanzy (46), Charonne - Voltaire (76) Métro Charonne (9) Transilien Gare de Lyon (TER), Paris-Bercy Bourgogne - Pays d'Auvergne (TER) Port Port de Paris (Fluvial - Fret) Rocade Porte de Montreuil (Périphérique Paris) Parking ROQUETTE (Parking)",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/static/bouche-trou.svg"
@@ -5723,7 +5724,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-achat-local-commercial-boutique-bagnolet-93170/d272/2729097/98a15589894716da578def7887bb90b6_fe20c94f090a75c682bf0ad2d82e0a4f77f75bee_rect_400-300-ffffff_.jpg",
    "description": "EN EXCLUSIVITE EN PLEIN COEUR DU CENTRE VILLE, QUARTIER VIVANT ET COMMERCANTS, PROCHE MAIRIE ET PARKING. SECTEUR ET RUE TRES RECHERCHE A VENDRE MURS ET FONDS DE COMMERCE (toute activité) ENVIRON 42M2 SOIT 37M2 AU RDC ET CAVE 5M2 AVEC ACCES DIRECT ACTUELLEMENT EN RESTAURATION RAPIDE AVEC DROIT DE TERRASSE CONFORME VENDU LIBRE D'OCCUPANT A L'ACTE AUTHENTIQUE",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-achat-local-commercial-boutique-bagnolet-93170/d272/2729097/98a15589894716da578def7887bb90b6_fe20c94f090a75c682bf0ad2d82e0a4f77f75bee_rect_400-300-ffffff_.jpg"
@@ -5765,7 +5766,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-acheter-local-commercial-boutique-le-kremlin-bicetre-94270/d263/2632237/0dcda5ce9a2b60f550d7aad5f63615a4_b83c7c39e3bb344369fe1e9959efd35df62366e7_rect_400-300-ffffff_.jpg",
    "description": "Je vous propose à la vente un local commercial d'environ 586 m², situé au Kremlin-Bicêtre, à proximité immédiate d'une station de métro, offrant une excellente accessibilité. Le bien est positionné sur une échéance de mai 2028 et se présente en état brut (clos couvert), laissant une totale liberté d'aménagement selon les besoins de l'acquéreur. Il est adapté à un classement ERP de 5e catégorie et bénéficie d'une hauteur sous dalle d'environ 2,96 m, permettant des volumes confortables. Caractéristiques complémentaires : o Deux emplacements de stationnement en sous-sol dédiés au personnel, et lo",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-acheter-local-commercial-boutique-le-kremlin-bicetre-94270/d263/2632237/0dcda5ce9a2b60f550d7aad5f63615a4_b83c7c39e3bb344369fe1e9959efd35df62366e7_rect_400-300-ffffff_.jpg"
@@ -5807,7 +5808,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-boulogne-billancourt-92100/d274/2749362/c7c9a12fb66db694b8a7a01a1e83a128_70faedff792f981095da32ba080cc07e322efeda_rect_400-300-ffffff_.jpg",
    "description": "Découvrez une nouvelle opportunité avec ImNotre équipe un espace commercial de 188 m², idéalement situé à Boulogne-Billancourt. Ce local, disponible à la vente, bénéficie d'une visibilité optimale grâce à sa vitrine de 10 mètres linéaires donnant directement sur rue. Parfait pour bureaux ou commerces, cet espace non divisible offre un cadre moderne et fonctionnel pour développer votre activité dans un quartier dynamique. Ne manquez pas cette chance unique d'implanter votre entreprise dans un emplacement stratégique. Route N118 . Métro \"Marcel Sembat\" (ligne 9)",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-boulogne-billancourt-92100/d274/2749362/c7c9a12fb66db694b8a7a01a1e83a128_70faedff792f981095da32ba080cc07e322efeda_rect_400-300-ffffff_.jpg"
@@ -6101,7 +6102,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-paris-7e-75007/d274/2748351/24b375b2b04051eb9616a8cff160a1f7_b56c2ba0bc5c252ac61a17bb8b93b605ac7cc344_rect_400-300-ffffff_.jpg",
    "description": "Notre équipe vous propose à la vente, un local commercial sur rue (Boulevard Saint-Germain, Paris 75007) d'une surface de 134,69 m² Carrez sur 3 niveaux. Proche du métro Saint-Germain-des-Prés, ces murs libres d'occupation sont proposés au prix de 2 350 000 euros net vendeur. Bus Jacob (BUS, BUS-95, BUS-39), Saint-Guillaume (BUS-63, BUS-87, BUS), Charlotte Perriand (BUS-68, BUS-84, BUS-83, BUS-94), Rue du Bac - René Char (BUS-69), Saint-Germain-des-Prés (BUS) Métro Saint-Germain des Prés (METRO-4), Rue du Bac (METRO-12), Mabillon (METRO-10) RER MUSEE D'ORSAY (RER C)",
    "date_premiere_vue": "2026-07-03T15:16:06+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [
     "https://www.geolocaux.com/annonce/vente-local-commercial-boulevard-saint-germain-paris-7-metro-saint-germain-des-pres-712904.html"
    ],
@@ -6187,7 +6188,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348999/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T18:53:37+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348999/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg"
@@ -6229,7 +6230,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348998/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T18:53:37+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348998/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg"
@@ -6271,7 +6272,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348997/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T18:53:37+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348997/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg"
@@ -6313,7 +6314,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348995/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg",
    "description": "Restauration sans conduit possible · Terrasse",
    "date_premiere_vue": "2026-07-03T18:53:37+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348995/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg"
@@ -6355,7 +6356,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348993/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg",
    "description": "Restauration sans conduit possible · Terrasse",
    "date_premiere_vue": "2026-07-03T18:53:37+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348993/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg"
@@ -6397,7 +6398,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348549/photos/murs-libres_95100_argenteuil_6a47cde761767_r.jpg",
    "description": "",
    "date_premiere_vue": "2026-07-03T18:53:37+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348549/photos/murs-libres_95100_argenteuil_6a47cde761767_r.jpg"
@@ -6439,7 +6440,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348987/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T18:53:37+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348987/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg"
@@ -6481,7 +6482,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348986/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T18:53:37+02:00",
-   "date_derniere_vue": "2026-07-05T09:56:17+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348986/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg"
@@ -6523,7 +6524,7 @@
    "image_url": "https://media.apimo.pro/cache/ffe5482e273df034ee62145f09fb3790_8e93c1ec2d_1440-original.jpg",
    "description": "À vendre – Bar, Tabac, FDJ, PMU – Malaunay À seulement 10 km de Rouen, sur la commune de Malaunay, découvrez cette belle affaire de Bar, Tabac, FDJ et PMU, bénéficiant d'une clientèle fidèle et d'un fort potentiel de développement. L'établissement comprend : Un espace bar convivial Les activités Tabac, FDJ et PMU Une exploitation saine avec un bon EBE Un faible loyer Potentiel de développement : ➕ Possibilité de développer une activité de petite restauration ➕ Aménagement possible de 6 chambres meublées ➕ Ou création d'un appartement de fonction ➕ Possibilité d'acquérir les murs commercia",
    "date_premiere_vue": "2026-07-03T18:53:37+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://media.apimo.pro/cache/ffe5482e273df034ee62145f09fb3790_8e93c1ec2d_1440-original.jpg"
@@ -6605,7 +6606,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000349001/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg",
    "description": "Restauration sans conduit possible · Conduit de cheminée existant · Terrasse",
    "date_premiere_vue": "2026-07-03T19:42:53+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000349001/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg"
@@ -6647,7 +6648,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000349002/photos/location-pure_69200_venissieux_6a47ecd11323d_r.jpg",
    "description": "Restauration sans conduit possible · Terrasse",
    "date_premiere_vue": "2026-07-03T19:42:53+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000349002/photos/location-pure_69200_venissieux_6a47ecd11323d_r.jpg"
@@ -6689,7 +6690,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000349000/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-03T19:42:53+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000349000/photos/murs-occupes_13002_marseille_6a477a5976d1a_r.jpg"
@@ -6731,7 +6732,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348403/photos/murs-libres_75018_paris_6a424394762ea_r.jpg",
    "description": "",
    "date_premiere_vue": "2026-07-03T19:42:53+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348403/photos/murs-libres_75018_paris_6a424394762ea_r.jpg"
@@ -7017,7 +7018,7 @@
    "image_url": "https://cdn.pap.fr/photos/pap/67/bd/67bda83e7f68368568426ed258a3d300/6-p3.jpg",
    "description": "Paris 14e. Local professionnel 170 m² – 27 rue Ledion. À vendre : local professionnel situé au sein du 14e arrondissement de Paris, rue Ledion, dans un environnement mixte résidentiel et tertiaire à proximité des commerces et des...",
    "date_premiere_vue": "2026-07-04T09:45:36+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://cdn.pap.fr/photos/pap/67/bd/67bda83e7f68368568426ed258a3d300/6-p3.jpg"
@@ -7059,7 +7060,7 @@
    "image_url": "https://cdn.pap.fr/photos/pap/d9/27/d92776912c970f92ef2bfefacf5ead24/d-p3.jpg",
    "description": "Paris 15e. PARIS 15 – Local professionnel RDC – 77 rue de Lourmel. À vendre : local professionnel de 100 m2 situé en rez-de-chaussée d’un ensemble immobilier en copropriété, au cœur du 15e arrondissement de Paris, dans un...",
    "date_premiere_vue": "2026-07-04T09:45:36+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://cdn.pap.fr/photos/pap/d9/27/d92776912c970f92ef2bfefacf5ead24/d-p3.jpg"
@@ -7101,7 +7102,7 @@
    "image_url": "https://cdn.pap.fr/photos/pap/25/f1/25f114ddd2b2f93865b9b2b1a56e02e0/2-p3.jpg",
    "description": "Paris 16e. PARIS 16 – Boulevard Flandrin – **Local professionnel indépendant de 173 m²**. Dans un environnement résidentiel recherché du 16e arrondissement, au sein d’un immeuble de standing, ce local professionnel en...",
    "date_premiere_vue": "2026-07-04T09:45:36+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://cdn.pap.fr/photos/pap/25/f1/25f114ddd2b2f93865b9b2b1a56e02e0/2-p3.jpg"
@@ -7143,7 +7144,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-moisselles-95570/d275/2750532/c7e3d51fc5b9ecdc65c041176c9c39be_4ca9d4d1d05c153409ddd59a34063c5357fb435b_rect_400-300-ffffff_.jpg",
    "description": "Vous avez envie de lancer votre propre activité de coiffure (ou autre) seul(e) ou associé(e)s et vous recherchez un fond de commerce et un local commercial qui a pignon sur rue à un prix raisonnable, vous avez trouvé ce qu'il vous faut! Situé dans la rue commerçante de la ville de Moisselles, ce local commercial d'environ 46m², hébergeant un salon de coiffure tout équipé, est en excellent état et aura tout pour vous séduire. Il dispose de 7 m de façade environ. Il est associé à son fond de commerce, dont la réputation et la rentabilité n'est plus à prouver depuis 20 ans, commercialisé au prix",
    "date_premiere_vue": "2026-07-04T09:45:36+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-moisselles-95570/d275/2750532/c7e3d51fc5b9ecdc65c041176c9c39be_4ca9d4d1d05c153409ddd59a34063c5357fb435b_rect_400-300-ffffff_.jpg"
@@ -7185,7 +7186,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-santeny-94440/d275/2750525/3f12ae113b04af1121e1fa06c20221b5_ebbeea9847c260b622a633e7f72c704de0e2123b_rect_400-300-ffffff_.jpg",
    "description": "Centre Commercial du Domaine de Santeny Murs commerciaux, 56M2 environ avec 5M de linéaire de vitrine Au rez-de-chaussée ( 48M2 environ). Comprenant le point d'eau et sanitaire. Mezzanine : 14M2 environ au sol ( 9 M2 environ Carrez )+ Espace de rangement - grenier Climatisation. 1 place de parking privative. Possibilité d'ajouter un plancher de 15m2 environ dans la continuité de la mezzanine. Les informations sur les risques auxquels ce bien est exposé sont disponibles sur le site Géorisques : Prix de cession honoraires d’agence HT inclus : 183 000 € Prix de cession hors honoraires d’agence :",
    "date_premiere_vue": "2026-07-04T09:45:36+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-santeny-94440/d275/2750525/3f12ae113b04af1121e1fa06c20221b5_ebbeea9847c260b622a633e7f72c704de0e2123b_rect_400-300-ffffff_.jpg"
@@ -7479,7 +7480,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-courbevoie-92400/d275/2750435/1d33d358a77320633128166ea4d65269_3420326af1ce34a19fe9c670e143de2aa80cdec8_rect_400-300-ffffff_.jpg",
    "description": "- Courbevoie - L’Arche de La Défense a 10 min à pied. Exclusivité ! Un local commercial de 203 m² environ de surface en Loi Carrez situé au rez-de-chaussée en facade, en angle des rues avec 2 places de stationnement au sous-sol. Possibilité d’acheter le fonds de commerce en même temps ! Occupé à ce jour par un restaurant qui souhaite vendre les fonds. Possibilité d’installation d’un TABAC (vu avec la Mairie). Possibilité d’exercer tout commerce ! Prix du Fonds de Commerce en sus ! Dossier complet et visite sur rendez vous ! Disponible 7 / 7j pour plus de renseignements ! La presente annonce",
    "date_premiere_vue": "2026-07-04T09:45:36+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-courbevoie-92400/d275/2750435/1d33d358a77320633128166ea4d65269_3420326af1ce34a19fe9c670e143de2aa80cdec8_rect_400-300-ffffff_.jpg"
@@ -7563,7 +7564,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-boulogne-billancourt-92100/d275/2750246/c9b9933fd22a98563e4bc45680adda89_a071602b86c359b1132559c417a544ea3f90239f_rect_400-300-ffffff_.jpg",
    "description": "BOULOGNE-BILLANCOURT - LOCAL COMMERCIAL - MURS Local commercial à usage de bureaux d'une superficie totale de 118,09 m² (dont 114,78 m² loi Carrez), proposé dans le cadre de la vente de murs, situé au rez-de-chaussée d'une petite copropriété de 2 étages. Les locaux, traversants Est / Ouest, offrent une double exposition, avec une ouverture sur rue côté Est et sur cour côté Ouest, assurant une bonne luminosité et une organisation fonctionnelle. Au rez-de-chaussée, cinq bureaux, couloirs de circulation, kitchenette, WC attenants. Au sous-sol, un bureau et une salle d'archives Situation locative",
    "date_premiere_vue": "2026-07-04T09:45:36+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-boulogne-billancourt-92100/d275/2750246/c9b9933fd22a98563e4bc45680adda89_a071602b86c359b1132559c417a544ea3f90239f_rect_400-300-ffffff_.jpg"
@@ -7605,7 +7606,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000349105/photos/murs-occupes_75116_paris_6a49110023984_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-05T09:56:17+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000349105/photos/murs-occupes_75116_paris_6a49110023984_r.jpg"
@@ -7647,7 +7648,7 @@
    "image_url": "https://media.studio-net.fr/biens/33509989/x6a498cfc94dd8",
    "description": "A vendre fonds de commerce à usage de restauration face aux plages les plus prisées proche, d'une zone commerciale, à 50m de la mer. Se composant d'un espace fermé de 46m2 et d'une terrasse extérieure d'environ 100m2 pouvant acueillir jusqu'à 80 places assises. Entièrement meublé et équipé (cuisine et mobilier). Secteur calme et résidentiel.",
    "date_premiere_vue": "2026-07-05T09:56:17+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://media.studio-net.fr/biens/33509989/x6a498cfc94dd8",
@@ -7693,7 +7694,7 @@
    "image_url": "https://photos.ubiflow.net/311656/539095712/photos/1.jpg?INSOON_EB_5512801818_20260704112317",
    "description": "Fonds de commerce Restaurant à AUPS (83) Une opportunité clé en main au cœur de l'un des plus beaux villages du Var ! Vous rêvez de reprendre un restaurant de charme dans un village provençal recherché ? Si la restauration est votre passion, vous serez immédiatement séduit par cet établissement reconnu, prêt à être exploité sans aucun investissement complémentaire. Situé à Aups à 20 minutes de Draguignan, ce restaurant bénéficie d'un emplacement privilégié offrant une clientèle fidèle tout au long de l'année, complétée par une importante fréquentation touristique en saison. Avec une surface",
    "date_premiere_vue": "2026-07-05T09:56:17+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://photos.ubiflow.net/311656/539095712/photos/1.jpg?INSOON_EB_5512801818_20260704112317",
@@ -7740,7 +7741,7 @@
    "image_url": "https://photos.ubiflow.net/314191/539085275/photos/1.jpg?INSOON_EB_5512801818_20260704093232",
    "description": "RARE OPPORTUNITÉ ! CESSION DE BAIL OU FONDS DE COMMERCE Entre Capitole et Victor Hugo, belle opportunité pour ce local commercial à usage actuel d'institut de beauté Clientèle fidèle, ce fonds de commerce se compose : • Au rez-de-chaussée : d'un bel espace de vente lumineux et d'une salle de soin. • Au sous-sol : 2 cabines équipées de points d'eau et des espaces de rangement. Faible loyer > 2315 € 74 / trimestre Nous contacter pour plus d'informations et visite ! Référence agence : 216",
    "date_premiere_vue": "2026-07-05T09:56:17+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://photos.ubiflow.net/314191/539085275/photos/1.jpg?INSOON_EB_5512801818_20260704093232",
@@ -7827,7 +7828,7 @@
    "image_url": null,
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [],
    "prix_m2": null,
@@ -7867,7 +7868,7 @@
    "image_url": null,
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [],
    "prix_m2": null,
@@ -7907,7 +7908,7 @@
    "image_url": "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348425/photos/cession-de-bail_75011_paris_649b2e594d09b_r.jpg",
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.pointdevente.fr/doc/pdv/biens/BIEN_0000348425/photos/cession-de-bail_75011_paris_649b2e594d09b_r.jpg"
@@ -7949,7 +7950,7 @@
    "image_url": null,
    "description": "Restauration sans conduit possible",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [],
    "prix_m2": null,
@@ -7989,7 +7990,7 @@
    "image_url": "https://images.century21.fr/202/3352/c21_202_3352_22334_1_A9F37977-6D34-48AA-BCF2-EBBF0073E29D.jpg",
    "description": "A 20 MINUTES DE LA ROCHELLE - MARANS jolie cité fluviale sur la Sèvre Niortaise avec son port de plaisance actif et centre touristique. Beaucoup de potentiel, pour cet immeuble de 300 m² en plein centre ville, proche du marché couvert et de son port, il est composé : - Un local commercial de 110 m². - Un appartement en triplex de 130 m² comprenant : entrée, à l'étage : cuisine équipée, séjour, grande salle d'eau avec wc, palier. Au deuxième étage : 3 belles chambres. - Un appartement possible à rénover totalement, de type deux pièces en duplex d'une surface d'environ 45 m². Les atouts : empla",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://images.century21.fr/202/3352/c21_202_3352_22334_1_A9F37977-6D34-48AA-BCF2-EBBF0073E29D.jpg",
@@ -8078,7 +8079,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-acheter-local-commercial-boutique-paris-10e-75010/d269/2693895/2693895_ef208ef6459ded58633dcf398ad4059011ce9f13_rect_400-300-ffffff_.jpg",
    "description": "Paris 10e : A vendre un beau local commercial bien placé dans un quartier calme proche de tous commerces et de toutes commodités. Ce local commercial est vendu dans l'état mais il peut être transformé en logement (loft) après en avoir fait la demande auprès des services administratifs compétents. Surface totale de 80,69 m² dont 66,94 m² en Loi Carrez : Rez de Chaussée de 34,98 m² (29,73 m² en Loi Carrez) avec wc + Mezzanine de 23,41 m² (16,76 m² en Loi Carrez) avec une réserve + Sous-Sol aménageable de 22,30 m² (18,95 m² en Loi Carrez). Escalier en colimaçon reliant le rez de chaussée, la mezz",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-acheter-local-commercial-boutique-paris-10e-75010/d269/2693895/2693895_ef208ef6459ded58633dcf398ad4059011ce9f13_rect_400-300-ffffff_.jpg"
@@ -8120,7 +8121,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-rueil-malmaison-92500/d266/2666881/2666881_13cd5b850796006c4777f1b6963e35e2ff84975d_rect_400-300-ffffff_.jpg",
    "description": "Dépt 92 : Bel établissement indépendant d'environ 1000 m² avec des terrasses privées. Bâtiment indépendant transformable. Lieu de réception, Bar - Restaurant avec un appartement de 140 m². Emplacement N° 1 sur un axe très passant. Belle visibilité avec une façade de +/- 10 ml. Parking à l'arrière du bâtiment. Bar - Restaurant fermé mais bien équipé. Grosse capacité d'accueil. Plusieurs terrasses privées. Patio. Gros potentiel. Grande cuisine bien équipée avec extraction. Au rez de chaussée (550 m²) : Bar - Grande salle de restaurant pouvant recevoir de nombreux convives (+100 couverts). Patio",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-rueil-malmaison-92500/d266/2666881/2666881_13cd5b850796006c4777f1b6963e35e2ff84975d_rect_400-300-ffffff_.jpg"
@@ -8162,7 +8163,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-saint-fargeau-ponthierry-77310/d275/2750693/89f2b7aebbe493f4766d067a9825ab0e_3ce15ae5a2490fe5ac042b4909dc927e22774565_rect_400-300-ffffff_.jpg",
    "description": "- À vendre – Murs commerciaux loués – Environ 140 m² – Rentabilité immédiate Dans petite copropriété dans secteur résidentiel, résidence du Vieux chateau. À vendre, murs commerciaux d’une surface d’environ 140 m², situés au sein d’une copropriété, actuellement loués à une activité de tabac / presse / loto (bail avec clause d'activité exclusive) Le bien génère un loyer mensuel de 1 438,70€, offrant une rentabilité immédiate pour un investisseur souhaitant acquérir un actif déjà occupé. Les charges de copropriétés sont prises en charge intégralement par le locataire. La copropriété fait actuell",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-local-commercial-boutique-saint-fargeau-ponthierry-77310/d275/2750693/89f2b7aebbe493f4766d067a9825ab0e_3ce15ae5a2490fe5ac042b4909dc927e22774565_rect_400-300-ffffff_.jpg"
@@ -8204,7 +8205,7 @@
    "image_url": "https://www.cessionpme.com/photo/immo-entreprise-vente-bureaux-brie-comte-robert-77170/d275/2750540/94d52ec680dbe838c334c3772fdc2e68_d061ae64708d6d653400bc026cd0a6a2da5ad93f_rect_400-300-ffffff_.jpg",
    "description": "Situé à Brie-Comte-Robert ZAC DU TUBOEUF, ce local commercial bénéficie d'un emplacement stratégique offrant un cadre dynamique et attractif pour toute activité professionnelle. Cette commune dynamique propose un environnement propice au développement de votre entreprise, avec ses nombreux commerces et services à proximité, facilitant le quotidien des employés et clients. Ce bien dispose de 4 places de parking et d'un local commercial avec une surface habitable de 192 m², comprenant un spacieux dépôt de 132 m² au Sol avec une hauteur entrée porte de Garage de 3,56 mètres , facilitant le stocka",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.cessionpme.com/photo/immo-entreprise-vente-bureaux-brie-comte-robert-77170/d275/2750540/94d52ec680dbe838c334c3772fdc2e68_d061ae64708d6d653400bc026cd0a6a2da5ad93f_rect_400-300-ffffff_.jpg"
@@ -8246,7 +8247,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/6391709255631455811_0.jpg",
    "description": "Ce local atypique propose un espace de 52 m² au RDC, une salle de 17 m² au sous-sol et une mezzanine. Il dispose d’une double entrée, d’une vitrine, de sanitaires et d’un accès PMR possible.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/6391709255631455811_0.jpg"
@@ -8288,7 +8289,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639165622195979506205_1.jpg",
    "description": "Ce local à fort cachet, réparti sur deux niveaux, offre pierre apparente, verrière et belles hauteurs sous plafond. Proximité immédiate des transports (métro, bus, RER) et accès ERP/PMR.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639165622195979506205_1.jpg"
@@ -8330,7 +8331,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/5_6391629672629729855_1.jpg",
    "description": "Lot de 117 m² au sein d’un programme neuf mixte, avec cœur d’îlot paysager, à proximité immédiate du métro Voltaire. Environnement dynamique avec commerces, restaurants et services variés.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/5_6391629672629729855_1.jpg"
@@ -8372,7 +8373,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/604_639162088925696644604_1.jpg",
    "description": "Ensemble immobilier avec local commercial en rez-de-chaussée et appartement au 1er étage, situé dans un secteur dynamique. Deux conduits d'extraction pour activités de restauration. Idéal pour investisseurs ou porteurs de projet.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/604_639162088925696644604_1.jpg"
@@ -8414,7 +8415,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639165654783000645205_1.jpg",
    "description": "Bureaux en rez-de-chaussée d'un immeuble ancien en pierre de taille. Espace d'accueil, quatre bureaux sur rue, deux bureaux sur cour, sous-sol de 20 m². Vitrine, accès PMR, digicode, interphone, climatisation, cuisine équipée, sanitaires privatifs.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639165654783000645205_1.jpg"
@@ -8456,7 +8457,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639165663807229746205_1.jpg",
    "description": "Locaux ERP en rez-de-chaussée sur cour, climatisés et fibré, actuellement aménagés en salle de danse. Idéal pour une activité similaire ou salle de sport. Accès direct métro, RER et multiples lignes de bus.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639165663807229746205_1.jpg"
@@ -8498,7 +8499,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639165642453728266205_1.jpg",
    "description": "Local lumineux et modulable de 334 m², idéal pour centre de formation ou professions libérales. Accessible PMR, double accès et prestations complètes. Proche gare Montparnasse et transports variés.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639165642453728266205_1.jpg"
@@ -8540,7 +8541,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/5_6391629673240630545_1.jpg",
    "description": "Local commercial neuf de 285 m² en programme d'exception, livré brut de béton avec fluides en attente. Accès indépendant sur cour calme, grandes baies vitrées et hauteur sous plafond. Proche métro Voltaire et commerces variés.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/5_6391629673240630545_1.jpg"
@@ -8582,7 +8583,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/99827_63913301535528142699827_1.jpg",
    "description": "Local commercial de 193 m² non divisibles, idéal pour restauration ou commerce de détail. Conduit de cheminée inclus. Accès facile via métro, bus, RER et Transilien.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/99827_63913301535528142699827_1.jpg"
@@ -8624,7 +8625,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63911215515730492544973_1.jpg",
    "description": "Local commercial de 50 m² occupé par un serrurier depuis plus de 20 ans. Situé dans un quartier recherché du 6e arrondissement, ce bien offre une stabilité locative et un fort pouvoir d'achat.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63911215515730492544973_1.jpg"
@@ -8666,7 +8667,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/237f4763-bd21-425b-829d-ad0582b513de_j00.jpg",
    "description": "Situé dans le 7e arrondissement de Paris, ce local commercial de 37 m² est idéal pour un commerce de proximité. Bien desservi par les transports en commun, il offre une excellente visibilité et un emplacement privilégié.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/237f4763-bd21-425b-829d-ad0582b513de_j00.jpg"
@@ -8708,7 +8709,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/639069190507179761.jpg",
    "description": "Local commercial de 180 m² sur deux niveaux, avec une façade de 12 m. Rez-de-chaussée décloisonnable et sous-sol accessible directement. Double bloc sanitaire et lave-mains.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/639069190507179761.jpg"
@@ -8750,7 +8751,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63905831113939845339453_1.jpg",
    "description": "Situé au cœur du quartier Louvre, Palais Royal et Opéra, ce local de 623 m² est traversant avec double linéaire de vitrines. Il comprend des bureaux et sanitaires au 1er étage, un espace commercial au rez-de-chaussée et un sous-sol commercial.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63905831113939845339453_1.jpg"
@@ -8792,7 +8793,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/69406_63880287636547088169406_1.jpg",
    "description": "Ce local neuf de 657 m², non divisible, est idéal pour le développement d'activités professionnelles. Il dispose d'un accès facile aux transports en commun et d'une infrastructure solide.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/69406_63880287636547088169406_1.jpg"
@@ -8834,7 +8835,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/4_6384615637510447284_1.jpg",
    "description": "Situé au pied du métro Porte d'Orléans (ligne 4) et du tramway, ce local de 285 m² est actuellement aménagé en salle de danse avec 4 salles de 20 à 100 m², vestiaires, sanitaires et climatisation. Accessible en bus, métro, RER et tramway.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/4_6384615637510447284_1.jpg"
@@ -8876,7 +8877,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/99827_63915720835422460299827_1.jpg",
    "description": "Local brut de béton avec verrières et hauteur sous plafond, idéal pour commerce ou transformation. Accès PMR, sanitaires privatifs et espace ouvert. Desservi par métro, bus, Transilien et parking à proximité.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/99827_63915720835422460299827_1.jpg"
@@ -8918,7 +8919,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/c6d8d801-59ea-4730-a583-86b092d27885_j00.jpg",
    "description": "Idéal pour un commerce de proximité, ce local de 25 m² est situé dans un quartier dynamique et bien desservi par les transports en commun.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/c6d8d801-59ea-4730-a583-86b092d27885_j00.jpg"
@@ -8960,7 +8961,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63909573987450046144973_1.jpg",
    "description": "Situé sur une avenue passante, ce local commercial comprend un rez-de-chaussée, une mezzanine et un sous-sol. Il offre trois parkings et une extraction possible.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63909573987450046144973_1.jpg"
@@ -9002,7 +9003,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/4_6388659061734602134_1.jpg",
    "description": "En plein cœur du 20ème arrondissement, ce local commercial de 657 m² bénéficie d'une aire de livraison dédiée et est situé dans un programme de 23 logements. Livraison prévue pour le second semestre 2026.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/4_6388659061734602134_1.jpg"
@@ -9044,7 +9045,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/5_6391629673868687105_1.jpg",
    "description": "Ce local de 164 m², livré brut de béton, bénéficie d'une entrée indépendante sur cour calme. Situé dans un programme neuf avec cœur d'îlot paysager, il est proche du métro Voltaire et de commerces variés.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/5_6391629673868687105_1.jpg"
@@ -9086,7 +9087,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/99827_63913301542073568799827_1.jpg",
    "description": "Local de 188 m² non divisible en RDC, idéal pour une activité commerciale ou tertiaire. Accès facile aux transports (métro, RER, bus) et proximité des axes majeurs. Équipé d'une kitchenette et de sanitaires.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/99827_63913301542073568799827_1.jpg"
@@ -9128,7 +9129,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63880365487052000336_1.jpg",
    "description": "Située sur le boulevard Richard Lenoir, cette boutique de 13 m² en rez-de-chaussée offre un double accès et une vitrine. Disponibilité en février 2025.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63880365487052000336_1.jpg"
@@ -9170,7 +9171,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/16942cef-9029-4d33-ae24-420681766b51_j00.jpg",
    "description": "Local en rez-de-chaussée, idéalement situé à proximité des transports en commun, offrant une bonne visibilité pour un commerce. Disponible immédiatement.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/16942cef-9029-4d33-ae24-420681766b51_j00.jpg"
@@ -9212,7 +9213,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/5_6389728837156559515_1.jpg",
    "description": "Ce local indépendant de 473 m² offre une vitrine de 12 mètres, une double accessibilité, et des surfaces complémentaires en sous-sol. Situé dans un quartier vivant avec de nombreux commerces.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/5_6389728837156559515_1.jpg"
@@ -9254,7 +9255,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/78bf3227-9cee-4c9c-9586-0fc6faf91892_j00.jpg",
    "description": "Local commercial de 19 m² à vendre à Paris 20e, proche du métro Gambetta. Idéal pour un commerce de proximité, ce local bénéficie d'une bonne visibilité et d'un emplacement stratégique.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/78bf3227-9cee-4c9c-9586-0fc6faf91892_j00.jpg"
@@ -9296,7 +9297,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/5_6390178114413378415_1.jpg",
    "description": "Ces locaux spacieux de 392 m², situés au rez-de-chaussée d'un immeuble moderne, offrent une grande hauteur sous plafond et une excellente luminosité. Ils bénéficient d'un accès direct au parking et d'un double accès, idéals pour diverses activités tertiaires ou commerciales.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/5_6390178114413378415_1.jpg"
@@ -9338,7 +9339,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63860523653913270036_1.jpg",
    "description": "Situé face à la bibliothèque François Mitterrand, ce local de 149 m² au RDC offre un grand plateau lumineux et un premier étage ouvert. Climatisation réversible, kitchenette et alarme. Disponibilité immédiate.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63860523653913270036_1.jpg"
@@ -9380,7 +9381,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639142681630364639205_1.jpg",
    "description": "Entièrement rénové par un architecte de renom, ce local offre un espace ouvert avec cuisine et sanitaires privatifs. Accès sur rue et par les communs, vitrine accordéon. Métro Rambuteau à proximité.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639142681630364639205_1.jpg"
@@ -9422,7 +9423,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63864297183171681936_1.jpg",
    "description": "Idéal pour la restauration, ce local de 198 m² comprend une terrasse couverte, une cuisine ouverte et un sous-sol de 104 m². Situé dans une zone à fort passage piéton et proche des transports, il offre une excellente visibilité avec un linéaire de vitrine de 4 mètres.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63864297183171681936_1.jpg"
@@ -9464,7 +9465,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639040723888067229205_1.jpg",
    "description": "Situé dans le quartier historique Saint-Paul/Marais, ce local de 79 m² offre une excellente visibilité et un fort potentiel d'activité. Il comprend 30,58 m² en rez-de-chaussée et un sous-sol exploitable. Des travaux de rénovation sont à prévoir.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639040723888067229205_1.jpg"
@@ -9506,7 +9507,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63899544392352580436_1.jpg",
    "description": "Situé dans le quartier actif de Porte de Saint-Cloud, ce local commercial de 45 m² comprend une vitrine de 7m, une surface de vente de 28m², une arrière-boutique de 20m², une cuisine et un sanitaire.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63899544392352580436_1.jpg"
@@ -9548,7 +9549,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63844854662516125436_1.jpg",
    "description": "Boutique entièrement rénovée de 436 m² sur 4 niveaux, avec accès indépendant et double accès sur rue. Comprend un RD de 90 m², un 1er sous-sol de 112 m², et deux sous-sols de 234 m² de réserve. Équipée d'un monte-charge, d'une cuisine, et de climatisation.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/63844854662516125436_1.jpg"
@@ -9590,7 +9591,7 @@
    "image_url": "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639142664962885072205_1.jpg",
    "description": "Immeuble indépendant ancien en style industriel, proposant espaces ouverts, bureaux fermés, salles de réunion et deux terrasses privatives. Accès PMR, fibre optique et climatisation neuve.",
    "date_premiere_vue": "2026-07-06T10:59:34+02:00",
-   "date_derniere_vue": "2026-07-06T10:59:34+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
    "urls_multiples": [],
    "images": [
     "https://www.geolocaux.com/_ipx/w_300&f_jpeg/photos/350x240/205_639142664962885072205_1.jpg"
@@ -9614,6 +9615,53 @@
    "bonus_detectes": [],
    "exclue": true,
    "raison_exclusion": "prix hors budget (6 300 000 €)"
+  },
+  {
+   "id": "bf4ce70f9a0960a5",
+   "id_source": "ag311656-539324069",
+   "source": "bienici",
+   "url": "https://www.bienici.com/annonce/ag311656-539324069",
+   "titre": "Opportunité à saisir - Fonds de commerce",
+   "ville": "Grenoble",
+   "code_postal": "38100",
+   "departement": "38",
+   "type_murs": "murs_libres",
+   "prix": 59000.0,
+   "surface_m2": null,
+   "loyer_mensuel": null,
+   "honoraires": null,
+   "image_url": "https://photos.ubiflow.net/311656/539324069/photos/1.jpg?INSOON_EB_5512801818_20260706103246",
+   "description": "Affaire familiale reconnue, présente depuis plus de 22 ans à Grenoble, situé dans le quartier des Eaux-Claires, à proximité d'un lycée, ce qui renforce l'attractivité et le potentiel de développement grâce à un flux régulier de clientèle. Activité de pizzeria et petit snacking, avec vente à emporter de pizzas et de desserts, exploitée dans un local commercial pouvant accueillir 38 places assises, dont une vingtaine sur une très belle terrasse. Exploitation actuelle volontairement limitée du lundi au vendredi, offrant un fort potentiel d'évolution. Autorisation d'exercer l'activité rôtisseri",
+   "date_premiere_vue": "2026-07-06T12:11:04+02:00",
+   "date_derniere_vue": "2026-07-06T12:11:04+02:00",
+   "urls_multiples": [],
+   "images": [
+    "https://photos.ubiflow.net/311656/539324069/photos/1.jpg?INSOON_EB_5512801818_20260706103246",
+    "https://photos.ubiflow.net/311656/539324069/photos/2.jpg?INSOON_EB_5512801818_20260706103246",
+    "https://photos.ubiflow.net/311656/539324069/photos/3.jpg?INSOON_EB_5512801818_20260706103246",
+    "https://photos.ubiflow.net/311656/539324069/photos/4.jpg?INSOON_EB_5512801818_20260706103246",
+    "https://photos.ubiflow.net/311656/539324069/photos/5.jpg?INSOON_EB_5512801818_20260706103246",
+    "https://photos.ubiflow.net/311656/539324069/photos/6.jpg?INSOON_EB_5512801818_20260706103246"
+   ],
+   "prix_m2": null,
+   "loyer_estime": false,
+   "loyer_mensuel_estime": null,
+   "rendement_brut_pct": null,
+   "rendement_acte_en_main_pct": null,
+   "position_benchmark": "inconnu",
+   "decote_pct": null,
+   "marche_prix_m2_bas": null,
+   "marche_prix_m2_haut": null,
+   "temps_trajet_min": null,
+   "caracteristiques": [],
+   "lecture_prix": "",
+   "prix_cible_rendement": null,
+   "score": null,
+   "detail_score": {},
+   "flags": [],
+   "bonus_detectes": [],
+   "exclue": true,
+   "raison_exclusion": "prix hors budget (59 000 €)"
   }
  ]
 }
