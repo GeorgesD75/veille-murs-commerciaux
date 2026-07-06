@@ -264,6 +264,40 @@ class TestGeolocaux:
             "Paris 1er", "75001")
         assert source._localiser("Vente murs Paris 5ème", "75") == ("Paris 5e", "75005")
 
+    def test_collecte_deux_temps_hors_paris(self):
+        # page département (payload Nuxt) -> pages communales SSR, paginées
+        class ClientFactice:
+            def __init__(self, pages):
+                self.pages = pages
+                self.urls: list[str] = []
+
+            def obtenir(self, url):
+                self.urls.append(url)
+                return self.pages[url]
+
+        base = SourceGeolocaux.BASE
+        client = ClientFactice({
+            base + "/vente/local-commercial/hauts-de-seine-92/":
+                charger("geolocaux_departement_92.html"),
+            base + "/vente/local-commercial/issy-les-moulineaux-92130/":
+                charger("geolocaux_commune_issy.html"),
+            base + "/vente/local-commercial/issy-les-moulineaux-92130/page-2/":
+                charger("geolocaux_commune_issy_page2.html"),
+        })
+        source = SourceGeolocaux(client=client, departements=["92"], prix_max=420_000)
+        annonces = source.collecter()
+
+        # la ville et le VRAI code postal viennent de l'URL communale
+        assert {(a.ville, a.code_postal) for a in annonces} == {
+            ("Issy-les-Moulineaux", "92130")}
+        # le remplissage « à proximité » (Meudon, au-delà des 2 annonces
+        # annoncées par le <title>) est ignoré
+        assert {a.id_source for a in annonces} == {"639152", "639153"}
+        # Neuilly (0 annonce), Boulogne (min 850 k€ > budget), Bordeaux (hors 92)
+        # et paris-75 (pas un listing communal) n'ont pas été visitées
+        assert len(client.urls) == 3
+        assert not source.avertissements
+
 
 # --- bienici.com (API JSON) ---
 

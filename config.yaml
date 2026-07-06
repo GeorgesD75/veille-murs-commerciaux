@@ -101,7 +101,8 @@ sources:                      # activer/désactiver une source = une ligne
   papcommerces:    {actif: true}   # site commerces de PAP, listing IdF
   bienici:         {actif: true, max_annonces: 100}   # API JSON, boutiques triées par date
   cessionpme:      {actif: true}   # listing « vente locaux commerciaux IdF » (1 000+ annonces)
-  geolocaux:       {actif: true}   # scraping direct (robots permissif), 1 page/département IdF
+  geolocaux:       {actif: true, prix_max: 420000}   # pages communales SSR découvertes via les pages
+                                   # département ; prix_max (= prix_max_filtre) épargne les communes hors budget
   encheres_publiques: {actif: true}  # enchères IdF — canal spécial sans scoring (mise à prix ≠ prix)
   # placedescommerces.com écarté : marché de fonds de commerce, pas de murs.
   # licitor.com : résultats chargés en AJAX, à réétudier si besoin (l'appli mobile a une API).

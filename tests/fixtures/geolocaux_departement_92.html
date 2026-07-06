@@ -1,0 +1,33 @@
+<!-- Page département geolocaux.com (structure relevée le 2026-07-06) : pas de
+     cartes rendues serveur, mais un payload Nuxt (format devalue : tableau plat
+     référencé par index) listant les communes et leur nombre d'annonces.
+     Données fictives. Cas couverts : commune avec annonces (Issy), commune vide
+     (Neuilly), commune hors budget (Boulogne, price_min 850 000), ville hors
+     département (Bordeaux), lien département sans code postal (paris-75). -->
+<html><head><title>Vente / achat local commercial Hauts-de-Seine (92) - 5 annonces - Geolocaux</title></head><body>
+<div id="__nuxt"></div>
+<script type="application/json" data-nuxt-data="nuxt-app" data-ssr="true" id="__NUXT_DATA__">[
+  "remplissage",
+  {"place": 2, "nb_annonce": 3, "url": 4, "obfuscation": 5},
+  "Issy-les-Moulineaux",
+  2,
+  "/vente/local-commercial/issy-les-moulineaux-92130/",
+  false,
+  {"place": 7, "nb_annonce": 8, "url": 9, "obfuscation": 5},
+  "Neuilly-sur-Seine",
+  0,
+  "/vente/local-commercial/neuilly-sur-seine-92200/",
+  {"place": 11, "nb_annonce": 12, "url": 13, "obfuscation": 5, "price_min": 14, "price_max": 14},
+  "Boulogne-Billancourt",
+  1,
+  "/vente/local-commercial/boulogne-billancourt-92100/",
+  850000,
+  {"place": 16, "nb_annonce": 17, "url": 18, "obfuscation": 5},
+  "Bordeaux",
+  77,
+  "/vente/local-commercial/bordeaux-33000/",
+  {"place": 20, "nb_annonce": 17, "url": 21, "obfuscation": 5},
+  "Paris - 75",
+  "/vente/local-commercial/paris-75/"
+]</script>
+</body></html>
