@@ -319,6 +319,13 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .carte.prio { background: var(--bande); border-color: var(--marque); }
 .carte.podium-1 { border-color: var(--or); box-shadow: 0 0 0 1px var(--or); }
 
+.btn-masquer { position: absolute; top: -10px; left: 14px; z-index: 3;
+  width: 23px; height: 23px; border-radius: 50%; background: var(--surface);
+  border: 1.4px solid var(--bord); color: var(--encre-2); font: 700 13px system-ui, sans-serif;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.btn-masquer:hover { background: var(--alerte-fond); color: var(--alerte-texte); border-color: var(--alerte-texte); }
+
 /* Autocollants d'exception + reflet doré sur les pépites */
 .sticker { position: absolute; top: -11px; right: 14px; z-index: 2;
   display: inline-flex; align-items: center; justify-content: center; gap: 4px;
@@ -749,6 +756,7 @@ const D = JSON.parse(document.getElementById("donnees").textContent);
 const CLE_FILTRES = "veille-murs-filtres";
 const CLE_COMP = "veille-murs-comparateur";
 const CLE_PROFIL = "veille-murs-profil";
+const CLE_MASQUEES = "veille-murs-masquees";
 
 // Profil de financement de l'utilisateur : pilote TOUS les cash-flows du site
 // (métriques, badges « s'autofinance », blocs « En clair », simulateur).
@@ -790,6 +798,19 @@ const IC = {
 
 let comparaison = [];
 try { comparaison = JSON.parse(localStorage.getItem(CLE_COMP) || "[]"); } catch (e) {}
+
+// Annonces retirées manuellement du haut du panier / à étudier de près : pas
+// supprimées, juste reléguées dans « le reste du tableau de chasse » — utile
+// pour un bien déjà vu/écarté sans avoir à baisser le score min.
+let masquees = [];
+try { masquees = JSON.parse(localStorage.getItem(CLE_MASQUEES) || "[]"); } catch (e) {}
+
+function basculerMasquage(id) {
+  const i = masquees.indexOf(id);
+  if (i >= 0) masquees.splice(i, 1); else masquees.push(id);
+  localStorage.setItem(CLE_MASQUEES, JSON.stringify(masquees));
+  rendre();
+}
 
 function ech(s) {
   return String(s ?? "").replace(/[&<>"']/g,
@@ -1191,6 +1212,27 @@ function explicationRendement(a, type) {
   return t;
 }
 
+function boutonMasquerHtml(id) {
+  const deja = masquees.includes(id);
+  return `<button type="button" class="btn-masquer" data-masquer="${ech(id)}"
+    title="${deja ? "Remettre cette annonce dans son classement normal." : "Retirer cette annonce du haut du panier / à étudier de près — elle passe dans « le reste du tableau de chasse », sans être supprimée."}">${deja ? "↺" : "×"}</button>`;
+}
+
+function fiabiliteRueHtml(a) {
+  const voie = a.rue_voie ? `autour de « ${a.rue_voie} »` : "autour de l'adresse détectée";
+  const t = `Ce qui est réellement mesuré : ${a.rue_nb_commerces} commerce(s) actif(s) recensés dans OpenStreetMap, ${voie}, dans un rayon de 150 m (adresse géocodée via la Base Adresse Nationale, service public gratuit).` +
+    ` Ce n'est PAS un compteur de passage réel : pas de nombre de piétons/jour, pas de distance au métro — seulement une densité de commerces autour d'un point.` +
+    ` Limite à connaître : OpenStreetMap peut être incomplet ou daté sur certains secteurs, et la rue détectée dans le texte de l'annonce peut être approximative.`;
+  return ` <span class="info-i" title="${ech(t)}">i</span>`;
+}
+
+function fiabiliteVacanceHtml(a) {
+  const voie = a.rue_voie ? `autour de « ${a.rue_voie} »` : "autour de l'adresse détectée";
+  const t = `${a.rue_nb_vacants} local/locaux marqués vacants ou fermés dans OpenStreetMap, ${voie}, à 150 m — un indice de vacance commerciale du secteur, pas une statistique officielle.` +
+    ` OpenStreetMap dépend de contributeurs bénévoles : un local peut avoir rouvert sans que la carte soit mise à jour, ou l'inverse — à vérifier sur place avant de s'en inquiéter.`;
+  return ` <span class="info-i" title="${ech(t)}">i</span>`;
+}
+
 function pourquoiHtml(a) {
   const d = a.detail_score || {};
   const lignes = Object.entries(D.maxima).map(([cle, max]) => {
@@ -1226,11 +1268,11 @@ function carteHtml(a, options) {
   // commerces OpenStreetMap à 150 m) — un signal au-delà du simple classement
   // administratif, pour repérer une rue vraiment isolée dans un bon secteur.
   if (a.rue_categorie === "peu_commercante")
-    badges.push(`<span class="badge badge-alerte" title="Mesuré autour de « ${ech(a.rue_voie || "")} » : ${a.rue_nb_commerces} commerce(s) actif(s) seulement à 150 m (données OpenStreetMap). Rue probablement peu passante — vérifiez sur place avant d'acheter.">${IC.alerte} rue peu commerçante</span>`);
+    badges.push(`<span class="badge badge-alerte">${IC.alerte} rue peu commerçante${fiabiliteRueHtml(a)}</span>`);
   else if (a.rue_categorie === "tres_commercante")
-    badges.push(`<span class="badge badge-rue-plus" title="Mesuré autour de « ${ech(a.rue_voie || "")} » : ${a.rue_nb_commerces} commerces actifs à 150 m (données OpenStreetMap) — un vrai signal de passage, pas qu'un classement administratif.">${IC.loupe} rue commerçante mesurée</span>`);
+    badges.push(`<span class="badge badge-rue-plus">${IC.loupe} rue commerçante mesurée${fiabiliteRueHtml(a)}</span>`);
   if (a.rue_nb_vacants != null && a.rue_nb_vacants >= 3)
-    badges.push(`<span class="badge badge-alerte" title="${a.rue_nb_vacants} locaux vacants ou fermés détectés à 150 m (OpenStreetMap) : signal de vacance commerciale du secteur, à vérifier sur place.">${IC.alerte} vacance commerciale proche</span>`);
+    badges.push(`<span class="badge badge-alerte">${IC.alerte} vacance commerciale proche${fiabiliteVacanceHtml(a)}</span>`);
   if ((a.flags || []).includes("dette_copropriete"))
     badges.push(`<span class="badge badge-alerte" title="L'annonce mentionne des dettes ou une procédure de copropriété. Cela peut se négocier (le prix en tient parfois déjà compte), mais exigez le pré-état daté et le montant exact AVANT toute offre — un acheteur hérite de la quote-part de dette au prorata de sa surface.">${IC.alerte} dettes de copropriété</span>`);
 
@@ -1316,6 +1358,7 @@ function carteHtml(a, options) {
 
   return `<article class="carte${options.prio ? " prio" : ""}${options.medaille === 0 ? " podium-1" : ""}${lettreRang === "S" ? " rang-s" : ""}"
       style="animation-delay:${(options.index || 0) * 45}ms">
+    ${boutonMasquerHtml(a.id)}
     ${sticker}
     <div class="carte-img" data-id="${ech(a.id)}" data-idx="0">${img}</div>
     <div>
@@ -1440,11 +1483,11 @@ function enchereHtml(e, index) {
     `<span class="badge badge-nouveau">${IC.horloge} vente le ${dateVente}</span>`,
   ];
   if (e.rue_categorie === "peu_commercante")
-    badges.push(`<span class="badge badge-alerte" title="Mesuré autour de « ${ech(e.rue_voie || "")} » : ${e.rue_nb_commerces} commerce(s) actif(s) seulement à 150 m. Rue probablement peu passante — vérifiez sur place avant d'enchérir.">${IC.alerte} rue peu commerçante</span>`);
+    badges.push(`<span class="badge badge-alerte">${IC.alerte} rue peu commerçante${fiabiliteRueHtml(e)}</span>`);
   else if (e.rue_categorie === "tres_commercante")
-    badges.push(`<span class="badge badge-rue-plus" title="Mesuré autour de « ${ech(e.rue_voie || "")} » : ${e.rue_nb_commerces} commerces actifs à 150 m — un vrai signal de passage, pas qu'un classement administratif.">${IC.loupe} rue commerçante mesurée</span>`);
+    badges.push(`<span class="badge badge-rue-plus">${IC.loupe} rue commerçante mesurée${fiabiliteRueHtml(e)}</span>`);
   if (e.rue_nb_vacants != null && e.rue_nb_vacants >= 3)
-    badges.push(`<span class="badge badge-alerte" title="${e.rue_nb_vacants} locaux vacants ou fermés détectés à 150 m : signal de vacance commerciale du secteur.">${IC.alerte} vacance commerciale proche</span>`);
+    badges.push(`<span class="badge badge-alerte">${IC.alerte} vacance commerciale proche${fiabiliteVacanceHtml(e)}</span>`);
   const badgesHtml = badges.join("");
   const metriques = [
     ["Mise à prix", fmtEuros(e.mise_a_prix)],
@@ -1455,6 +1498,7 @@ function enchereHtml(e, index) {
   ].map(([l, v]) =>
     `<div class="metrique"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
   return `<article class="carte${forte ? " prio podium-1" : ""}" style="animation-delay:${index * 45}ms">
+    ${boutonMasquerHtml(e.id)}
     ${sticker}
     <div class="carte-img">${img}</div>
     <div>
@@ -1507,9 +1551,10 @@ function rendre() {
   localStorage.setItem(CLE_FILTRES, JSON.stringify(f));
   majResumeSecteurs(f);
   const visibles = D.retenues.filter(a => appliquer(a, f));
-  const prio = visibles.filter(a => (a.score ?? 0) >= D.seuils.vert);
-  const etudier = visibles.filter(a => (a.score ?? 0) >= D.seuils.affichage && (a.score ?? 0) < D.seuils.vert);
-  const reste = visibles.filter(a => (a.score ?? 0) < D.seuils.affichage);
+  const prio = visibles.filter(a => (a.score ?? 0) >= D.seuils.vert && !masquees.includes(a.id));
+  const etudier = visibles.filter(a =>
+    (a.score ?? 0) >= D.seuils.affichage && (a.score ?? 0) < D.seuils.vert && !masquees.includes(a.id));
+  const reste = visibles.filter(a => (a.score ?? 0) < D.seuils.affichage || masquees.includes(a.id));
 
   const podium = [...prio, ...etudier].slice(0, 3).map(a => a.id);
   const opts = a => ({
@@ -1519,7 +1564,7 @@ function rendre() {
 
   let index = 0;
   // Seules les meilleures occasions (score enchère ≥ seuil, plafonnées) montent
-  const occasions = (D.encheres || []).filter(e => e.haut_panier);
+  const occasions = (D.encheres || []).filter(e => e.haut_panier && !masquees.includes(e.id));
   document.getElementById("bloc-prio").innerHTML =
     `<h2 class="section">${IC.trophee} Le haut du panier <span class="nb">score ≥ ${D.seuils.vert} & occasions aux enchères</span></h2>` +
     (prio.length || occasions.length
@@ -1546,6 +1591,34 @@ function rendre() {
     document.querySelectorAll(".piste div[data-l]").forEach(el => { el.style.width = el.dataset.l + "%"; });
   });
   majPlateau();
+  rendreEncheres();
+}
+
+function rendreEncheres() {
+  const s = D.stats;
+  // Les meilleures occasions sont en haut de page ; le reste est REPLIÉ par
+  // défaut (pas du top = pas d'espace), mêmes cartes une fois ouvert. Une
+  // occasion masquée manuellement (croix) redescend ici comme les autres.
+  const encheres = (D.encheres || []).filter(e => !e.haut_panier || masquees.includes(e.id));
+  const nbFortes = (D.encheres || []).filter(e => e.haut_panier && !masquees.includes(e.id)).length;
+  const blocEncheres = document.getElementById("bloc-encheres");
+  if ((D.encheres || []).length || s.encheres_ecartees) {
+    blocEncheres.style.display = "";
+    blocEncheres.querySelector("summary").textContent =
+      `Sous le marteau — ${encheres.length} autre${encheres.length > 1 ? "s" : ""} vente${encheres.length > 1 ? "s" : ""} aux enchères en IdF` +
+      (nbFortes ? ` (${nbFortes} occasion${nbFortes > 1 ? "s" : ""} déjà en haut de page)` : "") +
+      (s.encheres_ecartees ? ` · ${s.encheres_ecartees} écartée${s.encheres_ecartees > 1 ? "s" : ""} : mise à prix déjà au-dessus du plafond de raison` : "");
+    document.getElementById("encheres-liste").innerHTML =
+      encheres.map((e, i) => enchereHtml(e, i)).join("") +
+      `<div class="note-encheres">Score enchère = intérêt du dossier, PAS une promesse de marge :
+       emplacement /30 + gabarit vs budget /20 + départ sous plafond /15 + dossier lisible /15
+       + trajet /10 + préparation /10. Le prix d'adjudication est imprévisible (1× à 6× la mise à
+       prix selon la salle) — nous ne le prédisons pas ; votre limite = le plafond d'enchère affiché.
+       Une mise à prix déjà au-dessus de ce plafond est écartée d'office.
+       Enchérir en salle exige un avocat et une consignation (~10 %).</div>`;
+  } else {
+    blocEncheres.style.display = "none";
+  }
 }
 
 /* ---- Comparateur (bureau uniquement) ---- */
@@ -1862,6 +1935,8 @@ document.addEventListener("click", ev => {
     else jauge.insertAdjacentHTML("afterend", `<div class="exp-ligne">${inf.dataset.exp}</div>`);
     return;
   }
+  const masquer = ev.target.closest("[data-masquer]");
+  if (masquer) { basculerMasquage(masquer.dataset.masquer); return; }
   const btn = ev.target.closest(".btn-comp");
   if (btn) {
     basculerComparaison(btn.dataset.id);
@@ -1931,28 +2006,7 @@ function initialiser() {
     if (boite.open && !boite.contains(e.target)) boite.open = false;
   });
 
-  // Les meilleures occasions sont en haut de page ; le reste est REPLIÉ par
-  // défaut (pas du top = pas d'espace), mêmes cartes une fois ouvert.
-  const encheres = (D.encheres || []).filter(e => !e.haut_panier);
-  const nbFortes = (D.encheres || []).length - encheres.length;
-  const blocEncheres = document.getElementById("bloc-encheres");
-  if ((D.encheres || []).length || s.encheres_ecartees) {
-    blocEncheres.style.display = "";
-    blocEncheres.querySelector("summary").textContent =
-      `Sous le marteau — ${encheres.length} autre${encheres.length > 1 ? "s" : ""} vente${encheres.length > 1 ? "s" : ""} aux enchères en IdF` +
-      (nbFortes ? ` (${nbFortes} occasion${nbFortes > 1 ? "s" : ""} déjà en haut de page)` : "") +
-      (s.encheres_ecartees ? ` · ${s.encheres_ecartees} écartée${s.encheres_ecartees > 1 ? "s" : ""} : mise à prix déjà au-dessus du plafond de raison` : "");
-    document.getElementById("encheres-liste").innerHTML =
-      encheres.map((e, i) => enchereHtml(e, i)).join("") +
-      `<div class="note-encheres">Score enchère = intérêt du dossier, PAS une promesse de marge :
-       emplacement /30 + gabarit vs budget /20 + départ sous plafond /15 + dossier lisible /15
-       + trajet /10 + préparation /10. Le prix d'adjudication est imprévisible (1× à 6× la mise à
-       prix selon la salle) — nous ne le prédisons pas ; votre limite = le plafond d'enchère affiché.
-       Une mise à prix déjà au-dessus de ce plafond est écartée d'office.
-       Enchérir en salle exige un avocat et une consignation (~10 %).</div>`;
-  } else {
-    blocEncheres.style.display = "none";
-  }
+  rendreEncheres();
 
   const bloc = document.getElementById("exclues-bloc");
   bloc.querySelector("summary").textContent =
