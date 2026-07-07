@@ -193,6 +193,6 @@ analyse:
 
 notifications:
   fournisseur: resend
-  email_quotidien: true       # uniquement s'il y a de nouvelles annonces retenues
+  email_quotidien: false      # désactivé : uniquement l'alerte pépite (score ≥ seuil pépite)
   max_annonces_email: 5
   url_dashboard: "https://georgesd75.github.io/veille-murs-commerciaux/"

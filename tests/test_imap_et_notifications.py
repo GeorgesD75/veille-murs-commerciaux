@@ -72,6 +72,11 @@ def test_notifications_non_configurees_sans_secrets(config, monkeypatch):
 def test_emails_construits_et_pepite_notifiee_une_seule_fois(config, monkeypatch):
     monkeypatch.setenv("RESEND_API_KEY", "test-cle")
     monkeypatch.setenv("EMAIL_TO", "georgesdurand75@gmail.com")
+    # email_quotidien est désactivé en production (l'utilisateur ne veut que
+    # l'alerte pépite) : ce test vérifie explicitement le contenu de l'email
+    # quotidien, donc on le réactive pour sa durée, indépendamment du réglage
+    # courant de config.yaml.
+    monkeypatch.setitem(config["notifications"], "email_quotidien", True)
     envois: list[tuple[str, str]] = []
     monkeypatch.setattr(
         "pipeline.notifications._envoyer",
