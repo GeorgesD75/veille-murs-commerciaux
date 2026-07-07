@@ -87,6 +87,7 @@ class Annonce:
     rue_nb_commerces: int | None = None
     rue_nb_vacants: int | None = None
     rue_categorie: str | None = None  # tres_commercante / commercante / calme / peu_commercante
+    rue_distance_metro_m: int | None = None  # station la plus proche à 800 m (OSM), sinon None
 
     # Critique IA (Claude Haiku) : générée une fois, jamais régénérée (pipeline/critique.py)
     critique_ia: str | None = None

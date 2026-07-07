@@ -207,6 +207,7 @@ def scorer_lots(
                     lot["rue_categorie"] = densite.categorie
                     lot["rue_nb_commerces"] = densite.nb_commerces
                     lot["rue_nb_vacants"] = densite.nb_vacants
+                    lot["rue_distance_metro_m"] = densite.distance_metro_m
                     ajustement = float(
                         (rue_cfg.get("ajustement") or {}).get(densite.categorie, 0)
                     ) * 1.2

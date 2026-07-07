@@ -12,8 +12,11 @@ rue morte. Ce module ajoute un signal mesuré, gratuit et sans clé :
 2. `geocoder` retrouve ses coordonnées via la Base Adresse Nationale
    (api-adresse.data.gouv.fr, service public gratuit, sans clé) ;
 3. `densite_commerces` interroge Overpass (données OpenStreetMap, gratuites,
-   sans clé) pour compter les commerces actifs et les locaux vacants dans un
-   rayon de 150 m — la « vitalité » réelle de la rue.
+   sans clé) EN UNE SEULE requête pour compter les commerces actifs et les
+   locaux vacants dans un rayon de 150 m (la « vitalité » réelle de la rue)
+   ET la distance à la station de transport en commun la plus proche dans
+   un rayon de 800 m — une requête combinée plutôt que deux, par politesse
+   envers un service public partagé.
 
 Ni l'API d'adresse ni Overpass ne sont fiables à 100 % (Overpass en
 particulier est un service public parfois saturé) : toute panne ou absence
@@ -23,6 +26,7 @@ seule à trancher, sans jamais faire échouer le run ni inventer une valeur.
 from __future__ import annotations
 
 import logging
+import math
 import re
 import time
 from dataclasses import dataclass
@@ -41,8 +45,18 @@ log = logging.getLogger("collecteur.rue")
 BAN_URL = "https://api-adresse.data.gouv.fr/search/"
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 RAYON_M = 150
+RAYON_METRO_M = 800
 SCORE_BAN_MIN = 0.5      # confiance minimale du géocodeur pour retenir un résultat
 DELAI_ENTRE_APPELS_S = 1.2  # politesse : ces API publiques tolèrent un usage raisonnable
+
+
+def _distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Distance à vol d'oiseau (mètres) — formule de haversine."""
+    r = 6_371_000
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp, dl = math.radians(lat2 - lat1), math.radians(lon2 - lon1)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * r * math.asin(math.sqrt(a))
 
 _MOTS_VOIE = (
     "rue", "avenue", "av", "boulevard", "bd", "place", "allee", "allée",
@@ -118,15 +132,19 @@ class ClientGeo:
         return Coordonnees(lat=lat, lon=lon)
 
     def densite_commerces(self, coord: Coordonnees) -> "DensiteRue | None":
-        """Commerces actifs et locaux vacants dans un rayon de 150 m (OSM)."""
+        """Commerces actifs/vacants à 150 m + distance à la station la plus
+        proche à 800 m (OSM) — une seule requête Overpass pour les deux."""
         self._attendre()
         requete = (
             "[out:json][timeout:20];"
             f'(node["shop"](around:{RAYON_M},{coord.lat},{coord.lon});'
             f'way["shop"](around:{RAYON_M},{coord.lat},{coord.lon});'
             f'node["disused:shop"](around:{RAYON_M},{coord.lat},{coord.lon});'
-            f'way["disused:shop"](around:{RAYON_M},{coord.lat},{coord.lon}););'
-            "out tags;"
+            f'way["disused:shop"](around:{RAYON_M},{coord.lat},{coord.lon});'
+            f'node["railway"="subway_entrance"](around:{RAYON_METRO_M},{coord.lat},{coord.lon});'
+            f'node["railway"="station"](around:{RAYON_METRO_M},{coord.lat},{coord.lon});'
+            f'node["public_transport"="station"](around:{RAYON_METRO_M},{coord.lat},{coord.lon}););'
+            "out tags center;"
         )
         try:
             reponse = self.session.post(
@@ -140,19 +158,31 @@ class ClientGeo:
             return None
         actifs = 0
         vacants = 0
+        distances_stations: list[float] = []
         for e in elements:
             tags = e.get("tags", {})
-            if tags.get("shop") == "vacant" or "disused:shop" in tags:
+            est_station = (
+                tags.get("railway") in ("subway_entrance", "station")
+                or tags.get("public_transport") == "station"
+            )
+            if est_station:
+                lat = e.get("lat") or (e.get("center") or {}).get("lat")
+                lon = e.get("lon") or (e.get("center") or {}).get("lon")
+                if lat is not None and lon is not None:
+                    distances_stations.append(_distance_m(coord.lat, coord.lon, lat, lon))
+            elif tags.get("shop") == "vacant" or "disused:shop" in tags:
                 vacants += 1
             elif tags.get("shop"):
                 actifs += 1
-        return DensiteRue(nb_commerces=actifs, nb_vacants=vacants)
+        distance_metro = round(min(distances_stations)) if distances_stations else None
+        return DensiteRue(nb_commerces=actifs, nb_vacants=vacants, distance_metro_m=distance_metro)
 
 
 @dataclass(frozen=True)
 class DensiteRue:
     nb_commerces: int
     nb_vacants: int
+    distance_metro_m: int | None = None
 
     @property
     def categorie(self) -> str:
@@ -222,4 +252,5 @@ def evaluer_annonces(annonces: dict[str, "Annonce"], config: "Config") -> None:
         a.rue_nb_commerces = densite.nb_commerces
         a.rue_nb_vacants = densite.nb_vacants
         a.rue_categorie = densite.categorie
+        a.rue_distance_metro_m = densite.distance_metro_m
         a.rue_evaluee = True

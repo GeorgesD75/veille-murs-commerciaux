@@ -132,11 +132,44 @@ class TestDensiteCommerces:
         ]}))
         densite = client.densite_commerces(Coordonnees(lat=48.85, lon=2.35))
         assert densite == DensiteRue(nb_commerces=2, nb_vacants=2)
+        assert densite.distance_metro_m is None
 
     def test_panne_reseau_ne_leve_pas(self):
         client = ClientGeo(delai_s=0)
         client.session = FakeSession(leve=RuntimeError("503"))
         assert client.densite_commerces(Coordonnees(lat=48.85, lon=2.35)) is None
+
+    def test_station_la_plus_proche_est_retenue(self):
+        # Coordonnée de départ, une station à ~111 m au nord (0.001° de
+        # latitude), une autre bien plus loin — seule la plus proche compte.
+        client = ClientGeo(delai_s=0)
+        client.session = FakeSession(reponse_post=FakeReponse({"elements": [
+            {"tags": {"shop": "bakery"}},
+            {"tags": {"railway": "subway_entrance"}, "lat": 48.851, "lon": 2.35},
+            {"tags": {"railway": "station"}, "lat": 48.86, "lon": 2.35},
+        ]}))
+        densite = client.densite_commerces(Coordonnees(lat=48.85, lon=2.35))
+        assert densite.nb_commerces == 1
+        assert densite.distance_metro_m is not None
+        assert 90 <= densite.distance_metro_m <= 130
+
+    def test_station_via_center_pour_les_way(self):
+        # Un élément "way" (ex. plateforme de station étendue) n'a pas de
+        # lat/lon direct : Overpass fournit un "center" avec "out center".
+        client = ClientGeo(delai_s=0)
+        client.session = FakeSession(reponse_post=FakeReponse({"elements": [
+            {"tags": {"public_transport": "station"}, "center": {"lat": 48.851, "lon": 2.35}},
+        ]}))
+        densite = client.densite_commerces(Coordonnees(lat=48.85, lon=2.35))
+        assert densite.distance_metro_m is not None
+
+    def test_aucune_station_dans_le_perimetre(self):
+        client = ClientGeo(delai_s=0)
+        client.session = FakeSession(reponse_post=FakeReponse({"elements": [
+            {"tags": {"shop": "bakery"}},
+        ]}))
+        densite = client.densite_commerces(Coordonnees(lat=48.85, lon=2.35))
+        assert densite.distance_metro_m is None
 
 
 class TestCategorieDensite:
@@ -184,12 +217,14 @@ class TestEvaluerAnnonces:
                           code_postal="75011", departement="75")
         monkeypatch.setattr(
             "pipeline.rue.evaluer_rue",
-            lambda voie, ville, dep, client: DensiteRue(nb_commerces=20, nb_vacants=0),
+            lambda voie, ville, dep, client: DensiteRue(nb_commerces=20, nb_vacants=0,
+                                                         distance_metro_m=180),
         )
         evaluer_annonces({"a": a}, _config_rue(25))
         assert a.rue_evaluee is True
         assert a.rue_categorie == "tres_commercante"
         assert a.rue_nb_commerces == 20
+        assert a.rue_distance_metro_m == 180
 
     def test_echec_reseau_ne_marque_pas_evaluee(self, monkeypatch):
         # Laisse la porte ouverte à un nouvel essai lors d'un prochain run.

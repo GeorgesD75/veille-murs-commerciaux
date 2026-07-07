@@ -167,7 +167,10 @@ sources:                      # activer/désactiver une source = une ligne
 encheres:                     # score d'INTÉRÊT dédié aux enchères (le prix final
                               # est imprévisible : on ne le prédit pas)
   seuil_occasion: 65          # score enchère minimal pour être une « occasion »
-  max_haut_panier: 2          # nb maximal d'occasions remontées en haut de page
+  max_haut_panier: 5          # nb maximal d'occasions remontées en haut de page — un score
+                              # d'enchère est un signal d'intérêt, pas un vrai classement
+                              # comparable aux annonces classiques : mieux vaut en montrer
+                              # plus que risquer de noyer une bonne affaire dans « Sous le marteau »
 
 analyse:
   rendement_cible_pct: 7      # plancher de rentabilité : loyer annuel ÷ cible

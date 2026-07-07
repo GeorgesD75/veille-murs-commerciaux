@@ -89,6 +89,7 @@ def preparer_payload(
                 "rue_voie": a.rue_voie,
                 "rue_nb_commerces": a.rue_nb_commerces,
                 "rue_nb_vacants": a.rue_nb_vacants,
+                "rue_distance_metro_m": a.rue_distance_metro_m,
                 "critique_ia": a.critique_ia,
                 "image_url": a.image_url,
                 "images": a.images,
@@ -1221,9 +1222,17 @@ function boutonMasquerHtml(id) {
 function fiabiliteRueHtml(a) {
   const voie = a.rue_voie ? `autour de « ${a.rue_voie} »` : "autour de l'adresse détectée";
   const t = `Ce qui est réellement mesuré : ${a.rue_nb_commerces} commerce(s) actif(s) recensés dans OpenStreetMap, ${voie}, dans un rayon de 150 m (adresse géocodée via la Base Adresse Nationale, service public gratuit).` +
-    ` Ce n'est PAS un compteur de passage réel : pas de nombre de piétons/jour, pas de distance au métro — seulement une densité de commerces autour d'un point.` +
+    ` Ce n'est PAS un compteur de passage réel : pas de nombre de piétons/jour — seulement une densité de commerces autour d'un point.` +
     ` Limite à connaître : OpenStreetMap peut être incomplet ou daté sur certains secteurs, et la rue détectée dans le texte de l'annonce peut être approximative.`;
   return ` <span class="info-i" title="${ech(t)}">i</span>`;
+}
+
+function metroHtml(a) {
+  if (a.rue_distance_metro_m == null) return "";
+  const d = a.rue_distance_metro_m;
+  const t = `Station de transport en commun la plus proche détectée dans OpenStreetMap, à ${d} m à vol d'oiseau de l'adresse géocodée (rayon de recherche : 800 m).` +
+    ` À vol d'oiseau, pas en distance de marche réelle (détours, sens de circulation) — et OpenStreetMap peut manquer une station récente ou mal placer une entrée secondaire.`;
+  return `<span class="badge badge-type" title="${ech(t)}">${IC.horloge} station à ~${d} m</span>`;
 }
 
 function fiabiliteVacanceHtml(a) {
@@ -1273,6 +1282,7 @@ function carteHtml(a, options) {
     badges.push(`<span class="badge badge-rue-plus">${IC.loupe} rue commerçante mesurée${fiabiliteRueHtml(a)}</span>`);
   if (a.rue_nb_vacants != null && a.rue_nb_vacants >= 3)
     badges.push(`<span class="badge badge-alerte">${IC.alerte} vacance commerciale proche${fiabiliteVacanceHtml(a)}</span>`);
+  if (metroHtml(a)) badges.push(metroHtml(a));
   if ((a.flags || []).includes("dette_copropriete"))
     badges.push(`<span class="badge badge-alerte" title="L'annonce mentionne des dettes ou une procédure de copropriété. Cela peut se négocier (le prix en tient parfois déjà compte), mais exigez le pré-état daté et le montant exact AVANT toute offre — un acheteur hérite de la quote-part de dette au prorata de sa surface.">${IC.alerte} dettes de copropriété</span>`);
 
@@ -1488,6 +1498,7 @@ function enchereHtml(e, index) {
     badges.push(`<span class="badge badge-rue-plus">${IC.loupe} rue commerçante mesurée${fiabiliteRueHtml(e)}</span>`);
   if (e.rue_nb_vacants != null && e.rue_nb_vacants >= 3)
     badges.push(`<span class="badge badge-alerte">${IC.alerte} vacance commerciale proche${fiabiliteVacanceHtml(e)}</span>`);
+  if (metroHtml(e)) badges.push(metroHtml(e));
   const badgesHtml = badges.join("");
   const metriques = [
     ["Mise à prix", fmtEuros(e.mise_a_prix)],
