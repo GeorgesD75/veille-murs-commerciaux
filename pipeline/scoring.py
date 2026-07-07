@@ -84,13 +84,62 @@ def _points_bonus_malus(annonce: Annonce, cfg: dict) -> tuple[float, list[str]]:
     return max(BONUS_MIN, min(BONUS_MAX, total)), detectes
 
 
+def _points_financement(annonce: Annonce, cfg: dict, config: Config) -> float:
+    """Le bien s'autofinance-t-il à un apport et un taux DE RÉFÉRENCE (fixes,
+    indépendants du profil personnel affiché sur le dashboard) ? Sans quoi
+    deux visiteurs avec des profils différents verraient des scores différents
+    pour la même annonce — le score doit rester comparable d'un bien à l'autre.
+    """
+    fcfg = cfg.get("financement") or {}
+    plein = float(fcfg.get("points", 5))
+    loyer = annonce.loyer_mensuel or annonce.loyer_mensuel_estime
+    if not loyer or not annonce.prix:
+        return 0.0
+    financement = config["analyse"]["financement"]
+    apport_pct = float(fcfg.get("apport_reference_pct", 20)) / 100
+    cout_acte_en_main = annonce.prix * 1.08
+    emprunt = cout_acte_en_main * (1 - apport_pct)
+    if emprunt <= 0:
+        cash_flow = loyer
+    else:
+        t = float(financement["taux_pct"]) / 100 / 12
+        n = int(financement["duree_ans"]) * 12
+        mensualite = emprunt * t / (1 - (1 + t) ** -n)
+        cash_flow = loyer - mensualite
+    if cash_flow >= 0:
+        return plein
+    # Léger déficit (< 10 % du loyer, par défaut) : encore finançable de justesse.
+    tolerance = float(fcfg.get("tolerance_deficit_pct", 10)) / 100
+    if cash_flow >= -loyer * tolerance:
+        return round(plein * 0.6, 1)
+    return 0.0
+
+
+def _points_fiscalite(annonce: Annonce, cfg: dict) -> tuple[float, list[str]]:
+    """Signaux fiscaux détectés dans l'annonce (souvent absents : neutre, ni
+    bonus ni malus — une info manquante n'est pas une mauvaise nouvelle)."""
+    fcfg = cfg.get("fiscalite") or {}
+    plein = float(fcfg.get("points", 5))
+    texte = normaliser_texte(annonce.texte_complet())
+    total = float(fcfg.get("base_neutre", plein / 2))
+    detectes: list[str] = []
+    for regle in fcfg.get("regles", []):
+        if any(normaliser_texte(mot) in texte for mot in regle["mots"]):
+            total += regle["points"]
+            detectes.append(regle["nom"])
+    return max(0.0, min(plein, total)), detectes
+
+
 def scorer(annonce: Annonce, config: Config) -> Annonce:
     cfg = config.scoring
     points_bonus, annonce.bonus_detectes = _points_bonus_malus(annonce, cfg)
+    points_fiscalite, annonce.fiscalite_detectes = _points_fiscalite(annonce, cfg)
     detail = {
         "rendement": round(_points_rendement(annonce, cfg), 1),
         "emplacement": round(_points_emplacement(annonce, cfg), 1),
         "prix_m2_vs_benchmark": round(_points_benchmark(annonce, cfg), 1),
+        "financement": round(_points_financement(annonce, cfg, config), 1),
+        "fiscalite": round(points_fiscalite, 1),
         "proximite": round(_points_proximite(annonce, cfg), 1),
         "quartier": round(_points_quartier(annonce, cfg), 1),
         "bonus_malus": round(points_bonus, 1),

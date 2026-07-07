@@ -67,6 +67,24 @@ class TestExtractionItem:
         # is_occupied absent (null) : repli sur l'heuristique textuelle habituelle
         assert fantome.type_murs is TypeMurs.MURS_LIBRES
 
+    def test_contradiction_titre_libre_description_occupee_est_signalee(self):
+        """Cas réel constaté (annonce « Brochant ») : la case structurée dit
+        « libres » mais le texte de la description dit « occupés ». Le champ
+        structuré fait foi pour le score, mais l'incohérence doit apparaître
+        en clair dans la description pour que l'acheteur vérifie."""
+        source = SourceBureauxLocaux(client=ClientFactice({
+            SourceBureauxLocaux.BASE
+            + "/immobilier-d-entreprise/annonces/seine-saint-denis-93/vente-commerces":
+                _charger("bureauxlocaux_page2.html"),
+        }), departements=["93"], max_pages=1)
+        annonces = source.collecter()
+        brochant = next(a for a in annonces if a.id_source == "900004")
+        assert brochant.type_murs is TypeMurs.MURS_LIBRES
+        assert "⚠" in brochant.description
+        assert "contradictoire" in brochant.description
+        assert "murs libres" in brochant.description
+        assert "murs occupés" in brochant.description
+
 
 class TestPagination:
     def test_suit_la_pagination_jusqu_au_total_pages(self):
@@ -77,7 +95,7 @@ class TestPagination:
         })
         source = SourceBureauxLocaux(client=client, departements=["93"], max_pages=5)
         annonces = source.collecter()
-        assert {a.id_source for a in annonces} == {"900001", "900002", "900003"}
+        assert {a.id_source for a in annonces} == {"900001", "900002", "900003", "900004"}
         # total_pages=2 lu sur la page 1 : pas de 3e requête malgré max_pages=5
         assert len(client.urls) == 2
 

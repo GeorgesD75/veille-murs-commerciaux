@@ -5,7 +5,7 @@ from pipeline.enrichissement import enrichir
 from pipeline.scoring import scorer
 from tests.fabriques import faire_annonce
 
-# --- Rendement (40 pts, linéaire de 4 % à 9 %) ---
+# --- Rendement (35 pts, linéaire de 4 % à 9 %) ---
 
 
 def test_rendement_plancher_zero_point(config):
@@ -15,25 +15,25 @@ def test_rendement_plancher_zero_point(config):
     assert a.detail_score["rendement"] == 0.0
 
 
-def test_rendement_plafond_quarante_points(config):
+def test_rendement_plafond_trente_cinq_points(config):
     a = faire_annonce()
     a.rendement_brut_pct = 9.0
     scorer(a, config)
-    assert a.detail_score["rendement"] == 40.0
+    assert a.detail_score["rendement"] == 35.0
 
 
 def test_rendement_intermediaire_lineaire(config):
     a = faire_annonce()
-    a.rendement_brut_pct = 6.5  # à mi-chemin -> 20 pts
+    a.rendement_brut_pct = 6.5  # à mi-chemin -> 17,5 pts
     scorer(a, config)
-    assert a.detail_score["rendement"] == 20.0
+    assert a.detail_score["rendement"] == 17.5
 
 
 def test_rendement_au_dela_du_plafond_plafonne(config):
     a = faire_annonce()
     a.rendement_brut_pct = 12.0
     scorer(a, config)
-    assert a.detail_score["rendement"] == 40.0
+    assert a.detail_score["rendement"] == 35.0
 
 
 def test_penalite_murs_libres_loyer_estime(config):
@@ -41,7 +41,7 @@ def test_penalite_murs_libres_loyer_estime(config):
     a.rendement_brut_pct = 9.0
     a.loyer_estime = True
     scorer(a, config)
-    assert a.detail_score["rendement"] == 30.0  # 40 - 10 d'incertitude
+    assert a.detail_score["rendement"] == 25.0  # 35 - 10 d'incertitude
 
 
 def test_rendement_inconnu_zero_point(config):
@@ -105,7 +105,7 @@ def test_penalite_loyer_estime_comparables_reduite(config):
     a.loyer_estime = True
     a.loyer_confiance = "comparables"
     scorer(a, config)
-    assert a.detail_score["rendement"] == 36.0  # 40 - 4 (comparables) au lieu de 40 - 10
+    assert a.detail_score["rendement"] == 31.0  # 35 - 4 (comparables) au lieu de 35 - 10
 
 
 def test_penalite_loyer_estime_benchmark_inchangee(config):
@@ -114,7 +114,7 @@ def test_penalite_loyer_estime_benchmark_inchangee(config):
     a.loyer_estime = True
     a.loyer_confiance = "benchmark"
     scorer(a, config)
-    assert a.detail_score["rendement"] == 30.0  # 40 - 10, comme avant
+    assert a.detail_score["rendement"] == 25.0  # 35 - 10, comme avant
 
 
 # --- Emplacement rue par rue (ajustement du palier administratif) ---
@@ -160,12 +160,12 @@ def test_rue_non_evaluee_score_inchange(config):
     assert a.detail_score["emplacement"] == 5.0
 
 
-# --- Prix/m² vs benchmark (20 pts) et proximité (10 pts) ---
+# --- Prix/m² vs benchmark (15 pts) et proximité (5 pts) ---
 
 
 def test_points_benchmark(config):
     a = faire_annonce()
-    for position, attendu in [("decote_forte", 20.0), ("dans_fourchette", 10.0), ("surcote", 0.0)]:
+    for position, attendu in [("decote_forte", 15.0), ("dans_fourchette", 7.0), ("surcote", 0.0)]:
         a.position_benchmark = position
         scorer(a, config)
         assert a.detail_score["prix_m2_vs_benchmark"] == attendu
@@ -199,9 +199,58 @@ def test_bareme_total_fait_cent(config):
     total = (
         s["rendement"]["points"] + s["emplacement"]["paris"]
         + s["prix_m2_vs_benchmark"]["decote_forte"]
+        + s["financement"]["points"] + s["fiscalite"]["points"]
         + s["proximite"]["moins_de_20_min"] + s["quartier"]["points"] + 5  # bonus max
     )
     assert total == 100
+
+
+# --- Financement (5 pts : cash-flow à l'apport et au taux DE RÉFÉRENCE) ---
+
+
+def test_financement_cash_flow_positif_plein(config):
+    # 250 000 € (fabrique), loyer 1 700 €/mois, apport 20 %, taux/durée de config.
+    a = faire_annonce(prix=250_000.0, surface_m2=100.0, loyer_mensuel=2_500.0)
+    scorer(a, config)
+    assert a.detail_score["financement"] == 5.0
+
+
+def test_financement_deficit_leger_score_partiel(config):
+    # Mensualité (≈ 1 764 €) légèrement au-dessus du loyer (1 700 €, défaut fabrique) :
+    # déficit < 10 % du loyer -> encore finançable de justesse (3 pts).
+    a = faire_annonce(prix=340_000.0, surface_m2=100.0)
+    scorer(a, config)
+    assert a.detail_score["financement"] == 3.0
+
+
+def test_financement_sans_loyer_zero(config):
+    a = faire_annonce(loyer_mensuel=None)
+    scorer(a, config)
+    assert a.detail_score["financement"] == 0.0
+
+
+# --- Fiscalité (5 pts : neutre par défaut, ajustée par les signaux détectés) ---
+
+
+def test_fiscalite_neutre_sans_mention(config):
+    a = faire_annonce(description="Murs loués, aucune information fiscale particulière.")
+    scorer(a, config)
+    assert a.detail_score["fiscalite"] == 2.5
+    assert a.fiscalite_detectes == []
+
+
+def test_fiscalite_bonus_tva_recuperable(config):
+    a = faire_annonce(description="Murs loués, TVA récupérable pour l'acquéreur.")
+    scorer(a, config)
+    assert a.detail_score["fiscalite"] == 4.0  # 2.5 + 1.5
+    assert "tva_recuperable" in a.fiscalite_detectes
+
+
+def test_fiscalite_malus_taxe_fonciere_elevee(config):
+    a = faire_annonce(description="Murs loués, taxe foncière élevée sur ce secteur.")
+    scorer(a, config)
+    assert a.detail_score["fiscalite"] == 1.0  # 2.5 - 1.5
+    assert "taxe_fonciere_elevee" in a.fiscalite_detectes
 
 
 # --- Bonus/malus (borné à [-3 ; +5]) ---

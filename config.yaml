@@ -35,10 +35,14 @@ deduplication:
   tolerance_prix_pct: 5       # …et prix ±5 % (et même code postal)
 
 scoring:
-  rendement:                  # 40 pts max, linéaire entre plancher et plafond
-    points: 40
+  # Barème total = 100 : rendement 35 + emplacement 25 + prix vs marché 15 +
+  # financement 5 + fiscalité 5 + proximité 5 + quartier 5 + bonus/malus 5.
+  # (rendement et prix vs marché cédent chacun 5 pts pour financer les deux
+  # nouveaux critères, sans toucher au reste — voir test_bareme_total_fait_cent)
+  rendement:                  # 35 pts max, linéaire entre plancher et plafond
+    points: 35
     pct_plancher: 4           # ≤ 4 % de rendement brut -> 0 pt
-    pct_plafond: 9            # ≥ 9 % -> 40 pts
+    pct_plafond: 9            # ≥ 9 % -> 35 pts
   penalite_loyer_estime: 10   # murs libres (référentiel de zone générique, ou promesse du
                               # vendeur) : forte incertitude + vacance
   penalite_loyer_estime_comparables: 4   # murs libres estimés via ≥ 2 baux RÉELS voisins
@@ -61,12 +65,33 @@ scoring:
     - Bagnolet
     - Les Lilas
     - Ivry-sur-Seine
-  prix_m2_vs_benchmark:       # 20 pts max, vs data/benchmarks.json
-    seuil_decote_pct: 20      # décote ≥ 20 % sous le prix médian -> 20 pts
-    decote_forte: 20
-    dans_fourchette: 10
+  prix_m2_vs_benchmark:       # 15 pts max, vs data/benchmarks.json
+    seuil_decote_pct: 20      # décote ≥ 20 % sous le prix médian -> 15 pts
+    decote_forte: 15
+    dans_fourchette: 7
     surcote: 0
     inconnu: 0
+  financement:                # 5 pts : le bien s'autofinance-t-il à l'apport et au taux
+                              # DE RÉFÉRENCE (fixes — pas le profil personnel affiché sur
+                              # le dashboard, pour rester comparable d'un bien à l'autre) ?
+    points: 5
+    apport_reference_pct: 20
+    tolerance_deficit_pct: 10 # déficit < 10 % du loyer = encore finançable de justesse (3 pts)
+  fiscalite:                  # 5 pts : signaux fiscaux détectés dans l'annonce — neutre
+                              # (2,5 pts) quand rien n'est mentionné, une info absente
+                              # n'étant pas une mauvaise nouvelle en soi
+    points: 5
+    base_neutre: 2.5
+    regles:
+      - nom: tva_recuperable
+        points: 1.5
+        mots: ["tva récupérable", "assujetti à la tva", "récupération de tva"]
+      - nom: avantage_fiscal_zone
+        points: 1.5
+        mots: ["zone franche urbaine", "zfu", "qpv", "exonération de taxe foncière"]
+      - nom: taxe_fonciere_elevee
+        points: -1.5
+        mots: ["taxe foncière élevée", "taxe foncière importante", "forte taxe foncière"]
   proximite:                  # 5 pts max, temps de trajet depuis Paris 18e
     moins_de_20_min: 5
     de_20_a_40_min: 3

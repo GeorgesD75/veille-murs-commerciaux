@@ -65,6 +65,7 @@ def preparer_payload(
                 "surface_m2": a.surface_m2,
                 "prix_m2": a.prix_m2,
                 "loyer_mensuel": a.loyer_mensuel,
+                "honoraires": a.honoraires,
                 "loyer_mensuel_estime": a.loyer_mensuel_estime,
                 "loyer_estime": a.loyer_estime,
                 "loyer_confiance": a.loyer_confiance,
@@ -75,6 +76,7 @@ def preparer_payload(
                 "detail_score": a.detail_score,
                 "flags": a.flags,
                 "bonus_detectes": a.bonus_detectes,
+                "fiscalite_detectes": a.fiscalite_detectes,
                 "caracteristiques": a.caracteristiques,
                 "decote_pct": a.decote_pct,
                 "marche_prix_m2_bas": a.marche_prix_m2_bas,
@@ -94,8 +96,19 @@ def preparer_payload(
                 "est_nouvelle": _iso(a.date_premiere_vue) >= seuil_nouveaute,
                 # classeur Excel « dossier banque », si généré pour ce bien
                 "dossier": f"dossiers/{dossiers[a.id]}" if dossiers and a.id in dossiers else None,
+                # Rang parmi les annonces retenues (la liste est déjà triée par score
+                # décroissant) : répond à « est-ce mieux que les autres vues cette semaine ? »
+                "rang_score": len(retenues) + 1,
             }
         )
+
+    # Nombre d'autres annonces retenues dans le même secteur (code postal) :
+    # peu de comparables = valorisation plus incertaine, à dire honnêtement.
+    compte_secteur: dict[str, int] = {}
+    for a in retenues:
+        compte_secteur[a["code_postal"]] = compte_secteur.get(a["code_postal"], 0) + 1
+    for a in retenues:
+        a["nb_comparables_secteur"] = compte_secteur[a["code_postal"]] - 1  # hors soi-même
 
     # Exclusions récentes : le hors-zone est compté mais pas détaillé — seules
     # les exclusions instructives (prix, fonds déguisé, trajet) ont une ligne.
@@ -130,6 +143,8 @@ def preparer_payload(
             "rendement": scoring["rendement"]["points"],
             "emplacement": scoring["emplacement"]["paris"],
             "prix_m2_vs_benchmark": scoring["prix_m2_vs_benchmark"]["decote_forte"],
+            "financement": scoring["financement"]["points"],
+            "fiscalite": scoring["fiscalite"]["points"],
             "proximite": scoring["proximite"]["moins_de_20_min"],
             "quartier": scoring["quartier"]["points"],
         },
@@ -375,6 +390,19 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .enclair { margin-top: 10px; padding: 9px 12px; border-left: 3px solid var(--or);
   background: var(--bande); border-radius: 0 9px 9px 0; font-size: 13.5px; color: var(--encre-2); }
 .enclair-titre { font-weight: 700; color: var(--encre-1); font-variant: small-caps; margin-right: 4px; }
+.faits-cles, .questions-reponses { }
+.faits-cles .titre-bloc, .questions-reponses .titre-bloc { font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--encre-3); }
+.faits-cles { margin-top: 10px; font-size: 13px; }
+.faits-cles ul { margin: 4px 0 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.faits-cles li { padding-left: 18px; position: relative; color: var(--encre-1); }
+.faits-cles li::before { position: absolute; left: 0; font-weight: 700; }
+.faits-cles li.fait-plus::before { content: "+"; color: var(--vert-texte); }
+.faits-cles li.fait-moins::before { content: "–"; color: var(--alerte-texte); }
+.questions-reponses { margin-top: 12px; font-size: 13px; border-top: 1px dashed var(--filet); padding-top: 10px; }
+.qr-item { margin-bottom: 7px; }
+.qr-q { font-weight: 600; color: var(--encre-1); }
+.qr-r { color: var(--encre-2); margin-top: 1px; }
 a.btn-outil { text-decoration: none; }
 a.btn-outil:hover { text-decoration: none; border-color: var(--marque); }
 .etiquettes { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 9px; }
@@ -736,7 +764,8 @@ function finTxt() {  // description du financement courant, pour textes et infob
 }
 const LIBELLES_SCORE = {
   rendement: "Rendement", emplacement: "Emplacement",
-  prix_m2_vs_benchmark: "Prix vs marché", proximite: "Trajet 18e", quartier: "Quartier 18e"
+  prix_m2_vs_benchmark: "Prix vs marché", financement: "Financement", fiscalite: "Fiscalité",
+  proximite: "Trajet 18e", quartier: "Quartier 18e"
 };
 const TAMPONS = ["Nº 1 du jour", "Nº 2", "Nº 3"];
 
@@ -878,6 +907,108 @@ function cashflowMensuel(a) {
   return Math.round(loyer - m);
 }
 
+function apportMinimalCashflowPositif(a) {
+  // À quel apport le cash-flow devient-il positif, à VOTRE profil (taux/durée) ?
+  // Distinct de la note "financement" du score (qui utilise un apport/taux DE
+  // RÉFÉRENCE fixes, pour rester comparable d'un bien à l'autre) : ici on
+  // répond à la question personnelle « avec MES conditions, il me faut combien ? »
+  const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
+  if (loyer == null || a.prix == null) return null;
+  for (const apport of [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]) {
+    const emprunt = (a.prix * 1.08) * (1 - apport / 100);
+    const m = emprunt > 0 ? mensualite(emprunt, profil.taux, profil.duree) : 0;
+    if (loyer - m >= 0) return apport;
+  }
+  return null;  // jamais positif, même à 90 % d'apport
+}
+
+function faitsClesHtml(a) {
+  // Des faits concrets et sourcés, format mémo d'investisseur — jamais une
+  // impression, toujours une donnée déjà calculée ailleurs sur la carte.
+  const faits = [];
+  if (a.decote_pct != null && a.decote_pct >= 5)
+    faits.push(["plus", `Prix au m² inférieur de ${Math.round(a.decote_pct)} % aux biens comparables du secteur.`]);
+  else if (a.decote_pct != null && a.decote_pct <= -5)
+    faits.push(["moins", `Prix au m² supérieur de ${Math.round(-a.decote_pct)} % aux biens comparables — prime à justifier.`]);
+
+  const apportMin = apportMinimalCashflowPositif(a);
+  if (apportMin != null)
+    faits.push(["plus", apportMin === 0
+      ? `Cash-flow positif même en crédit 100 % (${finTxt()}).`
+      : `Cash-flow positif dès un apport de ${apportMin} % (${finTxt()}).`]);
+
+  if (a.rue_categorie === "tres_commercante")
+    faits.push(["plus", `Local situé dans une rue mesurée à forte fréquentation (${a.rue_nb_commerces} commerces actifs à 150 m).`]);
+  else if (a.rue_categorie === "peu_commercante")
+    faits.push(["moins", "Local situé dans une rue mesurée à faible fréquentation — vérifiez le passage sur place."]);
+
+  if ((a.fiscalite_detectes || []).includes("tva_recuperable"))
+    faits.push(["plus", "TVA récupérable pour l'acquéreur, d'après l'annonce."]);
+  if ((a.fiscalite_detectes || []).includes("avantage_fiscal_zone"))
+    faits.push(["plus", "Zone à avantage fiscal signalée (ZFU/QPV ou exonération) dans l'annonce."]);
+  if ((a.fiscalite_detectes || []).includes("taxe_fonciere_elevee"))
+    faits.push(["moins", "Taxe foncière signalée élevée dans l'annonce."]);
+
+  if (a.nb_comparables_secteur != null && a.nb_comparables_secteur <= 1)
+    faits.push(["moins", "Peu de ventes comparables récentes retenues dans ce secteur : valorisation plus incertaine."]);
+
+  if (a.rue_nb_vacants != null && a.rue_nb_vacants >= 3)
+    faits.push(["moins", `Vacance commerciale signalée à proximité (${a.rue_nb_vacants} locaux vacants ou fermés à 150 m).`]);
+
+  if ((a.bonus_detectes || []).includes("travaux"))
+    faits.push(["moins", "Travaux signalés dans l'annonce — à chiffrer avant toute offre."]);
+
+  if (!faits.length) return "";
+  return `<div class="faits-cles"><div class="titre-bloc">Faits clés</div>
+    <ul>${faits.map(([sens, texte]) => `<li class="fait-${sens}">${ech(texte)}</li>`).join("")}</ul></div>`;
+}
+
+function questionsReponsesHtml(a) {
+  const suspect = (a.flags || []).includes("rendement_anormalement_eleve");
+  const lignes = [];
+
+  let visite;
+  if (suspect) visite = "À vérifier d'abord — le rendement affiché est suspect (voir l'alerte) avant d'envisager une visite.";
+  else if ((a.score ?? 0) >= D.seuils.vert) visite = "Oui : un des mieux notés du moment, une visite est justifiée.";
+  else if ((a.score ?? 0) >= D.seuils.affichage) visite = "Plutôt oui, checklist en main — des points corrects, sans être exceptionnel.";
+  else visite = "Pas en priorité : d'autres biens mieux notés méritent votre temps d'abord.";
+  lignes.push(["Ce bien vaut-il une visite ?", visite]);
+
+  let urgence;
+  if (suspect) urgence = "Non — vérifiez d'abord le bail et le loyer réel avant toute démarche.";
+  else if (a.est_nouvelle && (a.score ?? 0) >= D.seuils.vert)
+    urgence = "Pas de quoi signer sans visite, mais contactez vite : annonce fraîche et bien notée, elle peut partir.";
+  else urgence = "Aucune urgence particulière détectée — prenez le temps de visiter et de vérifier.";
+  lignes.push(["Dois-je faire une offre aujourd'hui ?", urgence]);
+
+  lignes.push(["Le prix est-il cohérent ?",
+    a.lecture_prix || "Pas assez de données de marché sur ce secteur pour se prononcer."]);
+
+  let negociation;
+  if (a.prix_cible_rendement != null && a.prix) {
+    if (a.prix_cible_rendement >= a.prix) {
+      negociation = "Le rendement cible est déjà atteint au prix affiché — négocier reste utile pour le cash-flow, mais n'est pas nécessaire pour rentabiliser.";
+    } else {
+      const remise = Math.round((1 - a.prix_cible_rendement / a.prix) * 100);
+      if (remise <= 10) negociation = `Oui, plutôt jouable : ${remise} % suffiraient déjà à atteindre le plancher de rentabilité.`;
+      else if (remise <= 20) negociation = `Peut-être : il faudrait ${remise} % pour atteindre le plancher de rentabilité — ambitieux mais tentable.`;
+      else negociation = `Peu probable sans argument fort : il faudrait ${remise} % pour rentabiliser, un écart important.`;
+    }
+  } else {
+    negociation = "Pas assez de données (loyer inconnu) pour chiffrer une marge de négociation.";
+  }
+  lignes.push(["Puis-je négocier 10 % ?", negociation]);
+
+  if (a.rang_score != null && D.stats.retenues) {
+    lignes.push(["Est-ce mieux que les autres annonces du moment ?",
+      `Se classe ${a.rang_score}ᵉ sur ${D.stats.retenues} annonces actuellement retenues par l'outil — pas les biens vus ailleurs, mais ceux suivis ici.`]);
+  }
+
+  return `<div class="questions-reponses"><div class="titre-bloc">Ce que vous vous demandez sûrement</div>
+    ${lignes.map(([q, r]) => `<div class="qr-item"><div class="qr-q">${ech(q)}</div><div class="qr-r">${ech(r)}</div></div>`).join("")}
+  </div>`;
+}
+
 function enClairHtml(a) {
   // Résumé pour quelqu'un qui ne connaît ni le score ni le jargon : l'argent
   // d'abord (cash-flow), la sûreté ensuite (emplacement), toujours honnête.
@@ -1009,7 +1140,7 @@ function ouvrirCritique(id) {
 }
 
 const EXPLICATIONS = {
-  rendement: "Ce que le bien vous rapporte chaque année, en % de son prix. Exemple : 1 000 €/mois de loyer sur un bien à 200 000 € = 6 % par an. Plus c'est haut, mieux c'est : 4 % ou moins = 0 pt, 9 % ou plus = 40 pts. On enlève 10 pts si le loyer n'est qu'une promesse (pas de bail signé qui le prouve) — seulement 4 pts si l'estimation s'appuie sur des baux RÉELS de voisins immédiats, bien plus fiable qu'une moyenne de zone.",
+  rendement: "Ce que le bien vous rapporte chaque année, en % de son prix. Exemple : 1 000 €/mois de loyer sur un bien à 200 000 € = 6 % par an. Plus c'est haut, mieux c'est : 4 % ou moins = 0 pt, 9 % ou plus = 35 pts. On enlève 10 pts si le loyer n'est qu'une promesse (pas de bail signé qui le prouve) — seulement 4 pts si l'estimation s'appuie sur des baux RÉELS de voisins immédiats, bien plus fiable qu'une moyenne de zone.",
   emplacement: a => {
     let base = "Où est la boutique ? Dans une rue passante, le commerçant gagne sa vie et paie son loyer ; dans une rue morte, il ferme. Paris = 25 pts, communes qui montent (Pantin, Saint-Ouen, Montreuil…) = 20, reste de la petite couronne = 15, centre-ville de grande couronne = 10, ailleurs = 5. Quand une rue précise est citée dans l'annonce, un signal mesuré (Base Adresse Nationale + densité de commerces OpenStreetMap à 150 m) ajuste ce chiffre de −4 à +4 pts, et pénalise les locaux vacants voisins.";
     if (a && a.rue_categorie) {
@@ -1019,10 +1150,46 @@ const EXPLICATIONS = {
     }
     return base;
   },
-  prix_m2_vs_benchmark: "Est-ce cher pour le quartier ? On compare le prix au m² à ce qui se vend autour. Nettement moins cher que le marché (−20 %) = 20 pts. Dans les prix = 10. Plus cher que le marché = 0.",
+  prix_m2_vs_benchmark: "Est-ce cher pour le quartier ? On compare le prix au m² à ce qui se vend autour. Nettement moins cher que le marché (−20 %) = 15 pts. Dans les prix = 7. Plus cher que le marché = 0.",
+  financement: a => {
+    let base = "Le bien s'autofinance-t-il à un apport et un taux DE RÉFÉRENCE fixes (20 % d'apport, le taux de marché du jour) — pas votre profil personnel réglable plus haut, pour que ce chiffre reste comparable d'une annonce à l'autre. Cash-flow positif = 5 pts ; léger déficit (< 10 % du loyer) = 3 pts ; déficit important = 0.";
+    return base;
+  },
+  fiscalite: "Signaux fiscaux repérés dans l'annonce : TVA récupérable ou zone à avantage fiscal (+1,5 pt chacun), taxe foncière signalée élevée (−1,5 pt). Rien de mentionné = 2,5/5, neutre — une information absente n'est pas une mauvaise nouvelle en soi.",
   proximite: "Le temps de trajet depuis chez vous (Paris 18e). Moins de 20 min = 5 pts, 20 à 40 min = 3, 40 à 60 min = 1. Un bien qu'on peut surveiller facilement se gère mieux.",
   quartier: "Bonus de 5 pts si le bien est dans le 18e : votre quartier, que vous connaissez, et où vous pouvez passer à pied.",
 };
+
+function explicationLoyer(a, loyer) {
+  const m2 = a.surface_m2;
+  const tauxM2An = m2 ? Math.round((loyer * 12) / m2) : null;
+  if (a.loyer_confiance === "comparables") {
+    return `Base : ${a.loyer_nb_comparables} bail(aux) RÉEL(S) de voisins immédiats (même code postal) — notre propre relevé, pas une API officielle.` +
+      (tauxM2An != null ? `\nCalcul : ${m2} m² × ${tauxM2An} €/m²/an (moyenne des baux voisins) ÷ 12 = ${fmtEuros(loyer)}/mois.` : "");
+  }
+  if (a.loyer_confiance === "benchmark") {
+    return "Aucun bail réel voisin connu ici : estimation à partir d'un référentiel interne par secteur (data/benchmarks.json), pas une API officielle — fourchettes prudentes construites à la main (annonces constatées, études de réseaux spécialisés), à recouper vous-même (ex. observatoire local des loyers commerciaux)." +
+      (tauxM2An != null ? `\nCalcul : ${m2} m² × ${tauxM2An} €/m²/an (référence secteur) ÷ 12 = ${fmtEuros(loyer)}/mois.` : "");
+  }
+  if (a.loyer_estime) {
+    return "Loyer annoncé par le vendeur pour un local vide : une promesse, pas un bail signé — à faire confirmer avant d'y croire.";
+  }
+  return "Loyer réel du bail en cours, tel qu'indiqué dans l'annonce (pas une estimation).";
+}
+
+function explicationRendement(a, type) {
+  const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
+  const loyerAnnuel = loyer != null ? Math.round(loyer * 12) : null;
+  if (type === "brut") {
+    let t = "Rendement brut = loyer annuel ÷ prix affiché — ignore les frais d'acquisition (notaire, agence), donc toujours plus optimiste que le rendement « acte en main ».";
+    if (loyerAnnuel != null && a.prix != null) t += `\nIci : ${fmtEuros(loyerAnnuel)}/an ÷ ${fmtEuros(a.prix)} = ${fmtPct(a.rendement_brut_pct)}.`;
+    return t;
+  }
+  const coutActeEnMain = a.prix != null ? Math.round(a.prix * 1.08 + (a.honoraires || 0)) : null;
+  let t = "Rendement acte en main = loyer annuel ÷ coût réel total (prix × 1,08 pour notaire/enregistrement, + honoraires d'agence si affichés séparément). C'est le chiffre le plus honnête : il reflète votre mise de fonds réelle.";
+  if (loyerAnnuel != null && coutActeEnMain != null) t += `\nIci : ${fmtEuros(loyerAnnuel)}/an ÷ ${fmtEuros(coutActeEnMain)} (prix + ~8 % de frais${a.honoraires ? " + honoraires" : ""}) = ${fmtPct(a.rendement_acte_en_main_pct)}.`;
+  return t;
+}
 
 function pourquoiHtml(a) {
   const d = a.detail_score || {};
@@ -1111,10 +1278,13 @@ function carteHtml(a, options) {
 
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   const estimeSansBail = (a.loyer_mensuel == null && a.loyer_mensuel_estime != null) || a.loyer_estime;
-  const estTitre = a.loyer_confiance === "comparables"
-    ? `Estimé à partir de ${a.loyer_nb_comparables} baux RÉELS de voisins immédiats (même code postal) — plus fiable qu'une moyenne de zone.`
-    : "Estimation générique du secteur (référentiel de zone), ou loyer promis par le vendeur non prouvé par un bail — à vérifier.";
-  const est = estimeSansBail ? ` <small title="${ech(estTitre)}">est.</small>` : "";
+  const est = estimeSansBail ? ` <small>est.</small>` : "";
+  const loyerInfo = loyer == null ? "" :
+    ` <span class="info-i" title="${ech(explicationLoyer(a, loyer))}">i</span>`;
+  const rdtBrutInfo = a.rendement_brut_pct == null ? "" :
+    ` <span class="info-i" title="${ech(explicationRendement(a, "brut"))}">i</span>`;
+  const rdtActeInfo = a.rendement_acte_en_main_pct == null ? "" :
+    ` <span class="info-i" title="${ech(explicationRendement(a, "acte"))}">i</span>`;
   const cfHtml = cf == null ? "—" :
     `<span style="color:${cf >= 0 ? "var(--vert-texte)" : "var(--alerte-texte)"}">${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois</span>` +
     (suspect ? `<span title="Calculé sur le loyer PROMIS par le vendeur — un tel niveau est
@@ -1124,9 +1294,9 @@ function carteHtml(a, options) {
   const metriques = [
     ["Prix", fmtEuros(a.prix)],
     ["Surface", a.surface_m2 == null ? "—" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²"],
-    ["Loyer/mois", loyer == null ? "—" : fmtEuros(loyer) + est],
-    ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "")],
-    ["Rdt acte en main", fmtPct(a.rendement_acte_en_main_pct)],
+    ["Loyer/mois", loyer == null ? "—" : fmtEuros(loyer) + est + loyerInfo],
+    ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "") + rdtBrutInfo],
+    ["Rdt acte en main", fmtPct(a.rendement_acte_en_main_pct) + rdtActeInfo],
     [profil.apport > 0 ? `Cash-flow (${profil.apport} % apport)` : "Cash-flow crédit 100 %", cfHtml],
     ["Trajet 18e", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min"],
   ].map(([l, v]) =>
@@ -1159,6 +1329,8 @@ function carteHtml(a, options) {
       ${jaugeMarcheHtml(a)}
       ${enClairHtml(a)}
       ${lettreRang === "S" ? explicationPepiteHtml(a) : ""}
+      ${faitsClesHtml(a)}
+      ${questionsReponsesHtml(a)}
     </div>
     ${pourquoiHtml(a)}
     <div class="carte-score">

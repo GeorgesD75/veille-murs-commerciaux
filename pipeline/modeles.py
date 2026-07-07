@@ -96,6 +96,7 @@ class Annonce:
     detail_score: dict[str, float] = field(default_factory=dict)
     flags: list[str] = field(default_factory=list)
     bonus_detectes: list[str] = field(default_factory=list)  # règles bonus/malus déclenchées
+    fiscalite_detectes: list[str] = field(default_factory=list)  # signaux fiscaux détectés
 
     # Exclusion
     exclue: bool = False

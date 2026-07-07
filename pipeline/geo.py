@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from pipeline.texte import cle_commune, normaliser_texte
@@ -16,20 +17,62 @@ _MOTS_CENTRE_VILLE = (
     "coeur de ville", "cœur de ville",
 )
 
+_RE_CP_PARIS = re.compile(r"750([0-2]\d)\b")
+_RE_ARRONDISSEMENT_SUFFIXE = re.compile(r"\b(\d{1,2})\s*(?:e|eme)\b")
+_RE_ARRONDISSEMENT_APRES_PARIS = re.compile(r"\bparis\D{0,3}(\d{1,2})\b")
+
+
+def arrondissement_paris(ville: str, code_postal: str = "") -> int | None:
+    """Numéro d'arrondissement (1-20) déduit du code postal ou, à défaut, du
+    texte de la ville — les sources écrivent « Paris 18e », « Paris 1er »,
+    « Paris 5 », « Paris 5ème » ou parfois directement le code postal complet
+    dans le champ ville. Renvoie None si aucun numéro fiable n'en ressort
+    (ex. ville = « Paris » seul) : on retombe alors sur une valeur par défaut."""
+    m = _RE_CP_PARIS.search(f"{ville} {code_postal}")
+    if m:
+        n = int(m.group(1))
+        if 1 <= n <= 20:
+            return n
+    t = normaliser_texte(ville).replace("1er", "1e")
+    for motif in (_RE_ARRONDISSEMENT_SUFFIXE, _RE_ARRONDISSEMENT_APRES_PARIS):
+        m = motif.search(t)
+        if m:
+            n = int(m.group(1))
+            if 1 <= n <= 20:
+                return n
+    return None
+
 
 @dataclass(frozen=True)
 class Trajets:
-    """Table statique commune -> minutes, avec défaut par département."""
+    """Table statique commune -> minutes, avec défaut par département.
+
+    Paris est affiné par arrondissement (métro Château Rouge ligne 4 /
+    Lamarck-Caulaincourt ligne 12, les deux stations de départ du 18e
+    indiquées par l'utilisateur) plutôt qu'une seule valeur pour tout Paris —
+    un local dans le 15e n'est pas à la même distance qu'un local dans le 9e.
+    """
 
     communes: dict[str, int]
     departements_defaut: dict[str, int]
+    arrondissements_paris: dict[str, int] = field(default_factory=dict)
 
     @classmethod
     def charger(cls, chemin: Path) -> "Trajets":
         donnees = json.loads(chemin.read_text(encoding="utf-8"))
-        return cls(donnees["communes"], donnees["departements_defaut"])
+        return cls(
+            donnees["communes"],
+            donnees["departements_defaut"],
+            donnees.get("arrondissements_paris", {}),
+        )
 
-    def temps_depuis_paris18(self, ville: str, departement: str) -> int | None:
+    def temps_depuis_paris18(
+        self, ville: str, departement: str, code_postal: str = ""
+    ) -> int | None:
+        if departement == "75":
+            arr = arrondissement_paris(ville, code_postal)
+            if arr is not None and str(arr) in self.arrondissements_paris:
+                return self.arrondissements_paris[str(arr)]
         cle = cle_commune(ville)
         if cle in self.communes:
             return self.communes[cle]

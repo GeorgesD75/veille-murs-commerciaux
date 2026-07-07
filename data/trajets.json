@@ -1,7 +1,13 @@
 {
   "_note": "Temps de trajet approximatifs en transports en commun depuis Paris 18e (minutes). Table statique modifiable a la main : recherche par commune (nom en minuscules sans accents ni tirets), sinon valeur par defaut du departement. Approximation assumee : suffisante pour un filtre a 60 min, gratuite et sans API.",
+  "_note_arrondissements": "Paris est affine par arrondissement (cle = numero 1-20) plutot qu'une seule valeur pour tout Paris. Depart suppose : metro Chateau Rouge (ligne 4) ou Lamarck-Caulaincourt (ligne 12), dans le 18e. Estimation = trajet metro direct/avec correspondance + marche moyenne jusqu'a l'adresse (les locaux commerciaux ne sont pas toujours a cote d'une station) ; pas de calcul d'itineraire reel, a corriger a la main si un cas concret s'avere faux.",
+  "arrondissements_paris": {
+    "1": 20, "2": 18, "3": 20, "4": 22, "5": 28, "6": 28, "7": 25, "8": 18,
+    "9": 15, "10": 10, "11": 25, "12": 35, "13": 40, "14": 32, "15": 45,
+    "16": 48, "17": 18, "18": 8, "19": 20, "20": 25
+  },
   "communes": {
-    "paris": 15,
+    "paris": 25,
     "saint ouen": 10, "saint ouen sur seine": 10,
     "clichy": 10, "levallois perret": 15, "neuilly sur seine": 20,
     "asnieres sur seine": 20, "courbevoie": 25, "puteaux": 25, "nanterre": 25,

@@ -140,6 +140,22 @@ class SourceBureauxLocaux(SourceHtml):
         else:  # champ absent : on retombe sur l'heuristique textuelle habituelle
             type_murs = deviner_type_murs(f"{titre} {description}")
 
+        # Constat en direct (2026-07-07) : certaines annonces du site se
+        # contredisent elles-mêmes — titre « libres », description « occupés »
+        # (copié-collé d'un autre bien, erreur d'agence). Le champ structuré
+        # fait foi (rempli via une case à cocher, plus fiable qu'un texte
+        # libre), mais la contradiction est signalée en clair plutôt que
+        # silencieusement tranchée — l'acheteur doit vérifier avant d'offrir.
+        if is_occupied is not None:
+            devine = deviner_type_murs(f"{titre} {description}")
+            if devine is not type_murs:
+                description = (
+                    "⚠ Information contradictoire entre le titre/la case structurée "
+                    f"({'murs occupés' if type_murs is TypeMurs.MURS_OCCUPES else 'murs libres'}) "
+                    f"et le texte de la description ({'murs occupés' if devine is TypeMurs.MURS_OCCUPES else 'murs libres'}) "
+                    "— à vérifier directement avec l'annonceur avant toute offre. " + description
+                )
+
         images_dict = item.get("images") or {}
         images = [u for u in (images_dict.get("normal") or []) if u]
 

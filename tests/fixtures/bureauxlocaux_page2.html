@@ -1,6 +1,9 @@
 <!-- Page 2/2 : un lot signalé comme cession de fonds de commerce (champ
      structuré is_sale_of_business_assets), pour vérifier que le filtre
-     anti-piège textuel existant l'attrape via la description enrichie. -->
+     anti-piège textuel existant l'attrape via la description enrichie.
+     Un second lot (900004) reproduit la contradiction réelle constatée sur
+     l'annonce « Brochant » (murs-de-boutique-libres-brochant--40449440) :
+     titre/case structurée "libres" mais description textuelle "occupés". -->
 <html><body>
 <script type="text/json" id="react-context">
 {"global": {"results": {"count": 3, "pagination": {"current_page": 2, "total_pages": 2}, "items": [
@@ -8,6 +11,13 @@
    "city": "Pantin", "zip_code": "93500", "sale_price": "90000.00", "total_surface": "50.00",
    "description": "Belle affaire, clientèle fidèle.",
    "characteristics_json": {"is_occupied": null, "is_sale_of_business_assets": true,
+     "has_extraction": false, "is_on_street_angle": false},
+   "images": {"normal": []}},
+  {"id": 900004, "url": "/annonce/murs-de-boutique-libres-brochant--900004",
+   "label": "Murs de boutique libres Brochant",
+   "city": "Paris", "zip_code": "75017", "sale_price": "450000.00", "total_surface": "80.00",
+   "description": "Murs de boutique occupés à vendre, bail commercial en cours.",
+   "characteristics_json": {"is_occupied": false, "is_sale_of_business_assets": false,
      "has_extraction": false, "is_on_street_angle": false},
    "images": {"normal": []}}
 ]}}}
