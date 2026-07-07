@@ -400,7 +400,13 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .enclair-titre { font-weight: 700; color: var(--encre-1); font-variant: small-caps; margin-right: 4px; }
 .faits-cles, .questions-reponses { }
 .faits-cles .titre-bloc, .questions-reponses .titre-bloc { font-size: 10.5px; text-transform: uppercase;
-  letter-spacing: .06em; color: var(--encre-3); }
+  letter-spacing: .06em; color: var(--encre-3); cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 5px; }
+.faits-cles .titre-bloc::-webkit-details-marker,
+.questions-reponses .titre-bloc::-webkit-details-marker { display: none; }
+.faits-cles .titre-bloc::before, .questions-reponses .titre-bloc::before {
+  content: "▸"; font-size: 9px; color: var(--encre-3); transition: transform .15s ease; }
+.faits-cles[open] .titre-bloc::before, .questions-reponses[open] .titre-bloc::before { transform: rotate(90deg); }
 .faits-cles { margin-top: 10px; font-size: 13px; }
 .faits-cles ul { margin: 4px 0 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
 .faits-cles li { padding-left: 18px; position: relative; color: var(--encre-1); }
@@ -981,8 +987,8 @@ function faitsClesHtml(a) {
     faits.push(["moins", "Travaux signalés dans l'annonce — à chiffrer avant toute offre."]);
 
   if (!faits.length) return "";
-  return `<div class="faits-cles"><div class="titre-bloc">Faits clés</div>
-    <ul>${faits.map(([sens, texte]) => `<li class="fait-${sens}">${ech(texte)}</li>`).join("")}</ul></div>`;
+  return `<details class="faits-cles"><summary class="titre-bloc">Faits clés (${faits.length})</summary>
+    <ul>${faits.map(([sens, texte]) => `<li class="fait-${sens}">${ech(texte)}</li>`).join("")}</ul></details>`;
 }
 
 function questionsReponsesHtml(a) {
@@ -1026,9 +1032,9 @@ function questionsReponsesHtml(a) {
       `Se classe ${a.rang_score}ᵉ sur ${D.stats.retenues} annonces actuellement retenues par l'outil — pas les biens vus ailleurs, mais ceux suivis ici.`]);
   }
 
-  return `<div class="questions-reponses"><div class="titre-bloc">Ce que vous vous demandez sûrement</div>
+  return `<details class="questions-reponses"><summary class="titre-bloc">Ce que vous vous demandez sûrement</summary>
     ${lignes.map(([q, r]) => `<div class="qr-item"><div class="qr-q">${ech(q)}</div><div class="qr-r">${ech(r)}</div></div>`).join("")}
-  </div>`;
+  </details>`;
 }
 
 function enClairHtml(a) {
