@@ -45,6 +45,7 @@ def preparer_payload(
     config: Config,
     maintenant: datetime,
     dossiers: dict[str, str] | None = None,
+    marche: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Données embarquées dans la page, prêtes à afficher."""
     seuil_nouveaute = maintenant - timedelta(hours=HEURES_NOUVEAUTE)
@@ -185,6 +186,7 @@ def preparer_payload(
         "analyse": config["analyse"],
         "taux_marche": meta.get("taux_marche"),
         "sante": meta.get("sante_sources", {}),
+        "marche": marche,
     }
 
 
@@ -199,12 +201,13 @@ def generer_dashboard(
     config: Config,
     dossier: Path,
     maintenant: datetime | None = None,
+    marche: dict[str, Any] | None = None,
 ) -> Path:
     maintenant = maintenant or datetime.now().astimezone()
     dossier.mkdir(parents=True, exist_ok=True)
     # Dossiers banque Excel d'abord : le payload référence leurs fichiers.
     dossiers_banque = generer_dossiers(annonces, config, dossier / "dossiers")
-    payload = preparer_payload(annonces, meta, config, maintenant, dossiers_banque)
+    payload = preparer_payload(annonces, meta, config, maintenant, dossiers_banque, marche=marche)
     cible = dossier / "index.html"
     cible.write_text(generer_html(payload), encoding="utf-8")
     # Site volontairement non référencé.
@@ -287,6 +290,56 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
   mask: radial-gradient(13px at 13px 0, #000 97%, #0000) 0 0 / 26px 15px repeat-x; }
 
 .page { max-width: 1380px; margin: 0 auto; padding: 10px 24px 90px; }
+
+/* ---- Onglets La chasse / Le marché ---- */
+.onglets { display: flex; gap: 4px; margin: 10px 0 2px; border-bottom: 1px solid var(--filet); }
+.onglet { font: 600 14.5px Fraunces, Georgia, serif; color: var(--encre-2); background: none;
+  border: none; border-bottom: 2.5px solid transparent; padding: 8px 14px 9px; cursor: pointer; }
+.onglet.actif { color: var(--encre-1); border-bottom-color: var(--or-vif); }
+.onglet:hover { color: var(--encre-1); }
+
+/* ---- Le marché : graphiques (palette catégorielle VALIDÉE par mode —
+   scripts dataviz : light warn contraste couvert par la vue tableau) ---- */
+:root { --g1: #2a78d6; --g2: #1baf7a; --g3: #eda100; }
+@media (prefers-color-scheme: dark) { :root { --g1: #3987e5; --g2: #199e70; --g3: #c98500; } }
+.marche-intro { color: var(--encre-2); font-size: 13.5px; margin: 12px 0 6px; }
+.marche-pied { color: var(--encre-3); font-size: 12.5px; margin: 10px 0 18px; }
+.periodes { display: flex; gap: 6px; margin: 8px 0 12px; }
+.periodes button { font: 600 12px system-ui, sans-serif; color: var(--encre-2);
+  background: var(--surface); border: 1px solid var(--bord); border-radius: 999px;
+  padding: 4px 12px; cursor: pointer; }
+.periodes button.actif { color: var(--marque-encre); background: var(--marque); border-color: var(--marque); }
+.grille-marche { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 900px) { .grille-marche { grid-template-columns: 1fr; } }
+.carte-graph { background: var(--surface); border: 1px solid var(--bord); border-radius: 12px;
+  padding: 14px 16px 10px; }
+.carte-graph h3 { font: 600 15.5px Fraunces, Georgia, serif; color: var(--encre-1); margin: 0; }
+.carte-graph .delta-an { font: 600 12.5px system-ui, sans-serif; margin-left: 8px; white-space: nowrap; }
+.delta-an.hausse { color: var(--vert-texte); } .delta-an.baisse { color: var(--alerte-texte); }
+.carte-graph .lecture { color: var(--encre-2); font-size: 12.5px; margin: 3px 0 8px; }
+.carte-graph .source-graph { color: var(--encre-3); font-size: 11.5px; margin-top: 4px; }
+.carte-graph .source-graph a { color: var(--encre-3); }
+.carte-graph svg { display: block; width: 100%; height: auto; }
+.graph-legende { display: flex; gap: 14px; flex-wrap: wrap; margin: 2px 0 6px;
+  font-size: 12px; color: var(--encre-2); }
+.graph-legende .cle { display: inline-block; width: 16px; height: 0; border-top: 2.5px solid;
+  vertical-align: middle; margin-right: 5px; border-radius: 2px; }
+.graph-tooltip { position: fixed; z-index: 40; pointer-events: none; display: none;
+  background: var(--surface); border: 1px solid var(--bord); border-radius: 9px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.14); padding: 8px 11px; font-size: 12.5px; min-width: 130px; }
+.graph-tooltip .qt { color: var(--encre-3); font-size: 11px; margin-bottom: 3px; }
+.graph-tooltip .vl { display: flex; align-items: center; gap: 6px; }
+.graph-tooltip .vl b { font-size: 13px; color: var(--encre-1); }
+.graph-tooltip .vl span { color: var(--encre-2); }
+.voir-valeurs { margin: 4px 0 2px; }
+.voir-valeurs > summary { cursor: pointer; font-size: 11.5px; color: var(--encre-3); list-style: none; }
+.voir-valeurs > summary::-webkit-details-marker { display: none; }
+.voir-valeurs table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px;
+  font-variant-numeric: tabular-nums; }
+.voir-valeurs th, .voir-valeurs td { text-align: right; padding: 2px 8px; border-bottom: 1px solid var(--filet); }
+.voir-valeurs th:first-child, .voir-valeurs td:first-child { text-align: left; }
+.voir-valeurs tbody { display: block; max-height: 190px; overflow-y: auto; }
+.voir-valeurs thead, .voir-valeurs tbody tr { display: table; width: 100%; table-layout: fixed; }
 
 /* ---- Filtres (repliables sur mobile) — volontairement PAS sticky :
    la barre défile avec la page au lieu de manger l'écran en permanence. ---- */
@@ -661,6 +714,21 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 <div class="auvent" aria-hidden="true"></div>
 <div class="page">
 
+  <nav class="onglets" id="onglets" style="display:none">
+    <button type="button" class="onglet actif" data-vue="chasse">La chasse</button>
+    <button type="button" class="onglet" data-vue="marche">Le marché</button>
+  </nav>
+
+  <div id="vue-marche" style="display:none">
+    <p class="marche-intro" id="marche-intro"></p>
+    <div class="periodes" id="marche-periodes"></div>
+    <div class="grille-marche" id="marche-grille"></div>
+    <p class="marche-pied">Chaque série est officielle, gratuite et citée : cliquez la source
+      sous un graphique pour vérifier les chiffres vous-même. Actualisation environ une fois
+      par mois — ces indicateurs bougent lentement, c'est leur pente qui compte.</p>
+  </div>
+
+  <div id="vue-chasse">
   <details class="volet-filtres" id="volet-filtres">
     <summary>Filtres &amp; réglages ▾</summary>
     <div class="filtres">
@@ -755,6 +823,7 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
       </ul>
     </div>
   </details>
+  </div><!-- /vue-chasse -->
 
   <footer>
     <div><strong>Santé des sources</strong> — dernier passage : <span id="pied-maj"></span></div>
@@ -2018,9 +2087,260 @@ document.addEventListener("click", ev => {
   }
 });
 
+/* ---- Onglet « Le marché » : le paysage derrière les annonces ----
+   Graphiques SVG maison (page autonome oblige), petit-multiple par indicateur
+   (une unité = un axe, jamais de double axe), crosshair + infobulle, périodes
+   partagées, et vue tableau par graphique (canal de secours du contraste). */
+const CLE_ONGLET = "veille-murs-onglet";
+let periodeMarche = "2015";
+const GRAPHS_MARCHE = [];  // reconstruits à chaque changement de période
+
+function xDecimal(p) {
+  const [a, r] = p.split("-");
+  return r[0] === "Q" ? +a + ((+r.slice(1)) * 3 - 1.5) / 12 : +a + (+r - 0.5) / 12;
+}
+const MOIS_COURTS = ["janv.", "févr.", "mars", "avr.", "mai", "juin",
+                     "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+function fmtPeriode(p) {
+  const [a, r] = p.split("-");
+  return r[0] === "Q" ? `T${r.slice(1)} ${a}` : `${MOIS_COURTS[+r - 1]} ${a}`;
+}
+function fmtValeurMarche(v, unite) {
+  if (unite.startsWith("%")) return v.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " %";
+  if (unite.startsWith("indice")) return v.toLocaleString("fr-FR", {maximumFractionDigits: 1});
+  return Math.round(v).toLocaleString("fr-FR");
+}
+
+function variationAnnuelle(points, unite) {
+  // dernier point vs celui d'il y a ~1 an (12 pas mensuels ou 4 trimestriels)
+  if (points.length < 5) return null;
+  const pas = points[points.length - 1][0].includes("Q") ? 4 : 12;
+  if (points.length <= pas) return null;
+  const [na, va] = points[points.length - 1 - pas], [nb, vb] = points[points.length - 1];
+  if (unite.startsWith("%"))  // un taux se compare en points, pas en pourcentage de lui-même
+    return {texte: `${vb >= va ? "+" : "−"}${Math.abs(vb - va).toLocaleString("fr-FR", {maximumFractionDigits: 2})} pt sur 1 an`, hausse: vb >= va};
+  const pct = (vb / va - 1) * 100;
+  return {texte: `${pct >= 0 ? "+" : "−"}${Math.abs(pct).toLocaleString("fr-FR", {maximumFractionDigits: 1})} % sur 1 an`, hausse: pct >= 0};
+}
+
+function pasJoli(brut) {
+  const p = Math.pow(10, Math.floor(Math.log10(brut)));
+  const m = brut / p;
+  return (m >= 5 ? 10 : m >= 2 ? 5 : m >= 1 ? 2 : 1) * p;
+}
+
+function graphLigne(carte, definition) {
+  // definition : {series: [{nom, css, points}], unite}
+  const limite = periodeMarche === "2015" ? 0
+    : Math.max(...definition.series.flatMap(s => s.points.map(p => xDecimal(p[0])))) - (+periodeMarche);
+  const series = definition.series
+    .map(s => ({...s, pts: s.points.filter(p => xDecimal(p[0]) >= limite)}))
+    .filter(s => s.pts.length >= 2);
+  const zone = carte.querySelector(".zone-graph");
+  if (!series.length) { zone.innerHTML = "<p class='lecture'>Pas assez de points sur cette période.</p>"; return; }
+
+  const L = 640, H = 240, g = 54, d = 10, h = 10, b = 24;
+  const xs = series.flatMap(s => s.pts.map(p => xDecimal(p[0])));
+  const ys = series.flatMap(s => s.pts.map(p => p[1]));
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  let y0 = Math.min(...ys), y1 = Math.max(...ys);
+  if (y1 - y0 < 1e-9) { y0 -= 1; y1 += 1; }
+  const pas = pasJoli((y1 - y0) / 4);
+  y0 = Math.floor(y0 / pas) * pas; y1 = Math.ceil(y1 / pas) * pas;
+  const X = v => g + (v - x0) / (x1 - x0) * (L - g - d);
+  const Y = v => h + (1 - (v - y0) / (y1 - y0)) * (H - h - b);
+
+  let svg = "";
+  for (let t = y0; t <= y1 + 1e-9; t += pas) {
+    svg += `<line x1="${g}" y1="${Y(t)}" x2="${L - d}" y2="${Y(t)}" style="stroke:var(--filet)" stroke-width="1"/>` +
+      `<text x="${g - 6}" y="${Y(t) + 3.5}" text-anchor="end" style="fill:var(--encre-3);font:10.5px system-ui" >${fmtValeurMarche(t, definition.unite)}</text>`;
+  }
+  const pasAnnees = (x1 - x0) > 6 ? 2 : 1;
+  for (let an = Math.ceil(x0); an <= x1; an += pasAnnees) {
+    svg += `<text x="${X(an)}" y="${H - 7}" text-anchor="middle" style="fill:var(--encre-3);font:10.5px system-ui">${an}</text>`;
+  }
+  const etiquetesY = [];  // étiquettes de fin déjà posées : jamais empilées
+  for (const s of series) {
+    const chemin = s.pts.map((p, i) => `${i ? "L" : "M"}${X(xDecimal(p[0])).toFixed(1)} ${Y(p[1]).toFixed(1)}`).join(" ");
+    const fin = s.pts[s.pts.length - 1];
+    svg += `<path d="${chemin}" fill="none" style="stroke:var(${s.css})" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
+      `<circle cx="${X(xDecimal(fin[0]))}" cy="${Y(fin[1])}" r="4" style="fill:var(${s.css});stroke:var(--surface)" stroke-width="2"/>`;
+    // Étiquette directe de fin (texte en encre, jamais couleur de série) —
+    // seulement si elle ne chevauche pas une étiquette déjà posée : quand les
+    // lignes convergent, la légende + l'infobulle prennent le relais.
+    const yEtiquette = Y(fin[1]) - 8;
+    if (series.length > 1 && !etiquetesY.some(y => Math.abs(y - yEtiquette) < 15)) {
+      svg += `<text x="${X(xDecimal(fin[0])) - 8}" y="${yEtiquette}" text-anchor="end" style="fill:var(--encre-2);font:600 10.5px system-ui">${ech(s.nom)}</text>`;
+      etiquetesY.push(yEtiquette);
+    }
+  }
+  svg += `<line class="croix" x1="-9" y1="${h}" x2="-9" y2="${H - b}" style="stroke:var(--encre-3)" stroke-width="1" opacity="0"/>`;
+  zone.innerHTML = `<svg viewBox="0 0 ${L} ${H}" tabindex="0" role="img" aria-label="${ech(definition.aria || "")}">${svg}</svg>`;
+
+  // Couche d'interaction : le crosshair trouve la période la plus proche,
+  // l'infobulle liste TOUTES les séries à cette période.
+  const el = zone.querySelector("svg");
+  const croix = el.querySelector(".croix");
+  const ref = series[0].pts;
+  let idx = ref.length - 1;
+  const montrer = (evt) => {
+    const boite = el.getBoundingClientRect();
+    if (evt && evt.clientX != null) {
+      const xr = (evt.clientX - boite.left) / boite.width * L;
+      let meilleur = 0, ecart = 1e9;
+      ref.forEach((p, i) => {
+        const e = Math.abs(X(xDecimal(p[0])) - xr);
+        if (e < ecart) { ecart = e; meilleur = i; }
+      });
+      idx = meilleur;
+    }
+    const p = ref[idx];
+    croix.setAttribute("x1", X(xDecimal(p[0]))); croix.setAttribute("x2", X(xDecimal(p[0])));
+    croix.setAttribute("opacity", ".55");
+    const tip = infobulleMarche();
+    tip.innerHTML = "";
+    const quand = document.createElement("div"); quand.className = "qt";
+    quand.textContent = fmtPeriode(p[0]); tip.appendChild(quand);
+    for (const s of series) {
+      const pt = s.pts[Math.min(idx, s.pts.length - 1)];
+      const ligne = document.createElement("div"); ligne.className = "vl";
+      const cle = document.createElement("span"); cle.className = "cle";
+      cle.style.borderTop = `2.5px solid var(${s.css})`; cle.style.width = "14px";
+      const val = document.createElement("b"); val.textContent = fmtValeurMarche(pt[1], definition.unite);
+      const nom = document.createElement("span"); nom.textContent = series.length > 1 ? s.nom : definition.unite;
+      ligne.append(cle, val, nom); tip.appendChild(ligne);
+    }
+    tip.style.display = "block";
+    const px = evt && evt.clientX != null ? evt.clientX : boite.left + X(xDecimal(p[0])) / L * boite.width;
+    const py = evt && evt.clientY != null ? evt.clientY : boite.top + 30;
+    tip.style.left = Math.min(px + 14, window.innerWidth - tip.offsetWidth - 8) + "px";
+    tip.style.top = (py + 14) + "px";
+  };
+  const cacher = () => { croix.setAttribute("opacity", "0"); infobulleMarche().style.display = "none"; };
+  el.addEventListener("pointermove", montrer);
+  el.addEventListener("pointerleave", cacher);
+  el.addEventListener("focus", () => montrer(null));
+  el.addEventListener("blur", cacher);
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") { idx = Math.max(0, idx - 1); montrer(null); e.preventDefault(); }
+    if (e.key === "ArrowRight") { idx = Math.min(ref.length - 1, idx + 1); montrer(null); e.preventDefault(); }
+  });
+}
+
+let _infobulleMarche = null;
+function infobulleMarche() {
+  if (!_infobulleMarche) {
+    _infobulleMarche = document.createElement("div");
+    _infobulleMarche.className = "graph-tooltip";
+    document.body.appendChild(_infobulleMarche);
+  }
+  return _infobulleMarche;
+}
+
+function definitionsMarche() {
+  const S = D.marche.series;
+  const defs = [];
+  const simple = (cle, titre) => {
+    const s = S[cle];
+    if (s && s.points.length) defs.push({
+      id: cle, titre: titre || s.libelle, lecture: s.lecture, unite: s.unite,
+      sources: [{texte: s.source, url: s.url}],
+      series: [{nom: s.libelle, css: "--g1", points: s.points}],
+    });
+  };
+  simple("ilc");
+  simple("logements_idf");
+  simple("oat");
+  const dTous = S.defaillances_idf, dCom = S.defaillances_commerce_idf, dResto = S.defaillances_resto_idf;
+  const dSeries = [
+    dTous && dTous.points.length && {nom: "Tous secteurs", css: "--g1", points: dTous.points},
+    dCom && dCom.points.length && {nom: "Commerce", css: "--g2", points: dCom.points},
+    dResto && dResto.points.length && {nom: "Hébergement-restauration", css: "--g3", points: dResto.points},
+  ].filter(Boolean);
+  if (dSeries.length) defs.push({
+    id: "defaillances", titre: "Défaillances d'entreprises en Île-de-France",
+    lecture: "Jugements d'ouverture (redressements, liquidations…) cumulés sur 12 mois glissants. " +
+      "La santé réelle des locataires du secteur : plus elle se dégrade, plus le risque d'impayé et de vacance monte.",
+    unite: "défaillances, cumul 12 mois",
+    sources: [dTous, dCom, dResto].filter(Boolean).map(s => ({texte: s.source, url: s.url})),
+    series: dSeries,
+  });
+  return defs;
+}
+
+function construireMarche() {
+  const grille = document.getElementById("marche-grille");
+  if (grille.childElementCount) return;  // déjà construit
+  document.getElementById("marche-intro").textContent =
+    "Le paysage derrière les annonces : loyers commerciaux, cycle immobilier francilien, taux et " +
+    "défaillances d'entreprises. Données actualisées le " +
+    new Date(D.marche.maj).toLocaleDateString("fr-FR", {day: "numeric", month: "long", year: "numeric"}) + ".";
+  const periodes = document.getElementById("marche-periodes");
+  periodes.innerHTML = "";
+  for (const [val, libelle] of [["2015", "Depuis 2015"], ["5", "5 ans"], ["2", "2 ans"]]) {
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.textContent = libelle; btn.dataset.periode = val;
+    if (val === periodeMarche) btn.className = "actif";
+    btn.addEventListener("click", () => {
+      periodeMarche = val;
+      periodes.querySelectorAll("button").forEach(x => x.classList.toggle("actif", x === btn));
+      GRAPHS_MARCHE.forEach(([carte, definition]) => graphLigne(carte, definition));
+    });
+    periodes.appendChild(btn);
+  }
+  for (const definition of definitionsMarche()) {
+    const carte = document.createElement("article");
+    carte.className = "carte-graph";
+    const variation = variationAnnuelle(definition.series[0].points, definition.unite);
+    const legende = definition.series.length > 1
+      ? `<div class="graph-legende">${definition.series.map(s =>
+          `<span><span class="cle" style="border-top-color:var(${s.css})"></span>${ech(s.nom)}</span>`).join("")}</div>`
+      : "";
+    carte.innerHTML = `
+      <h3>${ech(definition.titre)}${variation ? `<span class="delta-an ${variation.hausse ? "hausse" : "baisse"}">${variation.texte}</span>` : ""}</h3>
+      <p class="lecture">${ech(definition.lecture || "")}</p>
+      ${legende}
+      <div class="zone-graph"></div>
+      <details class="voir-valeurs"><summary>Voir les valeurs ▸</summary><div class="table-valeurs"></div></details>
+      <div class="source-graph">${definition.sources.map(s =>
+        `<a href="${ech(s.url)}" target="_blank" rel="noopener">${ech(s.texte)} ↗</a>`).join(" · ")}</div>`;
+    grille.appendChild(carte);
+    definition.aria = `${definition.titre} — graphique en lignes, valeurs détaillées dans le tableau ci-dessous`;
+    graphLigne(carte, definition);
+    GRAPHS_MARCHE.push([carte, definition]);
+    // Vue tableau (toutes les valeurs restent accessibles sans survol)
+    const table = carte.querySelector(".table-valeurs");
+    const lignes = definition.series[0].points.map((p, i) =>
+      `<tr><td>${fmtPeriode(p[0])}</td>${definition.series.map(s =>
+        `<td>${s.points[i] ? fmtValeurMarche(s.points[i][1], definition.unite) : "—"}</td>`).join("")}</tr>`);
+    table.innerHTML = `<table><thead><tr><th>Période</th>${definition.series.map(s =>
+      `<th>${ech(definition.series.length > 1 ? s.nom : definition.unite)}</th>`).join("")}</tr></thead>` +
+      `<tbody>${lignes.reverse().join("")}</tbody></table>`;
+  }
+}
+
+function basculerVue(vue) {
+  document.getElementById("vue-chasse").style.display = vue === "marche" ? "none" : "";
+  document.getElementById("vue-marche").style.display = vue === "marche" ? "" : "none";
+  document.querySelectorAll("#onglets .onglet").forEach(b =>
+    b.classList.toggle("actif", b.dataset.vue === vue));
+  localStorage.setItem(CLE_ONGLET, vue);
+  if (vue === "marche") construireMarche();
+}
+
 function initialiser() {
   // Filtres ouverts d'office sur grand écran, repliés sur mobile
   if (window.innerWidth > 760) document.getElementById("volet-filtres").open = true;
+
+  // Onglet « Le marché » : seulement si les séries ont pu être collectées un jour
+  if (D.marche && D.marche.series && Object.values(D.marche.series).some(s => s.points.length)) {
+    const nav = document.getElementById("onglets");
+    nav.style.display = "";
+    nav.querySelectorAll(".onglet").forEach(b =>
+      b.addEventListener("click", () => basculerVue(b.dataset.vue)));
+    if (localStorage.getItem(CLE_ONGLET) === "marche" || location.hash === "#marche")
+      basculerVue("marche");
+  }
 
   const s = D.stats;
   document.getElementById("hud").innerHTML =

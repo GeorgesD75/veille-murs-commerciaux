@@ -20,6 +20,7 @@ from pipeline.dedoublonnage import fusionner, trouver_similaire
 from pipeline.enrichissement import Benchmarks, enrichir
 from pipeline.filtres import raison_exclusion
 from pipeline.geo import Trajets
+from pipeline.marche import actualiser_marche
 from pipeline.modeles import Annonce, AnnonceBrute
 from pipeline.normalisation import maintenant_iso, normaliser
 from pipeline.notifications import notifier
@@ -112,6 +113,13 @@ def actualiser_taux_marche(config: Config) -> dict[str, Any] | None:
 def executer() -> dict[str, Any]:
     config = Config.charger()
     taux_marche = actualiser_taux_marche(config)
+    # Contexte de marché (ILC, prix logements, défaillances, OAT) : séries
+    # officielles réinterrogées au plus 1 fois/mois, jamais bloquantes.
+    marche = None
+    try:
+        marche = actualiser_marche(RACINE / "data" / "marche.json")
+    except Exception:  # noqa: BLE001 — le paysage attendra la prochaine tournée
+        log.exception("contexte de marché en échec, on continue sans")
     trajets = Trajets.charger(RACINE / "data" / "trajets.json")
     benchmarks = Benchmarks.charger(RACINE / "data" / "benchmarks.json")
     stockage = Stockage(RACINE / "data" / "annonces.json")
@@ -190,7 +198,7 @@ def executer() -> dict[str, Any]:
     stockage.sauvegarder(annonces, meta)
 
     try:
-        cible = generer_dashboard(annonces, meta, config, RACINE / "docs")
+        cible = generer_dashboard(annonces, meta, config, RACINE / "docs", marche=marche)
         log.info("dashboard généré : %s", cible)
     except Exception:  # noqa: BLE001 — les données sont sauvées, le run reste utile
         log.exception("génération du dashboard en échec")

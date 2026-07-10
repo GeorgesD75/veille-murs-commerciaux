@@ -94,6 +94,15 @@ def test_annonce_plus_revue_depuis_15_jours_est_signalee_et_sans_rang(config):
     assert payload["stats"]["retenues"] == 1
 
 
+def test_contexte_marche_embarque_dans_le_payload(config):
+    marche = {"maj": "2026-07-10T18:00:00+02:00",
+              "series": {"ilc": {"libelle": "ILC", "points": [["2015-Q1", 108.32]]}}}
+    payload = preparer_payload(_annonces_exemple(), {}, config, MAINTENANT, marche=marche)
+    assert payload["marche"]["series"]["ilc"]["points"] == [["2015-Q1", 108.32]]
+    # sans données de marché : la clé existe, nulle — l'onglet ne s'affiche pas
+    assert preparer_payload(_annonces_exemple(), {}, config, MAINTENANT)["marche"] is None
+
+
 def test_html_autonome_et_non_reference(config):
     payload = preparer_payload(
         _annonces_exemple(),

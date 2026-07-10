@@ -161,6 +161,8 @@ pipeline/               Filtres anti-pièges, dédoublonnage, enrichissement,
                         scoring /100, lecture du prix, notifications
 dashboard/generer.py    Le site « Les Murs. » (1 fichier autonome, non référencé)
 data/annonces.json      La mémoire (committée à chaque tournée = historique gratuit)
+data/marche.json        Le paysage du marché (ILC, prix logements, taux OAT,
+                        défaillances IdF — INSEE/Eurostat, rafraîchi ~1×/mois)
 tests/                  96 tests automatiques, joués avant chaque tournée
 .github/workflows/      Le réveil-matin (cron 7 h Paris + bouton manuel)
 ```
