@@ -83,6 +83,23 @@ SERIES_INSEE: dict[str, dict[str, str]] = {
         "lecture": "Hébergement et restauration en Île-de-France : les restaurateurs, "
                    "locataires typiques de murs de boutique.",
     },
+    "climat_commerce": {
+        "idbank": "001786560",
+        "libelle": "Climat des affaires dans le commerce de détail",
+        "unite": "indice, moyenne de longue période = 100",
+        "frequence": "mensuelle",
+        "lecture": "Le moral de vos futurs locataires, interrogés chaque mois par l'INSEE : "
+                   "sous 100, les commerçants voient l'avenir sombre — ils négocient leurs "
+                   "loyers plus durement et signent moins de baux.",
+    },
+    "cout_construction": {
+        "idbank": "000008630",
+        "libelle": "Coût de la construction (ICC)",
+        "unite": "indice, base 100 au T4 1953",
+        "frequence": "trimestrielle",
+        "lecture": "Le prix de faire des travaux : une envolée de l'ICC renchérit toute "
+                   "rénovation de local — à garder en tête devant un bien « à rafraîchir ».",
+    },
 }
 
 _SERIE_RE = re.compile(r"<Series ([^>]+)>(.*?)</Series>", re.DOTALL)
@@ -197,7 +214,11 @@ def actualiser_marche(chemin: Path) -> dict | None:
     if existant:
         try:
             age = datetime.fromisoformat(maintenant_iso()) - datetime.fromisoformat(existant["maj"])
-            if age.days < JOURS_FRAICHEUR:
+            # Un fichier frais dispense de recollecte SAUF si la configuration
+            # attend une série qu'il n'a pas encore (série ajoutée au code) :
+            # sans ce contrôle, un nouveau graphique attendrait un mois.
+            attendues = set(SERIES_INSEE) | {"oat"}
+            if age.days < JOURS_FRAICHEUR and attendues <= set(existant.get("series", {})):
                 return existant
         except (KeyError, ValueError):
             pass  # champ maj absent/invalide : on recollecte

@@ -2251,6 +2251,8 @@ function definitionsMarche() {
   simple("ilc");
   simple("logements_idf");
   simple("oat");
+  simple("climat_commerce");
+  simple("cout_construction");
   const dTous = S.defaillances_idf, dCom = S.defaillances_commerce_idf, dResto = S.defaillances_resto_idf;
   const dSeries = [
     dTous && dTous.points.length && {nom: "Tous secteurs", css: "--g1", points: dTous.points},

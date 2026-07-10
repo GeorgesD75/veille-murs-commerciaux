@@ -83,6 +83,21 @@ def test_fichier_frais_ne_reinterroge_pas_les_api(tmp_path, monkeypatch):
     assert resultat["series"]["ilc"]["points"]
 
 
+def test_nouvelle_serie_configuree_declenche_la_recollecte(tmp_path, monkeypatch):
+    """Un fichier FRAIS mais auquel il manque une série attendue par le code
+    (série ajoutée depuis) doit être recollecté — sinon un nouveau graphique
+    resterait vide pendant un mois."""
+    appels = _get_factice(monkeypatch)
+    chemin = tmp_path / "marche.json"
+    actualiser_marche(chemin)          # fichier complet et frais
+    nb = len(appels)
+    contenu = json.loads(chemin.read_text(encoding="utf-8"))
+    del contenu["series"]["ilc"]       # simule une série pas encore collectée
+    chemin.write_text(json.dumps(contenu), encoding="utf-8")
+    actualiser_marche(chemin)
+    assert len(appels) > nb
+
+
 def test_fichier_perime_est_recollecte(tmp_path, monkeypatch):
     appels = _get_factice(monkeypatch)
     chemin = tmp_path / "marche.json"
