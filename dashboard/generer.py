@@ -288,8 +288,9 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
 
 .page { max-width: 1380px; margin: 0 auto; padding: 10px 24px 90px; }
 
-/* ---- Filtres (repliables sur mobile) ---- */
-.volet-filtres { position: sticky; top: 0; z-index: 5; background: var(--plan);
+/* ---- Filtres (repliables sur mobile) — volontairement PAS sticky :
+   la barre défile avec la page au lieu de manger l'écran en permanence. ---- */
+.volet-filtres { background: var(--plan);
   border-bottom: 1px solid var(--filet); margin-bottom: 4px; }
 .volet-filtres > summary { display: none; cursor: pointer; padding: 10px 0;
   font-weight: 600; color: var(--encre-2); list-style: none; }
