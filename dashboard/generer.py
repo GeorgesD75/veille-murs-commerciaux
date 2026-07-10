@@ -27,6 +27,11 @@ from pipeline.modeles import Annonce
 
 HEURES_NOUVEAUTE = 48
 JOURS_EXCLUES = 7
+# Annonce plus revue en ligne depuis ce délai : probablement vendue ou retirée
+# (3 tournées/jour = ~42 passages manqués, une panne de source ne dure pas si
+# longtemps). Elle n'est jamais supprimée, mais reléguée et signalée : perdre
+# du temps sur un bien déjà vendu est le pire gaspillage pour un investisseur.
+JOURS_PEUT_ETRE_RETIREE = 14
 _HORS_ZONE = "hors Île-de-France"
 
 
@@ -44,6 +49,7 @@ def preparer_payload(
     """Données embarquées dans la page, prêtes à afficher."""
     seuil_nouveaute = maintenant - timedelta(hours=HEURES_NOUVEAUTE)
     seuil_exclues = maintenant - timedelta(days=JOURS_EXCLUES)
+    seuil_retiree = maintenant - timedelta(days=JOURS_PEUT_ETRE_RETIREE)
 
     retenues = []
     for a in sorted(
@@ -94,14 +100,26 @@ def preparer_payload(
                 "image_url": a.image_url,
                 "images": a.images,
                 "date_premiere_vue": a.date_premiere_vue,
+                "date_derniere_vue": a.date_derniere_vue,
                 "est_nouvelle": _iso(a.date_premiere_vue) >= seuil_nouveaute,
+                "jours_sans_vue": (maintenant - _iso(a.date_derniere_vue)).days,
+                "peut_etre_retiree": _iso(a.date_derniere_vue) < seuil_retiree,
                 # classeur Excel « dossier banque », si généré pour ce bien
                 "dossier": f"dossiers/{dossiers[a.id]}" if dossiers and a.id in dossiers else None,
-                # Rang parmi les annonces retenues (la liste est déjà triée par score
-                # décroissant) : répond à « est-ce mieux que les autres vues cette semaine ? »
-                "rang_score": len(retenues) + 1,
             }
         )
+
+    # Rang parmi les annonces encore VUES en ligne (la liste est triée par score
+    # décroissant) : répond à « est-ce mieux que les autres vues cette semaine ? ».
+    # Une annonce probablement retirée ne prend pas de rang — un bien vendu qui
+    # occuperait la 1re place fausserait toute la comparaison.
+    rang = 0
+    for a in retenues:
+        if a["peut_etre_retiree"]:
+            a["rang_score"] = None
+        else:
+            rang += 1
+            a["rang_score"] = rang
 
     # Nombre d'autres annonces retenues dans le même secteur (code postal) :
     # peu de comparables = valorisation plus incertaine, à dire honnêtement.
@@ -150,7 +168,10 @@ def preparer_payload(
             "quartier": scoring["quartier"]["points"],
         },
         "stats": {
-            "retenues": len(retenues),
+            # « retenues » = encore vues en ligne : c'est le dénominateur du
+            # classement affiché (« se classe Xᵉ sur Y ») — les annonces
+            # probablement retirées n'y comptent pas.
+            "retenues": rang,
             "nouvelles": sum(1 for a in retenues if a["est_nouvelle"]),
             "pepites": sum(1 for a in retenues if (a["score"] or 0) >= seuils["pepite"]),
             "analysees": len(retenues) + len(exclues_recentes),
@@ -996,7 +1017,8 @@ function questionsReponsesHtml(a) {
   const lignes = [];
 
   let visite;
-  if (suspect) visite = "À vérifier d'abord — le rendement affiché est suspect (voir l'alerte) avant d'envisager une visite.";
+  if (a.peut_etre_retiree) visite = `Vérifiez d'abord que l'annonce est toujours en ligne : plus revue depuis ${a.jours_sans_vue} jours, elle a probablement été vendue ou retirée.`;
+  else if (suspect) visite = "À vérifier d'abord — le rendement affiché est suspect (voir l'alerte) avant d'envisager une visite.";
   else if ((a.score ?? 0) >= D.seuils.vert) visite = "Oui : un des mieux notés du moment, une visite est justifiée.";
   else if ((a.score ?? 0) >= D.seuils.affichage) visite = "Plutôt oui, checklist en main — des points corrects, sans être exceptionnel.";
   else visite = "Pas en priorité : d'autres biens mieux notés méritent votre temps d'abord.";
@@ -1271,6 +1293,8 @@ function carteHtml(a, options) {
   const badges = [];
   badges.push(`<span class="badge badge-type">${a.type_murs === "murs_occupes" ? "Murs occupés" : "Murs libres"}</span>`);
   if (a.est_nouvelle) badges.push(`<span class="badge badge-nouveau">${IC.etincelle} nouveau</span>`);
+  if (a.peut_etre_retiree)
+    badges.push(`<span class="badge badge-alerte" title="Cette annonce n'apparaît plus dans les résultats de sa source depuis le ${fmtDate(a.date_derniere_vue)} (${a.jours_sans_vue} jours). Elle a probablement été vendue ou retirée — ou, plus rarement, la source a changé de structure. Cliquez le lien pour vérifier avant d'y investir du temps.">${IC.alerte} peut-être vendue · non revue depuis ${a.jours_sans_vue} j</span>`);
   if (suspect)
     badges.push(`<span class="badge badge-alerte">${IC.alerte} rendement à vérifier</span>`);
   if (cf != null && cf >= 0 && !suspect) {
@@ -1421,7 +1445,7 @@ function ligneCompacteHtml(a) {
       <span class="chevron">▸</span>
       <span class="mini-score" style="background:${fonds};color:${encres}">${a.score ?? "—"}</span>
       <span class="t">${ech(a.titre)}</span>
-      <span class="d">${ech(a.ville)} · ${fmtEuros(a.prix)} · rdt ${fmtPct(a.rendement_brut_pct)}</span>
+      <span class="d">${ech(a.ville)} · ${fmtEuros(a.prix)} · rdt ${fmtPct(a.rendement_brut_pct)}${a.peut_etre_retiree ? ` · <span style="color:var(--alerte-texte)">non revue depuis ${a.jours_sans_vue} j</span>` : ""}</span>
     </div></summary>
     <div class="corps-depliable"></div>
   </details>`;
@@ -1568,10 +1592,13 @@ function rendre() {
   localStorage.setItem(CLE_FILTRES, JSON.stringify(f));
   majResumeSecteurs(f);
   const visibles = D.retenues.filter(a => appliquer(a, f));
-  const prio = visibles.filter(a => (a.score ?? 0) >= D.seuils.vert && !masquees.includes(a.id));
+  // Une annonce écartée à la main OU plus revue en ligne depuis longtemps
+  // (probablement vendue/retirée) descend dans le reste du tableau de chasse.
+  const relegue = a => masquees.includes(a.id) || a.peut_etre_retiree;
+  const prio = visibles.filter(a => (a.score ?? 0) >= D.seuils.vert && !relegue(a));
   const etudier = visibles.filter(a =>
-    (a.score ?? 0) >= D.seuils.affichage && (a.score ?? 0) < D.seuils.vert && !masquees.includes(a.id));
-  const reste = visibles.filter(a => (a.score ?? 0) < D.seuils.affichage || masquees.includes(a.id));
+    (a.score ?? 0) >= D.seuils.affichage && (a.score ?? 0) < D.seuils.vert && !relegue(a));
+  const reste = visibles.filter(a => (a.score ?? 0) < D.seuils.affichage || relegue(a));
 
   const podium = [...prio, ...etudier].slice(0, 3).map(a => a.id);
   const opts = a => ({

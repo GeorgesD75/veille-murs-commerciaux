@@ -71,6 +71,29 @@ def test_exclues_limitees_a_sept_jours_et_hors_zone_agrege(config):
     assert payload["stats"]["analysees"] == 4             # 2 retenues + 2 exclues récentes
 
 
+def test_annonce_plus_revue_depuis_15_jours_est_signalee_et_sans_rang(config):
+    """Une annonce absente des collectes depuis > 14 jours est probablement
+    vendue : signalée, sans rang, et hors du dénominateur du classement."""
+    fraiche = faire_annonce(
+        id="ok1", date_premiere_vue="2026-06-01T07:00:00+02:00",
+        date_derniere_vue="2026-07-03T07:00:00+02:00",
+    )
+    fraiche.score = 60
+    fantome = faire_annonce(
+        id="vieux1", date_premiere_vue="2026-06-01T07:00:00+02:00",
+        date_derniere_vue="2026-06-18T07:00:00+02:00",  # 15 jours avant MAINTENANT
+    )
+    fantome.score = 85  # meilleur score : sans le signal, il serait nº 1
+    payload = preparer_payload({a.id: a for a in [fraiche, fantome]}, {}, config, MAINTENANT)
+    par_id = {a["id"]: a for a in payload["retenues"]}
+    assert par_id["vieux1"]["peut_etre_retiree"] is True
+    assert par_id["vieux1"]["jours_sans_vue"] == 15
+    assert par_id["vieux1"]["rang_score"] is None
+    assert par_id["ok1"]["peut_etre_retiree"] is False
+    assert par_id["ok1"]["rang_score"] == 1
+    assert payload["stats"]["retenues"] == 1
+
+
 def test_html_autonome_et_non_reference(config):
     payload = preparer_payload(
         _annonces_exemple(),
