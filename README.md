@@ -154,8 +154,9 @@ C'est terminé : chaque matin à 7 h, tout se refait sans vous.
 ```
 run.py                  La tournée : collecte → filtres → score → site → emails
 config.yaml             TOUS les réglages, commentés en français
-sources/                1 fichier = 1 source (8 canaux), client HTTP poli
-                        (robots.txt vérifié, 3-5 s entre requêtes, arrêt sur refus)
+sources/                1 fichier = 1 source (scraping poli, API notariale,
+                        enchères, alertes email) — robots.txt vérifié, délais
+                        respectés, arrêt propre sur refus
 pipeline/               Filtres anti-pièges, dédoublonnage, enrichissement,
                         scoring /100, lecture du prix, notifications
 dashboard/generer.py    Le site « Les Murs. » (1 fichier autonome, non référencé)

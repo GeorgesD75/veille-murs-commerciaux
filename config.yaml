@@ -16,8 +16,11 @@ filtres:
   # Piège n°1 : fonds de commerce / droit au bail déguisés en vente de murs.
   mots_toujours_eliminatoires:
     - "fonds de commerce"
-    - "cession de fonds"
+    - "fond de commerce"     # faute courante dans les annonces réelles (constatée
+    - "cession de fond"      # sur une annonce notariale du 2026-07-10) : sans ces
+    - "cession de fonds"     # variantes sans « s », le piège n°1 passait le filtre
     - "cession du fonds"
+    - "cession du fond"
     - "droit au bail"
   # Éliminatoires SAUF si le mot « murs » apparaît explicitement dans l'annonce.
   mots_eliminatoires_sauf_murs:
@@ -161,6 +164,9 @@ sources:                      # activer/désactiver une source = une ligne
   # Facebook Marketplace : accès authentifié + anti-bot, pas de contournement propre.
   # century21 : non implémenté en scraping (robots.txt restrictif, rubrique commerces
   # non identifiable sans blocage) — couvert par les alertes email ci-dessous.
+  notaires:        {actif: true, max_pages: 5}  # API JSON publique des études notariales —
+                                    # volume IdF faible mais annonces quasi off-market,
+                                    # données de confiance (prix du mandat, INSEE, bienVendu)
   imap:            {actif: true}    # alertes email LeBonCoin/SeLoger/Geolocaux/BureauxLocaux
                                     # (s'ignore proprement tant que IMAP_USER/IMAP_PASSWORD manquent)
 

@@ -1,0 +1,60 @@
+{
+ "page": 1,
+ "nbPages": 1,
+ "parPage": 100,
+ "nbTotalAnnonces": 5,
+ "dateServeur": "2026-07-10T15:00:00Z",
+ "annonceResumeDto": [
+  {
+   "id": 2149001, "annonceId": 2034001, "statut": "LIGNE",
+   "prixAffiche": 380000, "prixTotal": 380000,
+   "localiteNom": "PARIS 18E", "codePostal": "75018",
+   "inseeCommune": "75118", "communeNom": "Paris 18e Arrondissement",
+   "inseeDepartement": "75", "departementNom": "Paris",
+   "typeTransaction": "VENTE", "typeBien": "COM",
+   "bienVendu": "INCONNU", "bienRetire": "INCONNU",
+   "descriptionFr": "Murs de boutique de 42 m² vendus loués, rue commerçante. Loyer annuel 21 600 €.",
+   "urlDetailAnnonceFr": "https://www.immobilier.notaires.fr/fr/annonce-immo/vente/commerce/paris-18e-75/2034001"
+  },
+  {
+   "id": 2149002, "annonceId": 2034002, "statut": "LIGNE",
+   "prixAffiche": 690, "prixTotal": 690,
+   "communeNom": "Saint-Valery-en-Caux", "codePostal": "76460",
+   "inseeDepartement": "76",
+   "typeTransaction": "LOCATION", "typeBien": "COM",
+   "bienVendu": "INCONNU", "bienRetire": "INCONNU",
+   "descriptionFr": "Local commercial de 35 m² en location.",
+   "urlDetailAnnonceFr": "https://www.immobilier.notaires.fr/fr/annonce-immo/location/commerce/st-valery-76/2034002"
+  },
+  {
+   "id": 2149003, "annonceId": 2034003, "statut": "LIGNE",
+   "prixAffiche": 250000, "prixTotal": 250000,
+   "communeNom": "Lyon 2e Arrondissement", "codePostal": "69002",
+   "inseeDepartement": "69",
+   "typeTransaction": "VENTE", "typeBien": "COM",
+   "bienVendu": "INCONNU", "bienRetire": "INCONNU",
+   "descriptionFr": "Local commercial hors Île-de-France.",
+   "urlDetailAnnonceFr": "https://www.immobilier.notaires.fr/fr/annonce-immo/vente/commerce/lyon-69/2034003"
+  },
+  {
+   "id": 2149004, "annonceId": 2034004, "statut": "LIGNE",
+   "prixAffiche": 199000, "prixTotal": 199000,
+   "communeNom": "Montreuil", "codePostal": "93100",
+   "inseeDepartement": "93",
+   "typeTransaction": "VENTE", "typeBien": "COM",
+   "bienVendu": "OUI", "bienRetire": "INCONNU",
+   "descriptionFr": "Déjà vendu, ne doit pas entrer dans le pipeline.",
+   "urlDetailAnnonceFr": "https://www.immobilier.notaires.fr/fr/annonce-immo/vente/commerce/montreuil-93/2034004"
+  },
+  {
+   "id": 2149005, "annonceId": 2034005, "statut": "LIGNE",
+   "prixAffiche": 145000, "prixTotal": 145000,
+   "communeNom": "Conflans-Sainte-Honorine", "codePostal": "78700",
+   "inseeDepartement": "78",
+   "typeTransaction": "VNI", "typeBien": "COM",
+   "bienVendu": "INCONNU", "bienRetire": "INCONNU",
+   "descriptionFr": "Vente négociée immo interactif : local libre de toute occupation, 58 m².",
+   "urlDetailAnnonceFr": "https://www.immobilier.notaires.fr/fr/annonce-immo/vente/commerce/conflans-78/2034005"
+  }
+ ]
+}

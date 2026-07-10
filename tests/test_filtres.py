@@ -18,6 +18,15 @@ def test_fonds_de_commerce_exclu_meme_avec_murs(config, trajets):
     assert raison_exclusion(a, config, trajets) is not None
 
 
+def test_fond_de_commerce_sans_s_exclu_aussi(config, trajets):
+    """Faute courante dans les annonces réelles (vue sur une annonce notariale) :
+    « fond de commerce » sans « s » doit tomber dans le même piège n°1."""
+    a = faire_annonce(titre="A saisir", description="Fond de commerce de pharmacie en zone commerciale.")
+    assert raison_exclusion(a, config, trajets) is not None
+    a2 = faire_annonce(titre="A saisir", description="Cession de fond suite retraite.")
+    assert raison_exclusion(a2, config, trajets) is not None
+
+
 def test_droit_au_bail_exclu(config, trajets):
     a = faire_annonce(titre="Droit au bail boutique", description="Emplacement n°1.")
     raison = raison_exclusion(a, config, trajets)
