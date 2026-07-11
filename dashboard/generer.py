@@ -1194,37 +1194,69 @@ function explicationPepiteHtml(a) {
 }
 
 function messageContact(a) {
-  // Modèle personnalisé à partir des données déjà connues de l'annonce —
-  // à relire et adapter (nom, ton) avant envoi : jamais un envoi automatique.
+  // Modèle personnalisé à partir des données déjà connues de l'annonce — à
+  // relire et adapter (nom, ton) avant envoi : jamais un envoi automatique.
+  // Logique de négociation, sans jamais tordre un fait :
+  //  1. acheteur CRÉDIBLE et prêt (financement, décision rapide) — c'est ce
+  //     qu'un vendeur achète autant que le prix ;
+  //  2. acheteur INFORMÉ : prix au m² du secteur, historique de prix observé —
+  //     des faits posés calmement déplacent le rapport de force ;
+  //  3. le cadre : c'est le DOSSIER qui doit me convaincre (liste de pièces
+  //     avant visite), pas l'annonce qui doit me faire rêver ;
+  //  4. alternatives réelles : je compare plusieurs biens — dit poliment, une
+  //     seule fois, jamais répété (sinon ça sonne faux).
+  //  On ne chiffre PAS d'offre au premier contact : annoncer un prix avant
+  //  d'avoir lu le bail affaiblit (l'ancre du « prix cible » sert APRÈS visite).
+  const nl = String.fromCharCode(10);
   const lignes = [];
+  lignes.push(`Objet : ${a.titre} — demande de dossier avant visite`, "");
   lignes.push("Bonjour,", "");
-  lignes.push(`Je vous contacte au sujet de votre annonce « ${a.titre} » à ${a.ville}` +
-    `${a.code_postal ? ` (${a.code_postal})` : ""}` +
-    `${a.prix != null ? `, affichée à ${fmtEuros(a.prix)}` : ""}. Je suis un investisseur particulier, ` +
-    "en recherche active de murs commerciaux en Île-de-France, disponible pour avancer rapidement " +
-    "sur un dossier qui me convient.", "");
-  lignes.push("Serait-il possible d'organiser une visite prochainement ?", "");
+  const suivi = [];
+  if (!a.est_nouvelle && a.date_premiere_vue)
+    suivi.push(`que je suis depuis le ${fmtDate(a.date_premiere_vue)}`);
+  lignes.push(`Votre annonce « ${a.titre} » à ${a.ville}` +
+    `${a.code_postal ? ` (${a.code_postal})` : ""}${suivi.length ? ", " + suivi.join("") : ""}` +
+    `${a.prix != null ? `, affichée à ${fmtEuros(a.prix)}` : ""}, correspond à mes critères.`);
+  lignes.push(`Lien : ${a.url}`, "");
+  lignes.push("Je suis investisseur en murs commerciaux en Île-de-France, avec un plan de " +
+    "financement déjà préparé avec ma banque. Concrètement : je visite vite, je lis le dossier " +
+    "vite, et je fais une offre écrite dans la semaine quand le dossier tient.", "");
+
+  // Faits de marché posés calmement — uniquement quand on les a vraiment.
+  const faits = [];
+  const hist = a.historique_prix || [];
+  if (hist.length >= 2 && hist[hist.length - 1].prix < hist[0].prix)
+    faits.push(`j'ai noté l'évolution du prix demandé (${fmtEuros(hist[0].prix)} le ` +
+      `${fmtDate(hist[0].date)}, ${fmtEuros(hist[hist.length - 1].prix)} aujourd'hui)`);
+  if (a.decote_pct != null && a.decote_pct <= -5 && a.prix_m2 != null
+      && a.marche_prix_m2_bas != null && a.marche_prix_m2_haut != null)
+    faits.push(`les locaux comparables du secteur se négocient entre ${fmtEuros(a.marche_prix_m2_bas)} ` +
+      `et ${fmtEuros(a.marche_prix_m2_haut)}/m², le vôtre ressort à ${fmtEuros(a.prix_m2)}/m²`);
+  if (faits.length)
+    lignes.push(`Pour être transparent sur ma lecture du marché : ${faits.join(" ; ")}. ` +
+      "J'en tiendrai compte dans mon analyse, pièces en main.", "");
+
+  lignes.push("Pour préparer une visite utile, pourriez-vous me transmettre :", "");
   const demandes = [];
-  if (a.type_murs === "murs_occupes")
-    demandes.push("une copie du bail en cours et des 3 dernières quittances de loyer",
-      "le montant exact de la taxe foncière");
-  else
-    demandes.push("le loyer que vous jugez réalisable pour ce local, et sur quelle base");
-  demandes.push("le règlement de copropriété et le montant des charges (si applicable)", "le DPE");
-  if (!a.images || !a.images.length) demandes.push("quelques photos supplémentaires si possible");
-  lignes.push(`Avant la visite, pourriez-vous également me communiquer ${demandes.join(", ")} ?`, "");
-  if (a.prix_cible_rendement != null && a.prix != null && a.prix_cible_rendement < a.prix) {
-    const remise = Math.round((1 - a.prix_cible_rendement / a.prix) * 100);
-    lignes.push(`Après une première analyse, une offre autour de ${fmtEuros(a.prix_cible_rendement)} ` +
-      `(environ ${remise} % sous le prix affiché) me semblerait cohérente avec le marché du secteur — ` +
-      "à affiner bien sûr après visite et vérification des documents.", "");
+  if (a.type_murs === "murs_occupes") {
+    demandes.push("— le bail commercial complet (et ses avenants) ;");
+    demandes.push("— les 3 dernières quittances de loyer ;");
+    demandes.push("— le montant et la répartition de la taxe foncière et des charges (article 606 inclus) ;");
+    demandes.push("— l'activité et l'ancienneté du locataire (Kbis si possible) ;");
   } else {
-    lignes.push("Le prix affiché me semble cohérent avec le marché du secteur ; je resterais preneur " +
-      "d'un premier échange sur une éventuelle marge de négociation.", "");
+    demandes.push("— l'historique de location du local (dernier loyer pratiqué, durée de vacance) ;");
+    demandes.push("— la destination autorisée par le règlement de copropriété ;");
+    demandes.push("— le montant de la taxe foncière et des charges de copropriété ;");
   }
-  lignes.push("Je reste disponible pour échanger par téléphone si vous préférez.", "");
-  lignes.push("Cordialement,", "[Votre nom]");
-  return lignes.join(String.fromCharCode(10));
+  demandes.push("— les PV des 3 dernières assemblées générales (travaux votés ou à prévoir) ;");
+  demandes.push("— le DPE" + (!a.images || !a.images.length ? " et quelques photos ;" : " ;"));
+  lignes.push(...demandes, "");
+  lignes.push("J'étudie en parallèle plusieurs locaux comparables dans le secteur — un dossier " +
+    "complet me permet de me positionner rapidement, et je m'engage à vous faire un retour clair " +
+    "dans les jours qui suivent la visite, dans un sens comme dans l'autre.", "");
+  lignes.push("Quelles seraient vos disponibilités cette semaine ou la suivante ?", "");
+  lignes.push("Cordialement,", "[Votre nom] — [téléphone]");
+  return lignes.join(nl);
 }
 
 function ouvrirContact(id) {
