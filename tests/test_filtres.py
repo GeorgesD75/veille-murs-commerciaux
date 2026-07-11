@@ -99,7 +99,9 @@ def test_trajet_trop_long_exclu(config, trajets):
 def test_temps_trajet_renseigne_pour_le_scoring(config, trajets):
     a = faire_annonce()  # Pantin
     raison_exclusion(a, config, trajets)
-    assert a.temps_trajet_min == 15
+    # la valeur vient de data/trajets.json (étalonné depuis la rue Francoeur) :
+    # on vérifie le branchement, pas le chiffre exact — la table est réglable à la main
+    assert a.temps_trajet_min == trajets.communes["pantin"]
 
 
 # --- Cohérence prix/m² (fonds déguisé) ---

@@ -1,4 +1,5 @@
-"""Géographie : couronnes, temps de trajet approximatifs depuis Paris 18e."""
+"""Géographie : couronnes, temps de trajet approximatifs depuis le domicile
+(rue Francoeur, Paris 18e — Lamarck-Caulaincourt L12 à 3 min à pied)."""
 from __future__ import annotations
 
 import json

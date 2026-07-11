@@ -61,7 +61,7 @@ def raison_exclusion(annonce: Annonce, config: Config, trajets: Trajets) -> str 
     temps = trajets.temps_depuis_paris18(annonce.ville, annonce.departement, annonce.code_postal)
     annonce.temps_trajet_min = temps
     if temps is not None and temps > config.zone["temps_trajet_max_min"]:
-        return f"trop loin de Paris 18e (~{temps} min de transport)"
+        return f"trop loin du domicile — rue Francoeur, 18e (~{temps} min de transport)"
 
     raison = detecter_fonds_de_commerce(annonce, config)
     if raison:

@@ -871,7 +871,7 @@ function finTxt() {  // description du financement courant, pour textes et infob
 const LIBELLES_SCORE = {
   rendement: "Rendement", emplacement: "Emplacement",
   prix_m2_vs_benchmark: "Prix vs marché", financement: "Financement", fiscalite: "Fiscalité",
-  proximite: "Trajet 18e", quartier: "Quartier 18e"
+  proximite: "Trajet domicile", quartier: "Quartier 18e"
 };
 const TAMPONS = ["Nº 1 du jour", "Nº 2", "Nº 3"];
 
@@ -1276,8 +1276,8 @@ const EXPLICATIONS = {
     return base;
   },
   fiscalite: "Signaux fiscaux repérés dans l'annonce : TVA récupérable ou zone à avantage fiscal (+1,5 pt chacun), taxe foncière signalée élevée (−1,5 pt). Rien de mentionné = 2,5/5, neutre — une information absente n'est pas une mauvaise nouvelle en soi.",
-  proximite: "Le temps de trajet depuis chez vous (Paris 18e). Moins de 20 min = 5 pts, 20 à 40 min = 3, 40 à 60 min = 1. Un bien qu'on peut surveiller facilement se gère mieux.",
-  quartier: "Bonus de 5 pts si le bien est dans le 18e : votre quartier, que vous connaissez, et où vous pouvez passer à pied.",
+  proximite: "Le temps de trajet estimé depuis chez vous, rue Francoeur (Paris 18e — Lamarck-Caulaincourt à 3 min à pied, Château Rouge à 12 min). Moins de 20 min = 3 pts, 20 à 40 min = 2, 40 à 60 min = 1. Un critère de confort, volontairement léger dans le score.",
+  quartier: "Bonus de 2 pts si le bien est dans le 18e : votre quartier, que vous connaissez, et où vous pouvez passer à pied. Volontairement léger : connaître la rue ne rend pas un mauvais dossier meilleur.",
 };
 
 function explicationLoyer(a, loyer) {
@@ -1450,7 +1450,7 @@ function carteHtml(a, options) {
     ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "") + rdtBrutInfo],
     ["Rdt acte en main", fmtPct(a.rendement_acte_en_main_pct) + rdtActeInfo],
     [profil.apport > 0 ? `Cash-flow (${profil.apport} % apport)` : "Cash-flow crédit 100 %", cfHtml],
-    ["Trajet 18e", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min"],
+    ["Trajet", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min"],
   ].map(([l, v]) =>
     `<div class="metrique"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
 
@@ -1525,7 +1525,7 @@ const ENCHERE_MAXIMA = {emplacement: 30, gabarit: 20, depart: 15, dossier: 15,
                         proximite: 10, preparation: 10};
 const ENCHERE_LIBELLES = {emplacement: "Emplacement", gabarit: "Gabarit vs budget",
   depart: "Départ sous plafond", dossier: "Dossier lisible",
-  proximite: "Trajet 18e", preparation: "Préparation"};
+  proximite: "Trajet domicile", preparation: "Préparation"};
 
 function explicationsEnchere(e) {
   const jours = e.date_vente
@@ -1535,7 +1535,7 @@ function explicationsEnchere(e) {
     gabarit: "Ce que le bien VAUT vraiment (pas la mise à prix, qui est toujours basse) rentre-t-il dans votre budget de 420 000 € ? Oui = 20 pts. S'il vaut beaucoup plus, des enchérisseurs plus riches vous le prendront — ce n'est pas votre combat.",
     depart: "L'écart entre le prix de départ et VOTRE limite (le plafond de raison). Grand écart = 15 pts : vous pouvez suivre les enchères longtemps tout en restant gagnant. Petit écart = la moindre surenchère vous éjecte.",
     dossier: "Ce qu'on sait du bien avant d'y aller : surface connue (+6), estimation officielle du commissaire (+5), ville précisée (+4). Moins on en sait, plus on achète à l'aveugle.",
-    proximite: "Le temps de trajet depuis chez vous (Paris 18e) : moins de 20 min = 10 pts, 20-40 = 6, 40-60 = 3.",
+    proximite: "Le temps de trajet estimé depuis chez vous, rue Francoeur (18e) : moins de 20 min = 10 pts, 20-40 = 6, 40-60 = 3.",
     preparation: (e.date_vente
       ? `La vente a lieu le ${new Date(e.date_vente).toLocaleDateString("fr-FR")}${jours != null ? ` (dans ${jours} jour${jours > 1 ? "s" : ""})` : ""}. `
       : "Date de vente inconnue. ")
@@ -1780,7 +1780,7 @@ function ouvrirComparateur() {
     ["Rdt acte en main", b => fmtPct(b.rendement_acte_en_main_pct)],
     ["Écart à la médiane", b => b.decote_pct == null ? "—" :
       (b.decote_pct >= 0 ? `<span class="meilleur">-${fmtPct(b.decote_pct)}</span>` : `+${fmtPct(-b.decote_pct)}`)],
-    ["Trajet Paris 18e", b => b.temps_trajet_min == null ? "—" : `≈ ${b.temps_trajet_min} min`],
+    ["Trajet domicile", b => b.temps_trajet_min == null ? "—" : `≈ ${b.temps_trajet_min} min`],
     ["Type", b => b.type_murs === "murs_occupes" ? "Murs occupés" : "Murs libres"],
     ["Atouts", b => (b.caracteristiques || []).join(" · ") || "—"],
     ["", b => `<button type="button" class="btn-comp" data-id="${ech(b.id)}">Retirer</button>`],
@@ -2392,7 +2392,9 @@ function initialiser() {
   }).join("");
 
   document.getElementById("legende").textContent =
-    `Barème /100 : rendement 40 + emplacement 25 + prix vs marché 20 + trajet 5 + quartier 18e 5 ` +
+    `Barème /100 : rendement ${D.maxima.rendement} + emplacement ${D.maxima.emplacement} ` +
+    `+ prix vs marché ${D.maxima.prix_m2_vs_benchmark} + financement ${D.maxima.financement} ` +
+    `+ fiscalité ${D.maxima.fiscalite} + trajet ${D.maxima.proximite} + quartier 18e ${D.maxima.quartier} ` +
     `+ bonus/malus (−3 à +5, plafonné à 100). Rangs : S ≥ ${D.seuils.pepite} (pépite, email immédiat), ` +
     `A ≥ ${D.seuils.vert}, B ≥ ${D.seuils.orange}, C en dessous. Un rendement > 10 % est plafonné ` +
     `sous ${D.seuils.affichage} (piège probable) jusqu'à vérification. ` +

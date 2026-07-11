@@ -1,32 +1,32 @@
 {
-  "_note": "Temps de trajet approximatifs en transports en commun depuis Paris 18e (minutes). Table statique modifiable a la main : recherche par commune (nom en minuscules sans accents ni tirets), sinon valeur par defaut du departement. Approximation assumee : suffisante pour un filtre a 60 min, gratuite et sans API.",
-  "_note_arrondissements": "Paris est affine par arrondissement (cle = numero 1-20) plutot qu'une seule valeur pour tout Paris. Depart suppose : metro Chateau Rouge (ligne 4) ou Lamarck-Caulaincourt (ligne 12), dans le 18e. Estimation = trajet metro direct/avec correspondance + marche moyenne jusqu'a l'adresse (les locaux commerciaux ne sont pas toujours a cote d'une station) ; pas de calcul d'itineraire reel, a corriger a la main si un cas concret s'avere faux.",
+  "_note": "Temps de trajet approximatifs en transports en commun depuis le domicile, rue Francoeur (Paris 18e), en minutes. Table statique modifiable a la main : recherche par commune (nom en minuscules sans accents ni tirets), sinon valeur par defaut du departement. Approximation assumee : suffisante pour un filtre a 60 min, gratuite et sans API.",
+  "_note_depart": "Depart reel : rue Francoeur, 75018. Lamarck-Caulaincourt (ligne 12) a ~3 min a pied, Jules Joffrin (12) a ~6 min, Marcadet-Poissonniers (4) a ~9 min, Chateau Rouge (4) a ~12 min. Consequence du re-etalonnage 2026-07-11 : les trajets dependant de la ligne 12 restent courts, ceux qui passent par la ligne 4 ou les gares du Nord/de l'Est prennent la marche initiale en plus (l'ancienne table supposait ces stations au pied de la porte et sous-estimait presque tout le sud et l'est).",
   "arrondissements_paris": {
-    "1": 20, "2": 18, "3": 20, "4": 22, "5": 28, "6": 28, "7": 25, "8": 18,
-    "9": 15, "10": 10, "11": 25, "12": 35, "13": 40, "14": 32, "15": 45,
-    "16": 48, "17": 18, "18": 8, "19": 20, "20": 25
+    "1": 28, "2": 27, "3": 28, "4": 30, "5": 35, "6": 33, "7": 30, "8": 22,
+    "9": 17, "10": 22, "11": 33, "12": 38, "13": 45, "14": 38, "15": 45,
+    "16": 50, "17": 27, "18": 8, "19": 27, "20": 37
   },
   "communes": {
-    "paris": 25,
-    "saint ouen": 10, "saint ouen sur seine": 10,
-    "clichy": 10, "levallois perret": 15, "neuilly sur seine": 20,
-    "asnieres sur seine": 20, "courbevoie": 25, "puteaux": 25, "nanterre": 25,
-    "boulogne billancourt": 30, "issy les moulineaux": 35, "montrouge": 30,
-    "saint denis": 15, "aubervilliers": 15, "pantin": 15, "la courneuve": 20,
-    "le bourget": 25, "bobigny": 25, "drancy": 30, "epinay sur seine": 25,
-    "villetaneuse": 25, "noisy le sec": 30, "rosny sous bois": 35, "aulnay sous bois": 35,
-    "montreuil": 25, "bagnolet": 25, "les lilas": 20,
-    "vincennes": 30, "charenton le pont": 30, "ivry sur seine": 30, "maisons alfort": 35,
-    "nogent sur marne": 35, "vitry sur seine": 40, "creteil": 40, "saint maur des fosses": 45,
-    "argenteuil": 25, "enghien les bains": 20, "ermont": 30, "sarcelles": 30,
-    "garges les gonesse": 30, "cergy": 45, "pontoise": 45,
-    "sartrouville": 30, "houilles": 25, "saint germain en laye": 40, "poissy": 45,
-    "versailles": 45, "mantes la jolie": 60, "rambouillet": 75,
-    "massy": 45, "evry courcouronnes": 55, "corbeil essonnes": 55, "etampes": 70,
-    "chelles": 30, "lagny sur marne": 40, "meaux": 50, "melun": 55,
-    "fontainebleau": 75, "provins": 95
+    "paris": 30,
+    "saint ouen": 15, "saint ouen sur seine": 15,
+    "clichy": 18, "levallois perret": 28, "neuilly sur seine": 35,
+    "asnieres sur seine": 32, "courbevoie": 40, "puteaux": 40, "nanterre": 42,
+    "boulogne billancourt": 45, "issy les moulineaux": 48, "montrouge": 45,
+    "saint denis": 18, "aubervilliers": 15, "pantin": 28, "la courneuve": 30,
+    "le bourget": 35, "bobigny": 38, "drancy": 35, "epinay sur seine": 33,
+    "villetaneuse": 33, "noisy le sec": 38, "rosny sous bois": 42, "aulnay sous bois": 42,
+    "montreuil": 38, "bagnolet": 36, "les lilas": 33,
+    "vincennes": 40, "charenton le pont": 40, "ivry sur seine": 42, "maisons alfort": 45,
+    "nogent sur marne": 42, "vitry sur seine": 48, "creteil": 50, "saint maur des fosses": 50,
+    "argenteuil": 38, "enghien les bains": 35, "ermont": 40, "sarcelles": 40,
+    "garges les gonesse": 38, "cergy": 55, "pontoise": 52,
+    "sartrouville": 43, "houilles": 38, "saint germain en laye": 52, "poissy": 55,
+    "versailles": 55, "mantes la jolie": 70, "rambouillet": 80,
+    "massy": 55, "evry courcouronnes": 60, "corbeil essonnes": 65, "etampes": 75,
+    "chelles": 40, "lagny sur marne": 50, "meaux": 55, "melun": 60,
+    "fontainebleau": 80, "provins": 95
   },
   "departements_defaut": {
-    "75": 15, "92": 25, "93": 25, "94": 35, "95": 45, "78": 50, "91": 55, "77": 55
+    "75": 30, "92": 38, "93": 33, "94": 45, "95": 45, "78": 52, "91": 60, "77": 58
   }
 }

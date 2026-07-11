@@ -51,12 +51,13 @@ def test_score_enchere(benchmarks, trajets, config, monkeypatch):
     assert lot["prix_max_conseille"] == 265_320
     # Emplacement Paris 30 ; gabarit 10 (médiane 420 090 € juste au-dessus du
     # budget max) ; départ 15 (mise à prix à 81 % sous le plafond) ;
-    # dossier 6 (surface seule) ; trajet 10 ; vente J+6 -> 5
+    # dossier 6 (surface seule) ; trajet 6 (« Paris » sans arrondissement ≈ 30 min
+    # depuis la rue Francoeur -> tranche 20-40) ; vente J+6 -> 5
     assert lot["detail_score"] == {
         "emplacement": 30.0, "gabarit": 10.0, "depart": 15.0,
-        "dossier": 6.0, "proximite": 10.0, "preparation": 5.0,
+        "dossier": 6.0, "proximite": 6.0, "preparation": 5.0,
     }
-    assert lot["score_enchere"] == 76
+    assert lot["score_enchere"] == 72
     assert lot["haut_panier"] is True
 
 

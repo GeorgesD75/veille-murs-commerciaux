@@ -38,12 +38,14 @@ deduplication:
   tolerance_prix_pct: 5       # …et prix ±5 % (et même code postal)
 
 scoring:
-  # Barème total = 100 : rendement 35 + emplacement 25 + prix vs marché 15 +
-  # financement 5 + fiscalité 5 + proximité 5 + quartier 5 + bonus/malus 5.
-  # (rendement et prix vs marché cédent chacun 5 pts pour financer les deux
-  # nouveaux critères, sans toucher au reste — voir test_bareme_total_fait_cent)
-  rendement:                  # 35 pts max, linéaire entre plancher et plafond
-    points: 35
+  # Barème total = 100 : rendement 37 + emplacement 25 + prix vs marché 18 +
+  # financement 5 + fiscalité 5 + proximité 3 + quartier 2 + bonus/malus 5.
+  # (rééquilibrage 2026-07-11 demandé par l'utilisateur : trajet et quartier 18e
+  # pesaient 10 pts pour des critères de confort — les 5 pts libérés renforcent
+  # les deux critères qui décident vraiment d'un achat : le rendement et le
+  # prix face au marché — voir test_bareme_total_fait_cent)
+  rendement:                  # 37 pts max, linéaire entre plancher et plafond
+    points: 37
     pct_plancher: 4           # ≤ 4 % de rendement brut -> 0 pt
     pct_plafond: 9            # ≥ 9 % -> 35 pts
   penalite_loyer_estime: 10   # murs libres (référentiel de zone générique, ou promesse du
@@ -68,10 +70,10 @@ scoring:
     - Bagnolet
     - Les Lilas
     - Ivry-sur-Seine
-  prix_m2_vs_benchmark:       # 15 pts max, vs data/benchmarks.json
-    seuil_decote_pct: 20      # décote ≥ 20 % sous le prix médian -> 15 pts
-    decote_forte: 15
-    dans_fourchette: 7
+  prix_m2_vs_benchmark:       # 18 pts max, vs data/benchmarks.json
+    seuil_decote_pct: 20      # décote ≥ 20 % sous le prix médian -> 18 pts
+    decote_forte: 18
+    dans_fourchette: 8
     surcote: 0
     inconnu: 0
   financement:                # 5 pts : le bien s'autofinance-t-il à l'apport et au taux
@@ -95,9 +97,9 @@ scoring:
       - nom: taxe_fonciere_elevee
         points: -1.5
         mots: ["taxe foncière élevée", "taxe foncière importante", "forte taxe foncière"]
-  proximite:                  # 5 pts max, temps de trajet depuis Paris 18e
-    moins_de_20_min: 5
-    de_20_a_40_min: 3
+  proximite:                  # 3 pts max, temps de trajet depuis la rue Francoeur (18e)
+    moins_de_20_min: 3
+    de_20_a_40_min: 2
     de_40_a_60_min: 1
   rue:                         # emplacement RUE PAR RUE (gratuit, sans clé) : Base Adresse
                                 # Nationale (géocodage) + OpenStreetMap/Overpass (densité de
@@ -116,8 +118,8 @@ scoring:
     budget_secondes: 120       # garde-fou de TEMPS : Overpass peut être lent à échouer ;
                                 # on s'arrête net au budget plutôt que de rallonger la
                                 # tournée (3 fois/jour, ne doit jamais bloquer la suivante)
-  quartier:                   # 5 pts : attachement au 18e, économie locale
-    points: 5
+  quartier:                   # 2 pts : attachement au 18e, économie locale
+    points: 2
     codes_postaux: ["75018"]
   bonus_malus:                # somme bornée à [-3 ; +5]
     - nom: bail_recent
@@ -126,6 +128,10 @@ scoring:
     - nom: taxe_fonciere_locataire
       points: 2
       mots: ["taxe foncière à la charge du locataire", "taxe foncière au locataire", "taxe foncière refacturée"]
+    - nom: charges_au_locataire  # bail où les grosses charges (article 606, triple net)
+      points: 1                  # pèsent sur le locataire : cash-flow bien plus prévisible
+      mots: ["article 606", "606 à la charge du locataire", "triple net",
+             "toutes charges au locataire", "charges refacturées au locataire"]
     - nom: enseigne_nationale
       points: 1
       mots: ["enseigne nationale", "locataire national", "franchise nationale"]

@@ -5,7 +5,7 @@ from pipeline.enrichissement import enrichir
 from pipeline.scoring import scorer
 from tests.fabriques import faire_annonce
 
-# --- Rendement (35 pts, linéaire de 4 % à 9 %) ---
+# --- Rendement (37 pts, linéaire de 4 % à 9 %) ---
 
 
 def test_rendement_plancher_zero_point(config):
@@ -15,25 +15,25 @@ def test_rendement_plancher_zero_point(config):
     assert a.detail_score["rendement"] == 0.0
 
 
-def test_rendement_plafond_trente_cinq_points(config):
+def test_rendement_plafond_trente_sept_points(config):
     a = faire_annonce()
     a.rendement_brut_pct = 9.0
     scorer(a, config)
-    assert a.detail_score["rendement"] == 35.0
+    assert a.detail_score["rendement"] == 37.0
 
 
 def test_rendement_intermediaire_lineaire(config):
     a = faire_annonce()
-    a.rendement_brut_pct = 6.5  # à mi-chemin -> 17,5 pts
+    a.rendement_brut_pct = 6.5  # à mi-chemin -> 18,5 pts
     scorer(a, config)
-    assert a.detail_score["rendement"] == 17.5
+    assert a.detail_score["rendement"] == 18.5
 
 
 def test_rendement_au_dela_du_plafond_plafonne(config):
     a = faire_annonce()
     a.rendement_brut_pct = 12.0
     scorer(a, config)
-    assert a.detail_score["rendement"] == 35.0
+    assert a.detail_score["rendement"] == 37.0
 
 
 def test_penalite_murs_libres_loyer_estime(config):
@@ -41,7 +41,7 @@ def test_penalite_murs_libres_loyer_estime(config):
     a.rendement_brut_pct = 9.0
     a.loyer_estime = True
     scorer(a, config)
-    assert a.detail_score["rendement"] == 25.0  # 35 - 10 d'incertitude
+    assert a.detail_score["rendement"] == 27.0  # 37 - 10 d'incertitude
 
 
 def test_rendement_inconnu_zero_point(config):
@@ -105,7 +105,7 @@ def test_penalite_loyer_estime_comparables_reduite(config):
     a.loyer_estime = True
     a.loyer_confiance = "comparables"
     scorer(a, config)
-    assert a.detail_score["rendement"] == 31.0  # 35 - 4 (comparables) au lieu de 35 - 10
+    assert a.detail_score["rendement"] == 33.0  # 37 - 4 (comparables) au lieu de 37 - 10
 
 
 def test_penalite_loyer_estime_benchmark_inchangee(config):
@@ -114,7 +114,7 @@ def test_penalite_loyer_estime_benchmark_inchangee(config):
     a.loyer_estime = True
     a.loyer_confiance = "benchmark"
     scorer(a, config)
-    assert a.detail_score["rendement"] == 25.0  # 35 - 10, comme avant
+    assert a.detail_score["rendement"] == 27.0  # 37 - 10, comme avant
 
 
 # --- Emplacement rue par rue (ajustement du palier administratif) ---
@@ -165,7 +165,7 @@ def test_rue_non_evaluee_score_inchange(config):
 
 def test_points_benchmark(config):
     a = faire_annonce()
-    for position, attendu in [("decote_forte", 15.0), ("dans_fourchette", 7.0), ("surcote", 0.0)]:
+    for position, attendu in [("decote_forte", 18.0), ("dans_fourchette", 8.0), ("surcote", 0.0)]:
         a.position_benchmark = position
         scorer(a, config)
         assert a.detail_score["prix_m2_vs_benchmark"] == attendu
@@ -173,19 +173,19 @@ def test_points_benchmark(config):
 
 def test_points_proximite(config):
     a = faire_annonce()
-    for temps, attendu in [(10, 5.0), (30, 3.0), (55, 1.0)]:
+    for temps, attendu in [(10, 3.0), (30, 2.0), (55, 1.0)]:
         a.temps_trajet_min = temps
         scorer(a, config)
         assert a.detail_score["proximite"] == attendu
 
 
-# --- Quartier (5 pts : attachement au 18e) ---
+# --- Quartier (2 pts : attachement au 18e) ---
 
 
 def test_points_quartier_18e(config):
     a = faire_annonce(ville="Paris 18e", code_postal="75018", departement="75")
     scorer(a, config)
-    assert a.detail_score["quartier"] == 5.0
+    assert a.detail_score["quartier"] == 2.0
 
 
 def test_pas_de_points_quartier_ailleurs(config):
