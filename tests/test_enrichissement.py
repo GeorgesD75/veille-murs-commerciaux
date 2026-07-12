@@ -118,3 +118,48 @@ def test_position_benchmark_commune_prime_sur_departement(benchmarks):
     a = faire_annonce(code_postal="93500", prix=250_000.0, surface_m2=100.0)
     enrichir(a, benchmarks, SEUIL_DECOTE)
     assert a.position_benchmark == "dans_fourchette"
+
+
+# --- Classe énergie (DPE) : volet E de l'ESG, détection stricte ---
+
+
+def test_dpe_detecte_dans_le_texte(benchmarks):
+    from pipeline.enrichissement import dpe_depuis_texte
+    assert dpe_depuis_texte("Local commercial, DPE : G, travaux à prévoir") == "G"
+    assert dpe_depuis_texte("Classe énergie B, refait à neuf") == "B"
+    assert dpe_depuis_texte("Étiquette énergétique : c") == "C"
+    assert dpe_depuis_texte("DPE classe F") == "F"
+
+
+def test_dpe_jamais_devine(benchmarks):
+    from pipeline.enrichissement import dpe_depuis_texte
+    assert dpe_depuis_texte("DPE gratuit sur demande") is None      # « g » de gratuit
+    assert dpe_depuis_texte("DPE en cours de réalisation") is None  # « e » de en
+    assert dpe_depuis_texte("Beau local, classe affaires") is None
+    assert dpe_depuis_texte("Aucun diagnostic mentionné") is None
+
+
+def test_dpe_renseigne_sur_l_annonce(benchmarks):
+    a = faire_annonce(description="Boutique en pied d'immeuble. DPE : G.")
+    enrichir(a, benchmarks, seuil_decote_pct=20)
+    assert a.dpe_classe == "G"
+
+
+def test_dpe_passoire_malus_et_vertueux_bonus(config, benchmarks):
+    from pipeline.scoring import scorer
+    passoire = faire_annonce(description="Local commercial, DPE : G.")
+    enrichir(passoire, benchmarks, seuil_decote_pct=20)
+    scorer(passoire, config)
+    assert "dpe_passoire" in passoire.bonus_detectes
+    assert passoire.detail_score["bonus_malus"] == -2.0
+
+    vertueux = faire_annonce(description="Local refait, classe énergie A.")
+    enrichir(vertueux, benchmarks, seuil_decote_pct=20)
+    scorer(vertueux, config)
+    assert "dpe_vertueux" in vertueux.bonus_detectes
+    assert vertueux.detail_score["bonus_malus"] == 1.0
+
+    muet = faire_annonce(description="Local commercial bien placé.")
+    enrichir(muet, benchmarks, seuil_decote_pct=20)
+    scorer(muet, config)
+    assert muet.detail_score["bonus_malus"] == 0.0  # non mentionné = neutre

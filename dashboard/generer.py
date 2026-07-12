@@ -89,6 +89,7 @@ def preparer_payload(
                 "marche_prix_m2_bas": a.marche_prix_m2_bas,
                 "marche_prix_m2_haut": a.marche_prix_m2_haut,
                 "benchmark_source": a.benchmark_source,
+                "dpe_classe": a.dpe_classe,
                 "lecture_prix": a.lecture_prix,
                 "prix_cible_rendement": a.prix_cible_rendement,
                 "temps_trajet_min": a.temps_trajet_min,
@@ -805,6 +806,13 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
         <li>État des sols/vitrine/électricité — « peu de travaux » se vérifie sur place.</li>
         <li>Conformité de la destination au règlement de copropriété.</li>
       </ul>
+      <h4>L'énergie (le volet « ESG » qui compte à votre échelle)</h4>
+      <ul>
+        <li>Demandez le DPE même s'il n'est pas affiché — obligatoire à la vente, souvent « oublié » quand il est mauvais.</li>
+        <li>Les interdictions de location F/G visent les logements, pas les baux commerciaux — mais les banques et les acheteurs de demain, eux, regardent déjà : une passoire se négocie aujourd'hui et se revend mal demain.</li>
+        <li>Vitrine simple vitrage, chauffage électrique ancien, pas d'isolation : chiffrez avant l'offre (un devis gratuit vaut un argument de négociation chiffré).</li>
+        <li>Qui paie l'énergie ? Un local énergivore fragilise le commerce du locataire — donc votre loyer.</li>
+      </ul>
       <h4>La rue (la valeur à 10 ans)</h4>
       <ul>
         <li>Comptez les rideaux baissés dans la rue — plus de 2 sur 10, méfiance.</li>
@@ -1079,6 +1087,10 @@ function faitsClesHtml(a) {
   if (a.rue_nb_vacants != null && a.rue_nb_vacants >= 3)
     faits.push(["moins", `Vacance commerciale signalée à proximité (${a.rue_nb_vacants} locaux vacants ou fermés à 150 m).`]);
 
+  if (a.dpe_classe === "F" || a.dpe_classe === "G")
+    faits.push(["moins", `Passoire énergétique annoncée (DPE ${a.dpe_classe}) — décote à négocier, travaux d'énergie à chiffrer avant l'offre.`]);
+  else if (a.dpe_classe === "A" || a.dpe_classe === "B")
+    faits.push(["plus", `Très bonne classe énergie annoncée (DPE ${a.dpe_classe}).`]);
   if ((a.bonus_detectes || []).includes("travaux"))
     faits.push(["moins", "Travaux signalés dans l'annonce — à chiffrer avant toute offre."]);
 
@@ -1420,6 +1432,10 @@ function carteHtml(a, options) {
   if (a.rue_nb_vacants != null && a.rue_nb_vacants >= 3)
     badges.push(`<span class="badge badge-alerte">${IC.alerte} vacance commerciale proche${fiabiliteVacanceHtml(a)}</span>`);
   if (metroHtml(a)) badges.push(metroHtml(a));
+  if (a.dpe_classe === "F" || a.dpe_classe === "G")
+    badges.push(`<span class="badge badge-alerte" title="Classe énergie ${a.dpe_classe} annoncée. Les interdictions de location F/G visent les logements, PAS les baux commerciaux — mais une passoire se paie quand même : factures du locataire (sa capacité à payer le loyer), décote croissante à la revente, banques plus frileuses. Un devis d'isolation/chauffage avant l'offre transforme ce défaut en argument de négociation.">${IC.alerte} passoire énergétique (DPE ${a.dpe_classe})</span>`);
+  else if (a.dpe_classe === "A" || a.dpe_classe === "B")
+    badges.push(`<span class="badge badge-rue-plus" title="Classe énergie ${a.dpe_classe} annoncée : charges faibles pour le locataire, bien mieux armé face aux futures exigences réglementaires et aux critères des banques.">${IC.etincelle} DPE ${a.dpe_classe}</span>`);
   if ((a.flags || []).includes("dette_copropriete"))
     badges.push(`<span class="badge badge-alerte" title="L'annonce mentionne des dettes ou une procédure de copropriété. Cela peut se négocier (le prix en tient parfois déjà compte), mais exigez le pré-état daté et le montant exact AVANT toute offre — un acheteur hérite de la quote-part de dette au prorata de sa surface.">${IC.alerte} dettes de copropriété</span>`);
 

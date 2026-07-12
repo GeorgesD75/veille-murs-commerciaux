@@ -75,6 +75,7 @@ class Annonce:
     marche_prix_m2_bas: float | None = None
     marche_prix_m2_haut: float | None = None
     benchmark_source: str | None = None   # « N ventes réelles 2023-2025 (DVF) » ou « référentiel interne »
+    dpe_classe: str | None = None         # classe énergie A-G si l'annonce la donne (volet E de l'ESG)
     temps_trajet_min: int | None = None
     caracteristiques: list[str] = field(default_factory=list)  # extraction, terrasse…
     lecture_prix: str = ""                     # phrase : pourquoi ce prix est haut/bas

@@ -81,6 +81,17 @@ def _points_bonus_malus(annonce: Annonce, cfg: dict) -> tuple[float, list[str]]:
         if any(normaliser_texte(mot) in texte for mot in regle["mots"]):
             total += regle["points"]
             detectes.append(regle["nom"])
+    # Classe énergie (détectée par regex dans l'enrichissement, pas par mots-clés :
+    # « DPE G » dans « DPE gratuit » ne doit jamais matcher). Une passoire F/G se
+    # paie en charges du locataire, en décote de revente et en frilosité bancaire ;
+    # l'absence de mention reste neutre — la plupart des annonces ne disent rien.
+    dpe_cfg = cfg.get("dpe") or {}
+    if annonce.dpe_classe in ("F", "G"):
+        total += float(dpe_cfg.get("malus_passoire", 0))
+        detectes.append("dpe_passoire")
+    elif annonce.dpe_classe in ("A", "B"):
+        total += float(dpe_cfg.get("bonus_vertueux", 0))
+        detectes.append("dpe_vertueux")
     return max(BONUS_MIN, min(BONUS_MAX, total)), detectes
 
 

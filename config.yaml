@@ -143,6 +143,14 @@ scoring:
       mots: ["dette de copropriété", "dettes de copropriété", "charges impayées",
              "impayés de charges", "copropriété en difficulté", "procédure de copropriété",
              "carence de copropriété", "syndic judiciaire", "administrateur provisoire"]
+  dpe:                        # classe énergie annoncée (volet E de l'ESG, le seul qui a de
+                              # vraies dents financières à cette échelle) — dans l'enveloppe
+                              # bonus/malus. Honnêteté réglementaire : les interdictions de
+                              # location F/G visent les LOGEMENTS, pas les baux commerciaux ;
+                              # mais une passoire se paie en charges du locataire, en décote
+                              # de revente et en frilosité bancaire. Non mentionné = neutre.
+    malus_passoire: -2        # DPE F ou G
+    bonus_vertueux: 1         # DPE A ou B
   seuil_alerte_rendement_pct: 10   # au-delà : ⚠️ « vérifier locataire et quartier » (pas un bonus)
   seuils:
     pepite: 80                # score ≥ 80 -> email immédiat 🔥

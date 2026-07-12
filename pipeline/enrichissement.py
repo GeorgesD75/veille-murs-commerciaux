@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -64,6 +65,21 @@ class Benchmarks:
     def pour(self, code_postal: str, departement: str) -> Benchmark | None:
         """Benchmark le plus précis disponible : code postal, sinon département."""
         return self.communes.get(code_postal) or self.departements.get(departement)
+
+
+# Classe énergie (DPE) quand l'annonce la donne. Volontairement strict :
+# une lettre seule après un mot-clé explicite ([a-g] suivi d'une limite de
+# mot — « DPE gratuit » ou « DPE en cours » ne matchent pas), jamais deviné.
+_DPE_RE = re.compile(
+    r"\b(?:dpe|diagnostic de performance energetique|classe energ\w+|etiquette energ\w+)"
+    r"\s*(?:classe)?\s*:?\s*([a-g])\b"
+)
+
+
+def dpe_depuis_texte(texte: str) -> str | None:
+    """Classe énergie (A-G) annoncée dans le texte, ou None si non mentionnée."""
+    m = _DPE_RE.search(normaliser_texte(texte))
+    return m.group(1).upper() if m else None
 
 
 def caracteristiques_depuis_texte(texte: str) -> list[str]:
@@ -199,6 +215,7 @@ def enrichir(
         annonce.prix_cible_rendement = round(loyer_annuel / (rendement_cible_pct / 100))
 
     annonce.caracteristiques = caracteristiques_depuis_texte(annonce.texte_complet())
+    annonce.dpe_classe = dpe_depuis_texte(annonce.texte_complet())
 
     # Fourchette de prix du secteur : les VENTES RÉELLES enregistrées (DVF)
     # priment quand la commune en compte assez — un prix effectivement payé
