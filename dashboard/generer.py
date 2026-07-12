@@ -300,6 +300,22 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
 .onglet.actif { color: var(--encre-1); border-bottom-color: var(--or-vif); }
 .onglet:hover { color: var(--encre-1); }
 
+/* ---- Mon suivi : le carnet de chasse ---- */
+.suivi-select { font: 600 11.5px system-ui, sans-serif; color: var(--marque);
+  background: var(--plan); border: 1px solid var(--bord); border-radius: 7px;
+  padding: 4px 6px; cursor: pointer; margin-top: 4px; max-width: 118px; }
+.suivi-select.actif { background: var(--vert-fond); color: var(--vert-texte); border-color: var(--vert-texte); }
+.suivi-item { background: var(--surface); border: 1px solid var(--bord); border-radius: 10px;
+  padding: 8px 14px 10px; margin-bottom: 10px; }
+.suivi-item .ligne-compacte { border-bottom: none; }
+.suivi-meta { font-size: 12px; color: var(--encre-3); margin: 2px 0 6px; }
+.suivi-alerte { color: var(--alerte-texte); font-weight: 600; }
+.suivi-note { width: 100%; box-sizing: border-box; font-family: inherit; font-size: 13px;
+  line-height: 1.45; color: var(--encre-1);
+  background: var(--plan); border: 1px solid var(--filet); border-radius: 8px; padding: 7px 10px;
+  resize: vertical; }
+.suivi-note:focus { outline: none; border-color: var(--marque); }
+
 /* ---- Le marché : graphiques (palette catégorielle VALIDÉE par mode —
    scripts dataviz : light warn contraste couvert par la vue tableau) ---- */
 :root { --g1: #2a78d6; --g2: #1baf7a; --g3: #eda100; }
@@ -717,10 +733,18 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 <div class="auvent" aria-hidden="true"></div>
 <div class="page">
 
-  <nav class="onglets" id="onglets" style="display:none">
+  <nav class="onglets" id="onglets">
     <button type="button" class="onglet actif" data-vue="chasse">La chasse</button>
+    <button type="button" class="onglet" data-vue="suivi">Mon suivi <span id="suivi-compteur"></span></button>
     <button type="button" class="onglet" data-vue="marche">Le marché</button>
   </nav>
+
+  <div id="vue-suivi" style="display:none">
+    <p class="marche-intro">Vos démarches, annonce par annonce — statut et notes sont mémorisés
+      sur cet appareil uniquement (rien n'est envoyé nulle part). Choisissez un statut sur
+      n'importe quelle carte de la chasse pour qu'elle apparaisse ici.</p>
+    <div id="suivi-contenu"></div>
+  </div>
 
   <div id="vue-marche" style="display:none">
     <p class="marche-intro" id="marche-intro"></p>
@@ -912,6 +936,12 @@ try { comparaison = JSON.parse(localStorage.getItem(CLE_COMP) || "[]"); } catch 
 // pour un bien déjà vu/écarté sans avoir à baisser le score min.
 let masquees = [];
 try { masquees = JSON.parse(localStorage.getItem(CLE_MASQUEES) || "[]"); } catch (e) {}
+
+// Carnet de chasse : statut et notes de VOS démarches, par annonce (local à
+// cet appareil, rien n'est envoyé). Structure : {id: {statut, maj, note, instantane}}.
+const CLE_SUIVI = "veille-murs-suivi";
+let suivi = {};
+try { suivi = JSON.parse(localStorage.getItem(CLE_SUIVI) || "{}"); } catch (e) {}
 
 function basculerMasquage(id) {
   const i = masquees.indexOf(id);
@@ -1553,6 +1583,12 @@ function carteHtml(a, options) {
         title="${a.critique_ia ? "Critique honnête générée par une IA (Claude Haiku) : ce qui pourrait clocher, au-delà du score." : "Critique IA : pas encore générée pour ce bien."}">${IC.esprit} Critique IA</button>
       ${a.dossier ? `<a class="btn-outil" href="${ech(a.dossier)}" download
         title="Classeur Excel pré-rempli à présenter au banquier : plan de financement, cash-flow, ratios (DSCR, LTV), tableau d'amortissement — toutes les hypothèses restent modifiables.">${IC.banque} Dossier banque</a>` : ""}
+      <select class="suivi-select${suivi[a.id] ? " actif" : ""}" data-suivi="${ech(a.id)}"
+        title="Où en êtes-vous sur cette annonce ? Le statut la fait apparaître dans l'onglet « Mon suivi » (mémorisé sur cet appareil).">
+        <option value="">Suivi…</option>
+        ${SUIVI_STATUTS.map(([v, l]) =>
+          `<option value="${v}"${(suivi[a.id] || {}).statut === v ? " selected" : ""}>${l}</option>`).join("")}
+      </select>
     </div>
   </article>`;
 }
@@ -2016,6 +2052,20 @@ document.addEventListener("change", ev => {
   }
 });
 
+// Suivi : changement de statut depuis n'importe quelle carte, notes dans l'onglet
+document.addEventListener("change", ev => {
+  const sel = ev.target.closest?.("[data-suivi]");
+  if (sel) majSuivi(sel.dataset.suivi, sel.value);
+});
+document.addEventListener("input", ev => {
+  const note = ev.target.closest?.("[data-note]");
+  if (!note) return;
+  const s = suivi[note.dataset.note];
+  if (!s) return;
+  s.note = note.value;
+  localStorage.setItem(CLE_SUIVI, JSON.stringify(suivi));
+});
+
 // Dépliage d'une ligne compacte : on construit la carte complète à la volée
 document.addEventListener("toggle", ev => {
   const bloc = ev.target.closest?.("details.ligne-depliable");
@@ -2375,27 +2425,106 @@ function construireMarche() {
 }
 
 function basculerVue(vue) {
-  document.getElementById("vue-chasse").style.display = vue === "marche" ? "none" : "";
-  document.getElementById("vue-marche").style.display = vue === "marche" ? "" : "none";
+  for (const v of ["chasse", "suivi", "marche"])
+    document.getElementById("vue-" + v).style.display = v === vue ? "" : "none";
   document.querySelectorAll("#onglets .onglet").forEach(b =>
     b.classList.toggle("actif", b.dataset.vue === vue));
   localStorage.setItem(CLE_ONGLET, vue);
   if (vue === "marche") construireMarche();
+  if (vue === "suivi") rendreSuivi();
+}
+
+/* ---- Onglet « Mon suivi » : le carnet de chasse ----
+   Statut + notes par annonce, en localStorage uniquement (rien ne quitte
+   l'appareil). Un instantané (titre, lien, ville, prix) est conservé au moment
+   du marquage : si l'annonce disparaît des retenues (vendue, exclue), la ligne
+   survit dans le suivi au lieu de s'évaporer — on n'oublie pas une piste. */
+const SUIVI_STATUTS = [
+  ["suivie", "Je la suis"],
+  ["contactee", "Contactée"],
+  ["visite_prevue", "Visite prévue"],
+  ["visitee", "Visitée"],
+  ["offre_faite", "Offre faite"],
+  ["abandonnee", "Abandonnée"],
+];
+const SUIVI_LIBELLES = Object.fromEntries(SUIVI_STATUTS);
+
+function majCompteurSuivi() {
+  const n = Object.values(suivi).filter(s => s.statut !== "abandonnee").length;
+  document.getElementById("suivi-compteur").textContent = n ? `(${n})` : "";
+}
+
+function majSuivi(id, statut) {
+  if (!statut) {
+    delete suivi[id];
+  } else {
+    const a = D.retenues.find(x => x.id === id);
+    const s = suivi[id] || {};
+    s.statut = statut;
+    s.maj = new Date().toISOString();
+    if (a) s.instantane = {titre: a.titre, url: a.url, ville: a.ville, prix: a.prix};
+    suivi[id] = s;
+  }
+  localStorage.setItem(CLE_SUIVI, JSON.stringify(suivi));
+  majCompteurSuivi();
+  if (document.getElementById("vue-suivi").style.display !== "none") rendreSuivi();
+}
+
+function rendreSuivi() {
+  const conteneur = document.getElementById("suivi-contenu");
+  const ids = Object.keys(suivi);
+  if (!ids.length) {
+    conteneur.innerHTML = `<div class="note-vide">Rien en suivi pour l'instant.
+      Dans l'onglet « La chasse », choisissez un statut (« Je la suis », « Contactée »…)
+      sur une carte : elle apparaîtra ici, avec vos notes.</div>`;
+    return;
+  }
+  let html = "";
+  for (const [statut, libelle] of SUIVI_STATUTS) {
+    const lot = ids.filter(id => suivi[id].statut === statut)
+      .sort((x, y) => (suivi[y].maj || "").localeCompare(suivi[x].maj || ""));
+    if (!lot.length) continue;
+    html += `<h2 class="section">${libelle} <span class="nb">${lot.length}</span></h2>`;
+    for (const id of lot) {
+      const s = suivi[id];
+      const a = D.retenues.find(x => x.id === id);
+      const inst = s.instantane || {};
+      const alerte = a && a.peut_etre_retiree
+        ? ` · <span class="suivi-alerte">plus revue en ligne depuis ${a.jours_sans_vue} j — vérifiez qu'elle est toujours à vendre</span>`
+        : (!a && inst.titre
+          ? ` · <span class="suivi-alerte">n'apparaît plus dans les annonces retenues (vendue, retirée ou exclue)</span>` : "");
+      const entete = a
+        ? ligneCompacteHtml(a)
+        : `<div class="ligne-compacte"><span class="mini-score" style="background:var(--gris-fond);color:var(--gris-texte)">—</span>
+             <span class="t"><a href="${ech(inst.url || "#")}" target="_blank" rel="noopener">${ech(inst.titre || "Annonce disparue")}</a></span>
+             <span class="d">${ech(inst.ville || "")}${inst.prix ? " · " + fmtEuros(inst.prix) : ""}</span></div>`;
+      html += `<div class="suivi-item">
+        ${entete}
+        <div class="suivi-meta">${SUIVI_LIBELLES[s.statut]} depuis le ${fmtDate(s.maj)}${alerte}</div>
+        <textarea class="suivi-note" data-note="${ech(id)}" rows="2"
+          placeholder="Vos notes : interlocuteur, ressenti de visite, points à vérifier… (mémorisées sur cet appareil)">${ech(s.note || "")}</textarea>
+      </div>`;
+    }
+  }
+  conteneur.innerHTML = html;
 }
 
 function initialiser() {
   // Filtres ouverts d'office sur grand écran, repliés sur mobile
   if (window.innerWidth > 760) document.getElementById("volet-filtres").open = true;
 
-  // Onglet « Le marché » : seulement si les séries ont pu être collectées un jour
-  if (D.marche && D.marche.series && Object.values(D.marche.series).some(s => s.points.length)) {
-    const nav = document.getElementById("onglets");
-    nav.style.display = "";
-    nav.querySelectorAll(".onglet").forEach(b =>
-      b.addEventListener("click", () => basculerVue(b.dataset.vue)));
-    if (localStorage.getItem(CLE_ONGLET) === "marche" || location.hash === "#marche")
-      basculerVue("marche");
-  }
+  // Onglets. « Le marché » n'apparaît que si ses séries ont pu être collectées.
+  const nav = document.getElementById("onglets");
+  const aMarche = D.marche && D.marche.series
+    && Object.values(D.marche.series).some(s => s.points.length);
+  if (!aMarche) nav.querySelector('[data-vue="marche"]').style.display = "none";
+  nav.querySelectorAll(".onglet").forEach(b =>
+    b.addEventListener("click", () => basculerVue(b.dataset.vue)));
+  majCompteurSuivi();
+  const vueDemandee = location.hash === "#marche" ? "marche"
+    : location.hash === "#suivi" ? "suivi" : localStorage.getItem(CLE_ONGLET);
+  if (vueDemandee === "marche" && aMarche) basculerVue("marche");
+  else if (vueDemandee === "suivi") basculerVue("suivi");
 
   const s = D.stats;
   document.getElementById("hud").innerHTML =
