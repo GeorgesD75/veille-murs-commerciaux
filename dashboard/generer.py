@@ -88,6 +88,7 @@ def preparer_payload(
                 "decote_pct": a.decote_pct,
                 "marche_prix_m2_bas": a.marche_prix_m2_bas,
                 "marche_prix_m2_haut": a.marche_prix_m2_haut,
+                "benchmark_source": a.benchmark_source,
                 "lecture_prix": a.lecture_prix,
                 "prix_cible_rendement": a.prix_cible_rendement,
                 "temps_trajet_min": a.temps_trajet_min,
@@ -535,6 +536,7 @@ a.btn-outil:hover { text-decoration: none; border-color: var(--marque); }
 
 /* Jauge marché + lecture du prix */
 .marche { font-size: 12.5px; color: var(--encre-2); max-width: 480px; }
+.marche-source { font-size: 11px; color: var(--encre-3); margin-top: 2px; }
 .marche-piste { position: relative; height: 18px; margin: 6px 0 1px; }
 .marche-piste .ligne { position: absolute; top: 8px; left: 0; right: 0; height: 2px;
   background: var(--filet); border-radius: 2px; }
@@ -1009,6 +1011,9 @@ function jaugeMarcheHtml(a) {
       <div class="bien" style="left:calc(${pos(a.prix_m2)}% - 7px)" title="ce bien : ${fmtEuros(a.prix_m2)}/m²"></div>
     </div>
     <div class="marche-echelle"><span>${fmtEuros(bas)}/m²</span><span>médiane ${fmtEuros(med)}</span><span>${fmtEuros(haut)}/m²</span></div>
+    ${a.benchmark_source ? `<div class="marche-source">Fourchette : ${ech(a.benchmark_source)}${a.benchmark_source.includes("DVF")
+      ? ` <span class="info-i" title="DVF (« demandes de valeurs foncières », data.gouv.fr) : les prix effectivement payés chez le notaire pour des locaux commerciaux de cette commune, publiés en open data avec ~6 mois de retard. Fourchette = moitié centrale des ventes (P25-P75), comparaison à la médiane. Un garde-fou factuel, pas une expertise : l'état, l'emplacement précis et le bail de chaque local diffèrent.">i</span>`
+      : ` <span class="info-i" title="Aucune vente réelle en nombre suffisant dans cette commune (source DVF) : la fourchette vient du référentiel interne de l'outil, rédigé à la main par grands secteurs — moins précis qu'un historique de ventes.">i</span>`}</div>` : ""}
     ${lecture}
     ${nego}
   </div>`;
@@ -1176,7 +1181,7 @@ function explicationPepiteHtml(a) {
   const d = a.detail_score || {};
   const atouts = [];
   if (d.rendement >= 32)
-    atouts.push(`rendement exceptionnel (${fmtPct(a.rendement_brut_pct)} brut, ${d.rendement}/40 pts)`);
+    atouts.push(`rendement exceptionnel (${fmtPct(a.rendement_brut_pct)} brut, ${d.rendement}/${D.maxima.rendement} pts)`);
   if (d.emplacement >= 20)
     atouts.push(`emplacement parmi les plus sûrs de la grille (${d.emplacement}/25 pts)`);
   if (d.prix_m2_vs_benchmark >= 15 && a.decote_pct != null)

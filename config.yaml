@@ -205,6 +205,13 @@ analyse:
     seuil_score: 60           # générée une seule fois par annonce retenue à score ≥ seuil
     max_par_run: 15           # plafond d'appels API par tournée (coût + temps) ; sans
                               # ANTHROPIC_API_KEY, la fonctionnalité s'ignore proprement
+  dvf:                        # ventes réelles de locaux commerciaux (pipeline/dvf.py) : la
+                              # fourchette de prix d'un secteur vient des prix PAYÉS chez le
+                              # notaire quand la commune compte assez de ventes
+    actif: true
+    ventes_minimum: 6         # en dessous, une « médiane » n'en est pas une : référentiel interne
+    annees: [2023, 2024, 2025]
+    max_communes_par_run: 12  # politesse : quelques communes rafraîchies par tournée, cache 30 j
 
 notifications:
   fournisseur: resend

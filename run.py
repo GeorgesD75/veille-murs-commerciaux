@@ -17,6 +17,7 @@ from pipeline.comparables import LoyersComparables
 from pipeline.config import RACINE, Config
 from pipeline.critique import generer_critiques
 from pipeline.dedoublonnage import fusionner, trouver_similaire
+from pipeline.dvf import actualiser_dvf
 from pipeline.enrichissement import Benchmarks, enrichir
 from pipeline.filtres import raison_exclusion
 from pipeline.geo import Trajets
@@ -167,13 +168,26 @@ def executer() -> dict[str, Any]:
     except Exception:  # noqa: BLE001 — enrichissement optionnel, jamais bloquant
         log.exception("évaluation des rues en échec, on continue sans")
 
+    # Ventes réelles DVF : rafraîchit quelques communes par tournée (celles où
+    # l'on chasse vraiment), et sert de fourchette de prix quand il y a assez
+    # de ventes. Jamais bloquant.
+    dvf = None
+    try:
+        dvf = actualiser_dvf(
+            RACINE / "data" / "dvf.json",
+            [a.code_postal for a in annonces.values() if not a.exclue],
+            config["analyse"].get("dvf", {}),
+        )
+    except Exception:  # noqa: BLE001
+        log.exception("collecte DVF en échec, on continue au référentiel interne")
+
     comparables = LoyersComparables.depuis(a for a in annonces.values() if not a.exclue)
     for a in annonces.values():
         if a.exclue:
             a.score = None
             a.detail_score = {}
         else:
-            enrichir(a, benchmarks, seuil_decote, rendement_cible, comparables=comparables)
+            enrichir(a, benchmarks, seuil_decote, rendement_cible, comparables=comparables, dvf=dvf)
             scorer(a, config)
 
     # Critique IA (Claude Haiku, optionnelle) : le score final est requis pour

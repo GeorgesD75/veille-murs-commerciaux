@@ -159,14 +159,15 @@ def loyer_mensuel_retenu(
     return None, False, None, None
 
 
-def position_vs_benchmark(annonce: Annonce, benchmarks: Benchmarks, seuil_decote_pct: float) -> str:
-    bench = benchmarks.pour(annonce.code_postal, annonce.departement)
-    if bench is None or annonce.prix_m2 is None:
+def position_vs_fourchette(
+    prix_m2: float | None, mediane: float, haut: float, seuil_decote_pct: float
+) -> str:
+    if prix_m2 is None:
         return "inconnu"
-    decote_pct = (bench.prix_m2_median - annonce.prix_m2) / bench.prix_m2_median * 100
+    decote_pct = (mediane - prix_m2) / mediane * 100
     if decote_pct >= seuil_decote_pct:
         return "decote_forte"
-    if annonce.prix_m2 <= bench.prix_m2_haut:
+    if prix_m2 <= haut:
         return "dans_fourchette"
     return "surcote"
 
@@ -177,6 +178,7 @@ def enrichir(
     seuil_decote_pct: float,
     rendement_cible_pct: float = 7.0,
     comparables: LoyersComparables | None = None,
+    dvf=None,
 ) -> Annonce:
     if annonce.prix and annonce.surface_m2:
         annonce.prix_m2 = round(annonce.prix / annonce.surface_m2)
@@ -196,17 +198,34 @@ def enrichir(
         # Le levier du négociateur : prix d'offre qui atteint le rendement cible
         annonce.prix_cible_rendement = round(loyer_annuel / (rendement_cible_pct / 100))
 
-    annonce.position_benchmark = position_vs_benchmark(annonce, benchmarks, seuil_decote_pct)
     annonce.caracteristiques = caracteristiques_depuis_texte(annonce.texte_complet())
 
-    # Comparaison au marché local, pour l'affichage (« ~12 % sous le marché »).
+    # Fourchette de prix du secteur : les VENTES RÉELLES enregistrées (DVF)
+    # priment quand la commune en compte assez — un prix effectivement payé
+    # chez le notaire vaut mieux qu'un référentiel rédigé à la main. À défaut,
+    # le référentiel interne reste le filet de sécurité (et il garde de toute
+    # façon la main sur les LOYERS, absents de DVF).
+    ventes = dvf.pour(annonce.code_postal) if dvf is not None else None
     bench = benchmarks.pour(annonce.code_postal, annonce.departement)
-    if bench is not None:
-        annonce.marche_prix_m2_bas = bench.prix_m2_bas
-        annonce.marche_prix_m2_haut = bench.prix_m2_haut
+    if ventes is not None:
+        bas, mediane, haut = ventes.prix_m2_p25, ventes.prix_m2_median, ventes.prix_m2_p75
+        annonce.benchmark_source = f"{ventes.nb} ventes réelles {ventes.periode} (DVF)"
+    elif bench is not None:
+        bas, mediane, haut = bench.prix_m2_bas, bench.prix_m2_median, bench.prix_m2_haut
+        annonce.benchmark_source = "référentiel interne"
+    else:
+        bas = mediane = haut = None
+        annonce.benchmark_source = None
+
+    if mediane is not None:
+        annonce.position_benchmark = position_vs_fourchette(
+            annonce.prix_m2, mediane, haut, seuil_decote_pct
+        )
+        annonce.marche_prix_m2_bas = bas
+        annonce.marche_prix_m2_haut = haut
         if annonce.prix_m2 is not None:
-            annonce.decote_pct = round(
-                (bench.prix_m2_median - annonce.prix_m2) / bench.prix_m2_median * 100, 1
-            )
+            annonce.decote_pct = round((mediane - annonce.prix_m2) / mediane * 100, 1)
+    else:
+        annonce.position_benchmark = "inconnu"
     annonce.lecture_prix = lecture_prix(annonce)
     return annonce

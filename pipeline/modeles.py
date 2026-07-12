@@ -74,6 +74,7 @@ class Annonce:
     decote_pct: float | None = None            # >0 : sous le prix médian du marché local
     marche_prix_m2_bas: float | None = None
     marche_prix_m2_haut: float | None = None
+    benchmark_source: str | None = None   # « N ventes réelles 2023-2025 (DVF) » ou « référentiel interne »
     temps_trajet_min: int | None = None
     caracteristiques: list[str] = field(default_factory=list)  # extraction, terrasse…
     lecture_prix: str = ""                     # phrase : pourquoi ce prix est haut/bas
