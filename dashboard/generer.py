@@ -52,6 +52,16 @@ def preparer_payload(
     seuil_exclues = maintenant - timedelta(days=JOURS_EXCLUES)
     seuil_retiree = maintenant - timedelta(days=JOURS_PEUT_ETRE_RETIREE)
 
+    # Une source actuellement EN PANNE ne revoit aucune de ses annonces : sans
+    # ce garde-fou, un site qui change de structure ferait basculer tout son
+    # stock en « peut-être vendue » à tort au bout de 14 jours.
+    sante = meta.get("sante_sources", {})
+
+    def _source_en_panne(source: str) -> bool:
+        cle = "imap" if source.startswith("alerte_") else source
+        etat = sante.get(cle)
+        return bool(etat) and etat.get("statut") != "ok"
+
     retenues = []
     for a in sorted(
         (a for a in annonces.values() if not a.exclue),
@@ -106,7 +116,8 @@ def preparer_payload(
                 "date_derniere_vue": a.date_derniere_vue,
                 "est_nouvelle": _iso(a.date_premiere_vue) >= seuil_nouveaute,
                 "jours_sans_vue": (maintenant - _iso(a.date_derniere_vue)).days,
-                "peut_etre_retiree": _iso(a.date_derniere_vue) < seuil_retiree,
+                "peut_etre_retiree": _iso(a.date_derniere_vue) < seuil_retiree
+                                     and not _source_en_panne(a.source),
                 # classeur Excel « dossier banque », si généré pour ce bien
                 "dossier": f"dossiers/{dossiers[a.id]}" if dossiers and a.id in dossiers else None,
             }
@@ -1035,6 +1046,10 @@ function jaugeMarcheHtml(a) {
   let nego = "";
   if (a.prix_cible_rendement && a.prix) {
     const cible = D.analyse.rendement_cible_pct;
+    // Honnêteté : une ancre de négociation calculée sur un loyer ESTIMÉ doit
+    // le dire — sinon elle a l'air aussi solide qu'un bail signé.
+    const surEstime = a.loyer_estime
+      ? ` <span style="color:var(--encre-3)">(calculé sur le loyer estimé — à confirmer par le bail)</span>` : "";
     if (a.prix_cible_rendement >= a.prix) {
       // Le rendement cible est atteint au prix affiché : ce n'est PAS une
       // raison de le payer — première offre d'usage, gain chiffré à l'appui.
@@ -1042,12 +1057,12 @@ function jaugeMarcheHtml(a) {
       const gain10k = Math.round(10_800 * t / (1 - Math.pow(1 + t, -n)));
       nego = `<div class="lecture nego">Objectif ${cible} % atteint au prix affiché — <b>négociez quand même</b> :
         première offre d'usage ≈ <b>${fmtEuros(offreUsage)}</b> (−${D.analyse.negociation_usage_pct} %).
-        Chaque 10 000 € gagnés ≈ +${gain10k} €/mois de cash-flow.</div>`;
+        Chaque 10 000 € gagnés ≈ +${gain10k} €/mois de cash-flow.${surEstime}</div>`;
     } else {
       const remise = Math.round((1 - a.prix_cible_rendement / a.prix) * 100);
       nego = `<div class="lecture nego">Plancher de rentabilité (${cible} % brut) : <b>${fmtEuros(a.prix_cible_rendement)}</b>
         — au-dessus, le bien ne tient pas votre objectif. Négociation nécessaire : −${remise} %
-        (${remise <= 10 ? "jouable" : remise <= 20 ? "ambitieux mais tentable" : "peu réaliste, sauf défaut à faire valoir"}).</div>`;
+        (${remise <= 10 ? "jouable" : remise <= 20 ? "ambitieux mais tentable" : "peu réaliste, sauf défaut à faire valoir"}).${surEstime}</div>`;
     }
   }
   return `<div class="marche">
@@ -1176,6 +1191,8 @@ function questionsReponsesHtml(a) {
   } else {
     negociation = "Pas assez de données (loyer inconnu) pour chiffrer une marge de négociation.";
   }
+  if (a.loyer_estime && a.prix_cible_rendement != null)
+    negociation += " (Base : loyer estimé, pas un bail signé — à confirmer.)";
   lignes.push(["Puis-je négocier 10 % ?", negociation]);
 
   if (a.rang_score != null && D.stats.retenues) {
@@ -1351,7 +1368,7 @@ function ouvrirCritique(id) {
 }
 
 const EXPLICATIONS = {
-  rendement: "Ce que le bien vous rapporte chaque année, en % de son prix. Exemple : 1 000 €/mois de loyer sur un bien à 200 000 € = 6 % par an. Plus c'est haut, mieux c'est : 4 % ou moins = 0 pt, 9 % ou plus = 35 pts. On enlève 10 pts si le loyer n'est qu'une promesse (pas de bail signé qui le prouve) — seulement 4 pts si l'estimation s'appuie sur des baux RÉELS de voisins immédiats, bien plus fiable qu'une moyenne de zone.",
+  rendement: "Ce que le bien vous rapporte chaque année, en % de son prix. Exemple : 1 000 €/mois de loyer sur un bien à 200 000 € = 6 % par an. Le barème s'adapte à la zone, car un rendement se juge contre ce que son marché exige : dans Paris, 3,5 % = 0 pt et 8 % = maximum ; en grande couronne, il faut 10 % pour le maximum (la vacance et la revente y sont plus dures). On enlève 10 pts si le loyer n'est qu'une promesse (pas de bail signé qui le prouve) — seulement 4 pts si l'estimation s'appuie sur des baux RÉELS de voisins immédiats. Et sous 7 % de rendement, quel que soit le score : pas de haut du panier.",
   emplacement: a => {
     let base = "Où est la boutique ? Dans une rue passante, le commerçant gagne sa vie et paie son loyer ; dans une rue morte, il ferme. Paris = 25 pts, communes qui montent (Pantin, Saint-Ouen, Montreuil…) = 20, reste de la petite couronne = 15, centre-ville de grande couronne = 10, ailleurs = 5. Quand une rue précise est citée dans l'annonce, un signal mesuré (Base Adresse Nationale + densité de commerces OpenStreetMap à 150 m) ajuste ce chiffre de −4 à +4 pts, et pénalise les locaux vacants voisins.";
     if (a && a.rue_categorie) {
@@ -1361,7 +1378,7 @@ const EXPLICATIONS = {
     }
     return base;
   },
-  prix_m2_vs_benchmark: "Est-ce cher pour le quartier ? On compare le prix au m² à ce qui se vend autour. Nettement moins cher que le marché (−20 %) = 15 pts. Dans les prix = 7. Plus cher que le marché = 0.",
+  prix_m2_vs_benchmark: "Est-ce cher pour le quartier ? On compare le prix au m² à ce qui se vend autour — aux VENTES RÉELLES enregistrées chez le notaire (DVF) quand la commune en compte assez, sinon au référentiel interne. Nettement moins cher que le marché (−20 %) = 18 pts. Dans les prix = 8. Plus cher = 0.",
   financement: a => {
     let base = "Le bien s'autofinance-t-il à un apport et un taux DE RÉFÉRENCE fixes (20 % d'apport, le taux de marché du jour) — pas votre profil personnel réglable plus haut, pour que ce chiffre reste comparable d'une annonce à l'autre. Cash-flow positif = 5 pts ; léger déficit (< 10 % du loyer) = 3 pts ; déficit important = 0.";
     return base;
@@ -1462,6 +1479,8 @@ function carteHtml(a, options) {
     badges.push(`<span class="badge badge-alerte" title="Cette annonce n'apparaît plus dans les résultats de sa source depuis le ${fmtDate(a.date_derniere_vue)} (${a.jours_sans_vue} jours). Elle a probablement été vendue ou retirée — ou, plus rarement, la source a changé de structure. Cliquez le lien pour vérifier avant d'y investir du temps.">${IC.alerte} peut-être vendue · non revue depuis ${a.jours_sans_vue} j</span>`);
   if (suspect)
     badges.push(`<span class="badge badge-alerte">${IC.alerte} rendement à vérifier</span>`);
+  if ((a.flags || []).includes("localisation_incoherente"))
+    badges.push(`<span class="badge badge-alerte" title="Le nom de ville (banlieue) et le code postal (parisien) se contredisent — c'est souvent le code postal de l'AGENCE, pas du bien. L'emplacement a été noté d'après la ville, plus fiable ; vérifiez l'adresse réelle avant toute démarche.">${IC.alerte} localisation à vérifier</span>`);
   if ((a.flags || []).includes("rendement_sous_objectif"))
     badges.push(`<span class="badge badge-type" title="Rendement brut sous votre objectif de ${D.analyse.rendement_cible_pct} % : quel que soit le reste du dossier, ce bien ne peut pas entrer au haut du panier — les points d'emplacement ne paient pas un crédit. Il reste visible ici, et une négociation du prix peut changer la donne.">rendement sous objectif</span>`);
   if (cf != null && cf >= 0 && !suspect) {

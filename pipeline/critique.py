@@ -123,13 +123,21 @@ def generer_critique(annonce: Annonce, client: Any = None) -> str | None:
     return texte.strip() or None
 
 
+def _critique_perimee(a: Annonce) -> bool:
+    """Critique écrite pour un prix qui a bougé de > 10 % : à refaire."""
+    if a.critique_ia_prix is None or not a.prix:
+        return False
+    return abs(a.prix - a.critique_ia_prix) / a.critique_ia_prix > 0.10
+
+
 def generer_critiques(annonces: dict[str, Annonce], config: "Config") -> None:
     """Critique les meilleures annonces pas encore critiquées, dans une limite
     de volume par run (maîtrise du coût — Haiku reste peu cher mais pas gratuit).
 
-    Générée UNE FOIS par annonce : pas de re-génération, même si le prix ou le
-    score changent ensuite (le texte peut légèrement dater, comme une note
-    humaine qu'on ne réécrit pas à chaque nouvelle information mineure).
+    Générée une fois par annonce — SAUF si le prix a bougé de plus de 10 %
+    depuis la génération : une critique qui raisonne sur un prix qui n'existe
+    plus induit en erreur (correction de conception du 2026-07-13). Les
+    changements mineurs, eux, ne régénèrent rien (maîtrise du coût).
     """
     cfg = dict(config["analyse"].get("critique_ia") or {})
     seuil = cfg.get("seuil_score", 60)
@@ -139,7 +147,8 @@ def generer_critiques(annonces: dict[str, Annonce], config: "Config") -> None:
     candidats = sorted(
         (
             a for a in annonces.values()
-            if not a.exclue and a.critique_ia is None and (a.score or 0) >= seuil
+            if not a.exclue and (a.score or 0) >= seuil
+            and (a.critique_ia is None or _critique_perimee(a))
         ),
         key=lambda a: a.score or 0, reverse=True,
     )[:max_par_run]
@@ -156,3 +165,5 @@ def generer_critiques(annonces: dict[str, Annonce], config: "Config") -> None:
         return
     for a in candidats:
         a.critique_ia = generer_critique(a, client=client)
+        if a.critique_ia is not None:
+            a.critique_ia_prix = a.prix  # prix au moment de l'écriture : sert à détecter la péremption

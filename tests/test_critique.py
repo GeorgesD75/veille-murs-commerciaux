@@ -132,3 +132,16 @@ class TestGenererCritiques:
         a = faire_annonce(score=90)
         generer_critiques({"a": a}, _config_critique(max_par_run=0))
         assert a.critique_ia is None
+
+
+def test_critique_perimee_apres_forte_baisse_de_prix():
+    from pipeline.critique import _critique_perimee
+    from tests.fabriques import faire_annonce
+    a = faire_annonce(prix=300_000.0)
+    a.critique_ia = "Ancienne critique."
+    a.critique_ia_prix = 400_000.0   # écrite quand le bien valait 400 k€ : -25 %
+    assert _critique_perimee(a) is True
+    a.critique_ia_prix = 310_000.0   # -3 % : on ne régénère pas pour si peu
+    assert _critique_perimee(a) is False
+    a.critique_ia_prix = None        # critique d'avant cette fonctionnalité
+    assert _critique_perimee(a) is False

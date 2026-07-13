@@ -83,8 +83,19 @@ class Trajets:
 def categorie_emplacement(
     ville: str, departement: str, texte: str, communes_dynamiques: list[str]
 ) -> str:
-    """Catégorie servant au scoring emplacement (clés de config.yaml)."""
+    """Catégorie servant au scoring emplacement (clés de config.yaml).
+
+    Garde-fou (2026-07-13) : un nom de VILLE de banlieue accompagné d'un code
+    postal parisien est presque toujours le CP de l'agence, pas du bien — la
+    ville fait foi, sinon un local d'Asnières est scoré (et son rendement jugé)
+    comme du Paris intra-muros.
+    """
     if departement == "75":
+        if ville and cle_commune(ville) != "paris":
+            dynamiques = {cle_commune(c) for c in communes_dynamiques}
+            if cle_commune(ville) in dynamiques:
+                return "petite_couronne_dynamique"
+            return "petite_couronne"
         return "paris"
     if departement in PETITE_COURONNE:
         dynamiques = {cle_commune(c) for c in communes_dynamiques}

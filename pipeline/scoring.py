@@ -4,19 +4,25 @@ from __future__ import annotations
 from pipeline.config import Config
 from pipeline.geo import categorie_emplacement
 from pipeline.modeles import Annonce
-from pipeline.texte import normaliser_texte
+from pipeline.texte import cle_commune, normaliser_texte
 
 # Enveloppe des bonus/malus (le poste vaut « 5 pts » dans la formule).
 BONUS_MIN = -3.0
 BONUS_MAX = 5.0
 
 
-def _points_rendement(annonce: Annonce, cfg: dict) -> float:
+def _points_rendement(annonce: Annonce, cfg: dict, categorie: str) -> float:
     p = cfg["rendement"]
     r = annonce.rendement_brut_pct
     if r is None:
         return 0.0
-    part = (r - p["pct_plancher"]) / (p["pct_plafond"] - p["pct_plancher"])
+    # Échelle PAR ZONE : un rendement se juge contre ce que son marché exige
+    # (9 % en grande couronne est ordinaire, 8 % dans Paris est un trophée) —
+    # sans quoi la périphérie truste mécaniquement le haut du classement.
+    zone = (p.get("par_zone") or {}).get(categorie) or {}
+    plancher = float(zone.get("plancher", p["pct_plancher"]))
+    plafond = float(zone.get("plafond", p["pct_plafond"]))
+    part = (r - plancher) / (plafond - plancher)
     points = max(0.0, min(1.0, part)) * p["points"]
     if annonce.loyer_estime:
         # Un loyer adossé à des baux RÉELS voisins est bien plus solide qu'une
@@ -29,10 +35,7 @@ def _points_rendement(annonce: Annonce, cfg: dict) -> float:
     return points
 
 
-def _points_emplacement(annonce: Annonce, cfg: dict) -> float:
-    categorie = categorie_emplacement(
-        annonce.ville, annonce.departement, annonce.texte_complet(), cfg["communes_dynamiques"]
-    )
+def _points_emplacement(annonce: Annonce, cfg: dict, categorie: str) -> float:
     points = float(cfg["emplacement"][categorie])
     # Signal rue par rue (Base Adresse Nationale + OpenStreetMap), quand disponible :
     # ajuste le palier administratif sans jamais dépasser son enveloppe (25 pts).
@@ -143,11 +146,14 @@ def _points_fiscalite(annonce: Annonce, cfg: dict) -> tuple[float, list[str]]:
 
 def scorer(annonce: Annonce, config: Config) -> Annonce:
     cfg = config.scoring
+    categorie = categorie_emplacement(
+        annonce.ville, annonce.departement, annonce.texte_complet(), cfg["communes_dynamiques"]
+    )
     points_bonus, annonce.bonus_detectes = _points_bonus_malus(annonce, cfg)
     points_fiscalite, annonce.fiscalite_detectes = _points_fiscalite(annonce, cfg)
     detail = {
-        "rendement": round(_points_rendement(annonce, cfg), 1),
-        "emplacement": round(_points_emplacement(annonce, cfg), 1),
+        "rendement": round(_points_rendement(annonce, cfg, categorie), 1),
+        "emplacement": round(_points_emplacement(annonce, cfg, categorie), 1),
         "prix_m2_vs_benchmark": round(_points_benchmark(annonce, cfg), 1),
         "financement": round(_points_financement(annonce, cfg, config), 1),
         "fiscalite": round(points_fiscalite, 1),
@@ -159,6 +165,11 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
     annonce.score = int(round(max(0.0, min(100.0, sum(detail.values())))))
 
     annonce.flags = []
+    if annonce.departement == "75" and annonce.ville and cle_commune(annonce.ville) != "paris":
+        # Ville de banlieue + code postal parisien : l'emplacement a été jugé
+        # par la ville (voir geo.categorie_emplacement) — signalé à l'acheteur,
+        # l'adresse réelle est à vérifier avant toute démarche.
+        annonce.flags.append("localisation_incoherente")
     if annonce.loyer_estime:
         annonce.flags.append("loyer_estime")
     if "dette_copropriete" in annonce.bonus_detectes:

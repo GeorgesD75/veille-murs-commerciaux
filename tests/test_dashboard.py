@@ -125,3 +125,18 @@ def test_generation_fichiers(config, tmp_path):
     assert cible.read_text(encoding="utf-8").startswith("<!doctype html>")
     assert (tmp_path / "robots.txt").read_text(encoding="utf-8") == "User-agent: *\nDisallow: /\n"
     assert (tmp_path / ".nojekyll").exists()
+
+
+def test_source_en_panne_suspend_le_signal_peut_etre_retiree(config):
+    """Une source qui ne répond plus ne revoit AUCUNE annonce : ses annonces ne
+    doivent pas basculer en « peut-être vendue » à tort."""
+    a = faire_annonce(id="x1", date_premiere_vue="2026-06-01T07:00:00+02:00",
+                      date_derniere_vue="2026-06-10T07:00:00+02:00")  # 23 jours sans vue
+    a.score = 60
+    meta_panne = {"sante_sources": {"test": {"statut": "erreur", "message": "HTTP 500"}}}
+    payload = preparer_payload({"x1": a}, meta_panne, config, MAINTENANT)
+    assert payload["retenues"][0]["peut_etre_retiree"] is False
+
+    meta_ok = {"sante_sources": {"test": {"statut": "ok", "annonces": 5}}}
+    payload = preparer_payload({"x1": a}, meta_ok, config, MAINTENANT)
+    assert payload["retenues"][0]["peut_etre_retiree"] is True

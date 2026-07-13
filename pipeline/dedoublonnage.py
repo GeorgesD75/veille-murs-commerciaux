@@ -43,6 +43,9 @@ def fusionner(principale: Annonce, doublon: Annonce) -> Annonce:
         principale.loyer_mensuel = doublon.loyer_mensuel
     if principale.image_url is None:
         principale.image_url = doublon.image_url
+    for image in doublon.images:
+        if image not in principale.images:
+            principale.images.append(image)
     if len(doublon.description) > len(principale.description):
         principale.description = doublon.description
     principale.date_premiere_vue = min(principale.date_premiere_vue, doublon.date_premiere_vue)

@@ -44,10 +44,21 @@ scoring:
   # pesaient 10 pts pour des critères de confort — les 5 pts libérés renforcent
   # les deux critères qui décident vraiment d'un achat : le rendement et le
   # prix face au marché — voir test_bareme_total_fait_cent)
-  rendement:                  # 37 pts max, linéaire entre plancher et plafond
+  rendement:                  # 37 pts max, linéaire entre plancher et plafond — PAR ZONE
     points: 37
-    pct_plancher: 4           # ≤ 4 % de rendement brut -> 0 pt
-    pct_plafond: 9            # ≥ 9 % -> 35 pts
+    # Correction de conception (2026-07-13) : un rendement s'apprécie au regard
+    # du RISQUE du secteur. 9 % à Meaux est ordinaire (vacance et reventes plus
+    # dures), 8 % dans Paris est un trophée. Une échelle unique flattait
+    # mécaniquement la grande couronne ; l'échelle par zone compare chaque bien
+    # à ce que SON marché exige. Les zones = celles de l'emplacement.
+    pct_plancher: 4           # repli si la zone n'est pas reconnue
+    pct_plafond: 9
+    par_zone:
+      paris:                        {plancher: 3.5, plafond: 8}
+      petite_couronne_dynamique:    {plancher: 4,   plafond: 8.5}
+      petite_couronne:              {plancher: 4.5, plafond: 9}
+      grande_couronne_centre_ville: {plancher: 5,   plafond: 9.5}
+      autre:                        {plancher: 5.5, plafond: 10}
   penalite_loyer_estime: 10   # murs libres (référentiel de zone générique, ou promesse du
                               # vendeur) : forte incertitude + vacance
   penalite_loyer_estime_comparables: 4   # murs libres estimés via ≥ 2 baux RÉELS voisins

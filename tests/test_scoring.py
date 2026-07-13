@@ -23,10 +23,26 @@ def test_rendement_plafond_trente_sept_points(config):
 
 
 def test_rendement_intermediaire_lineaire(config):
-    a = faire_annonce()
-    a.rendement_brut_pct = 6.5  # à mi-chemin -> 18,5 pts
+    a = faire_annonce()  # Pantin : zone « petite couronne dynamique » (4 % -> 8,5 %)
+    a.rendement_brut_pct = 6.5
     scorer(a, config)
-    assert a.detail_score["rendement"] == 18.5
+    assert a.detail_score["rendement"] == 20.6  # (6,5-4)/(8,5-4) × 37
+
+
+def test_rendement_juge_contre_sa_zone(config):
+    """Même rendement, exigence différente : 8 % vaut le plafond dans Paris
+    (trophée) mais pas en grande couronne (ordinaire) — sans échelle par zone,
+    la périphérie trusterait mécaniquement le haut du classement."""
+    paris = faire_annonce(ville="Paris 11e", code_postal="75011", departement="75")
+    paris.rendement_brut_pct = 8.0
+    scorer(paris, config)
+    assert paris.detail_score["rendement"] == 37.0  # plafond parisien atteint
+
+    meaux = faire_annonce(ville="Meaux", code_postal="77100", departement="77",
+                          description="Zone commerciale.")
+    meaux.rendement_brut_pct = 8.0
+    scorer(meaux, config)
+    assert meaux.detail_score["rendement"] < 25.0  # loin du plafond « autre » (10 %)
 
 
 def test_rendement_au_dela_du_plafond_plafonne(config):
@@ -367,3 +383,15 @@ def test_rendement_inconnu_plafonne_aussi(config):
     a.rendement_brut_pct = None
     scorer(a, config)
     assert "rendement_sous_objectif" in a.flags
+
+
+def test_ville_banlieue_avec_cp_parisien_jugee_par_la_ville(config):
+    """CP parisien + ville de banlieue = souvent le CP de l'agence : le bien est
+    scoré comme sa VILLE (emplacement et échelle de rendement), et signalé."""
+    a = faire_annonce(ville="Asnières-sur-Seine", code_postal="75008", departement="75")
+    a.rendement_brut_pct = 8.0
+    scorer(a, config)
+    assert a.detail_score["emplacement"] == 15.0        # petite couronne, pas Paris 25
+    assert "localisation_incoherente" in a.flags
+    # échelle de rendement de la petite couronne (4,5 -> 9), pas celle de Paris
+    assert a.detail_score["rendement"] == round((8.0 - 4.5) / 4.5 * 37, 1)
