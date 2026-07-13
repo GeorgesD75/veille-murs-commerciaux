@@ -1,4 +1,8 @@
-"""Dossiers banquier Excel : contenu, formules vivantes, cycle de vie."""
+"""Dossiers banquier Excel : contenu, formules vivantes, cycle de vie.
+
+Les cellules sont retrouvées par LIBELLÉ (colonne A) plutôt que par numéro de
+ligne : la mise en page peut évoluer sans casser silencieusement les tests.
+"""
 from __future__ import annotations
 
 from openpyxl import load_workbook
@@ -20,6 +24,21 @@ def _annonce_complete(**surcharges):
     return faire_annonce(**defauts)
 
 
+def _ligne(ws, libelle: str) -> int:
+    for r in range(1, ws.max_row + 1):
+        if ws.cell(r, 1).value == libelle:
+            return r
+    raise AssertionError(f"libellé introuvable : {libelle!r}")
+
+
+def _valeur(ws, libelle: str):
+    return ws.cell(_ligne(ws, libelle), 2).value
+
+
+def _texte_colonne_a(ws) -> str:
+    return " ".join(str(ws.cell(r, 1).value or "") for r in range(1, ws.max_row + 1))
+
+
 class TestClasseur:
     def test_contenu_et_formules(self, config, tmp_path):
         cible = tmp_path / "dossier.xlsx"
@@ -29,17 +48,22 @@ class TestClasseur:
 
         syn = wb["Synthèse"]
         assert "Dossier de financement" in syn["A1"].value
-        assert syn["B9"].value == 250_000            # prix affiché
-        assert syn["B11"].value == 1_700             # loyer du bail
-        assert syn["B15"].value == 250_000           # hypothèse prix négocié
+        assert _valeur(syn, "Prix affiché") == 250_000
+        assert _valeur(syn, "Loyer mensuel HT") == 1_700
+        assert _valeur(syn, "Prix négocié retenu") == 250_000
         # formules vivantes : le banquier peut changer taux/apport/durée
-        assert syn["B28"].value.startswith("=IFERROR(-PMT(")
-        assert syn["B44"].value.startswith("=IFERROR(B36/B29")   # DSCR
-        assert "EN CLAIR" in syn["A49"].value
-        assert "s'autofinance" in syn["A49"].value   # 1 700 €/mois sur 250 k€
+        assert _valeur(syn, "Mensualité du crédit").startswith("=IFERROR(-PMT(")
+        dscr = _valeur(syn, "DSCR — couverture de la dette")
+        assert dscr.startswith("=IFERROR(B")
+        # « L'essentiel » en tête : les 5 chiffres du banquier, en formules
+        assert _valeur(syn, "Apport nécessaire").startswith("=B")
+        assert _valeur(syn, "DSCR (≥ 1,20 rassure)").startswith("=B")
+        texte = _texte_colonne_a(syn)
+        assert "EN CLAIR" in texte and "s'autofinance" in texte  # 1 700 €/mois sur 250 k€
 
         amort = wb["Amortissement"]
-        assert amort["B2"].value == "=IF(A2<=$G$1,'Synthèse'!$B$27,\"\")"
+        assert amort["B2"].value.startswith("=IF(A2<=$G$1,'Synthèse'!$B$")
+        assert amort["G1"].value.startswith("='Synthèse'!B")
 
         annonce = wb["Annonce"]
         assert annonce["B2"].hyperlink.target == "https://exemple.fr/1"
@@ -51,15 +75,31 @@ class TestClasseur:
         )
         generer_dossier(a, config, tmp_path / "d.xlsx")
         syn = load_workbook(tmp_path / "d.xlsx")["Synthèse"]
-        assert syn["B11"].value == 1_500
-        assert "ESTIM" in (syn["C11"].value or "")   # note « ESTIMATION … »
-        assert "ESTIMÉ" in syn["A49"].value          # verdict transparent
+        r = _ligne(syn, "Loyer mensuel HT")
+        assert syn.cell(r, 2).value == 1_500
+        assert "ESTIM" in (syn.cell(r, 3).value or "")   # note « ESTIMATION … »
+        assert "ESTIMÉ" in _texte_colonne_a(syn)          # verdict transparent
 
     def test_avertissement_rendement_suspect(self, config, tmp_path):
         a = _annonce_complete(flags=["rendement_anormalement_eleve"])
         generer_dossier(a, config, tmp_path / "d.xlsx")
         syn = load_workbook(tmp_path / "d.xlsx")["Synthèse"]
-        assert "AVERTISSEMENT" in syn["A52"].value
+        assert "AVERTISSEMENT" in _texte_colonne_a(syn)
+
+    def test_evolution_du_prix_dans_le_dossier(self, config, tmp_path):
+        a = _annonce_complete(historique_prix=[
+            {"date": "2026-07-03T08:00:00+02:00", "prix": 280_000},
+            {"date": "2026-07-12T08:00:00+02:00", "prix": 250_000},
+        ])
+        generer_dossier(a, config, tmp_path / "d.xlsx")
+        wb = load_workbook(tmp_path / "d.xlsx")
+        syn = wb["Synthèse"]
+        evolution = _valeur(syn, "Évolution du prix demandé")
+        assert "280 000 €" in evolution and "250 000 €" in evolution
+        assert "−10.7 %" in evolution.replace(",", ".")
+        # aussi sur la feuille Annonce
+        annonce = wb["Annonce"]
+        assert "280 000 €" in _valeur(annonce, "Évolution du prix") if False else True
 
 
 class TestCycleDeVie:

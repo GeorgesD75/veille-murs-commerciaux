@@ -312,6 +312,15 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
 .onglet.actif { color: var(--encre-1); border-bottom-color: var(--or-vif); }
 .onglet:hover { color: var(--encre-1); }
 
+/* ---- Évolution du prix, en clair sur la carte ---- */
+.evolution-prix { margin: 7px 0 2px; font-size: 12.5px; color: var(--encre-2);
+  font-variant-numeric: tabular-nums; }
+.evolution-prix .evo-titre { font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--encre-3); margin-right: 4px; }
+.evolution-prix .evo-date { color: var(--encre-3); font-size: 11px; }
+.evolution-prix .evo-baisse { color: var(--vert-texte); font-weight: 600; }
+.evolution-prix .evo-hausse { color: var(--alerte-texte); font-weight: 600; }
+
 /* ---- Mon suivi : le carnet de chasse ---- */
 .suivi-select { font: 600 11.5px system-ui, sans-serif; color: var(--marque);
   background: var(--plan); border: 1px solid var(--bord); border-radius: 7px;
@@ -1423,6 +1432,28 @@ function estAbandonnee(id) {
   return masquees.includes(id) || (suivi[id] || {}).statut === "abandonnee";
 }
 
+function evolutionPrixHtml(a) {
+  // L'évolution du prix EN CLAIR sur la carte : chaque étape datée, puis la
+  // variation totale — un vendeur qui baisse est un vendeur qui négocie.
+  const hist = a.historique_prix || [];
+  if (hist.length < 2) return "";
+  // au-delà de 4 étapes : la première, puis les 3 dernières (l'histoire tient sur une ligne)
+  const etapes = hist.length > 4 ? [hist[0], ...hist.slice(-3)] : hist;
+  const abrege = hist.length > 4;
+  const morceaux = etapes.map((p, i) => {
+    const precedent = i > 0 ? etapes[i - 1].prix : null;
+    const cls = precedent == null ? "" : p.prix < precedent ? " evo-baisse" : p.prix > precedent ? " evo-hausse" : "";
+    return `<span class="evo-etape${cls}">${fmtEuros(p.prix)} <span class="evo-date">(${fmtDate(p.date)})</span></span>`;
+  });
+  const chaine = abrege
+    ? `${morceaux[0]} → … → ${morceaux.slice(1).join(" → ")}`
+    : morceaux.join(" → ");
+  const total = (hist[hist.length - 1].prix / hist[0].prix - 1) * 100;
+  const totalTxt = `${total < 0 ? "−" : "+"}${Math.abs(total).toLocaleString("fr-FR", {maximumFractionDigits: 1})} %`;
+  return `<div class="evolution-prix"><span class="evo-titre">Prix demandé :</span> ${chaine}
+    <b class="${total < 0 ? "evo-baisse" : "evo-hausse"}">${totalTxt}</b>${abrege ? `<span class="evo-date"> (${hist.length} étapes au total)</span>` : ""}</div>`;
+}
+
 function boutonMasquerHtml(id) {
   const deja = estAbandonnee(id);
   return `<button type="button" class="btn-masquer" data-masquer="${ech(id)}"
@@ -1599,6 +1630,7 @@ function carteHtml(a, options) {
         · détectée le ${fmtDate(a.date_premiere_vue)}${liens}</div>
       ${etiquettes ? `<div class="etiquettes">${etiquettes}</div>` : ""}
       <div class="metriques">${metriques}</div>
+      ${evolutionPrixHtml(a)}
       ${jaugeMarcheHtml(a)}
       ${enClairHtml(a)}
       ${lettreRang === "S" ? explicationPepiteHtml(a) : ""}
