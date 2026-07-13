@@ -154,7 +154,15 @@ scoring:
   seuil_alerte_rendement_pct: 10   # au-delà : ⚠️ « vérifier locataire et quartier » (pas un bonus)
   seuils:
     pepite: 80                # score ≥ 80 -> email immédiat 🔥
-    vert: 75                  # ≥ vert -> « le haut du panier »
+    vert: 80                  # ≥ vert -> « le haut du panier » — relevé de 75 à 80 le
+                              # 2026-07-12 (demande utilisateur) : le rééquilibrage du barème
+                              # (rendement 37, prix vs marché 18) a poussé les bons dossiers
+                              # vers 78 ; le haut du panier doit rester exceptionnel. Il
+                              # coïncide désormais avec le seuil pépite : y entrer = un email.
+    rendement_minimum_vert: 7 # garde-fou (2026-07-13, demande utilisateur) : un bien sous ce
+                              # rendement brut ne peut PAS entrer au haut du panier, quel que
+                              # soit son score — le projet vit du cash-flow, pas des points
+                              # d'emplacement. Plafonné juste sous « vert », badge explicatif.
     orange: 60
     affichage: 65             # sous ce score, l'annonce est repliée dans « le reste du marché »
                               # (65 : « à étudier de près » ne montre pas de dossiers médiocres)

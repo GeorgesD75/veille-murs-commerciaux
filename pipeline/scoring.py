@@ -175,4 +175,17 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
         annonce.flags.append("rendement_anormalement_eleve")
         plafond = int(cfg["seuils"].get("affichage", cfg["seuils"]["orange"])) - 1
         annonce.score = min(annonce.score, plafond)
+
+    rendement_min_vert = cfg["seuils"].get("rendement_minimum_vert")
+    if rendement_min_vert is not None and (
+        annonce.rendement_brut_pct is None
+        or annonce.rendement_brut_pct < float(rendement_min_vert)
+    ):
+        # Garde-fou du haut du panier : le projet vit du CASH-FLOW. Un bien peut
+        # briller partout (emplacement, décote, quartier) et rester incapable de
+        # payer son crédit — les points d'emplacement ne remboursent rien. Sous
+        # le rendement minimal, le score est plafonné juste sous « vert » : le
+        # bien reste visible et bien classé, mais jamais trône ni email pépite.
+        annonce.flags.append("rendement_sous_objectif")
+        annonce.score = min(annonce.score, int(cfg["seuils"]["vert"]) - 1)
     return annonce

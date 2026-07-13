@@ -337,3 +337,33 @@ def test_pepite_saint_ouen_depasse_80(config, benchmarks):
     enrichir(a, benchmarks, config.scoring["prix_m2_vs_benchmark"]["seuil_decote_pct"])
     scorer(a, config)
     assert a.score is not None and a.score >= config.scoring["seuils"]["pepite"]
+
+
+# --- Garde-fou du haut du panier : rendement minimal (le projet vit du cash-flow) ---
+
+
+def test_rendement_sous_objectif_plafonne_sous_le_haut_du_panier(config):
+    # Bien excellent partout (Paris, décote forte, financement) mais rendement
+    # 6 % < 7 : il ne doit JAMAIS atteindre le haut du panier ni l'email pépite.
+    a = faire_annonce(ville="Paris 18e", code_postal="75018", departement="75")
+    a.rendement_brut_pct = 6.0
+    a.position_benchmark = "decote_forte"
+    a.temps_trajet_min = 10
+    scorer(a, config)
+    assert "rendement_sous_objectif" in a.flags
+    assert a.score <= config.scoring["seuils"]["vert"] - 1
+
+
+def test_rendement_au_dessus_de_l_objectif_pas_de_plafond(config):
+    a = faire_annonce()
+    a.rendement_brut_pct = 7.5
+    scorer(a, config)
+    assert "rendement_sous_objectif" not in a.flags
+
+
+def test_rendement_inconnu_plafonne_aussi(config):
+    # Pas de loyer du tout = aucun cash-flow démontrable : même garde-fou.
+    a = faire_annonce(ville="Paris 18e", code_postal="75018", departement="75")
+    a.rendement_brut_pct = None
+    scorer(a, config)
+    assert "rendement_sous_objectif" in a.flags

@@ -285,6 +285,7 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
   backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 4px 14px rgba(0, 0, 0, .12); }
 .hud b { font-size: 15px; color: var(--or-vif); }
+.hud a { color: var(--or-vif); font-weight: 700; text-underline-offset: 3px; }
 .hud .maj { opacity: .7; display: block; font-size: 12px; }
 .auvent { height: 15px; background: repeating-linear-gradient(90deg,
     var(--marque) 0 26px, var(--marque-fonce) 26px 52px);
@@ -944,10 +945,21 @@ let suivi = {};
 try { suivi = JSON.parse(localStorage.getItem(CLE_SUIVI) || "{}"); } catch (e) {}
 
 function basculerMasquage(id) {
+  // La croix et le statut « Abandonnée » du suivi sont le MÊME geste (demande
+  // utilisateur) : abandonner range l'annonce dans Mon suivi (notes conservées)
+  // et la relègue dans le reste du tableau de chasse. L'ancienne liste des
+  // masquées est migrée au passage.
   const i = masquees.indexOf(id);
-  if (i >= 0) masquees.splice(i, 1); else masquees.push(id);
-  localStorage.setItem(CLE_MASQUEES, JSON.stringify(masquees));
-  rendre();
+  if (i >= 0) masquees.splice(i, 1);
+  if (estAbandonnee(id)) {
+    localStorage.setItem(CLE_MASQUEES, JSON.stringify(masquees));
+    const s = suivi[id] || {};
+    if (s.statut === "abandonnee") majSuivi(id, s.note ? "suivie" : "");
+    else rendre();
+  } else {
+    localStorage.setItem(CLE_MASQUEES, JSON.stringify(masquees));
+    majSuivi(id, "abandonnee");
+  }
 }
 
 function ech(s) {
@@ -1390,10 +1402,14 @@ function explicationRendement(a, type) {
   return t;
 }
 
+function estAbandonnee(id) {
+  return masquees.includes(id) || (suivi[id] || {}).statut === "abandonnee";
+}
+
 function boutonMasquerHtml(id) {
-  const deja = masquees.includes(id);
+  const deja = estAbandonnee(id);
   return `<button type="button" class="btn-masquer" data-masquer="${ech(id)}"
-    title="${deja ? "Remettre cette annonce dans son classement normal." : "Retirer cette annonce du haut du panier / à étudier de près — elle passe dans « le reste du tableau de chasse », sans être supprimée."}">${deja ? "↺" : "×"}</button>`;
+    title="${deja ? "Reprendre cette annonce : elle quitte « Abandonnée » et retrouve son classement normal." : "Abandonner cette annonce : statut « Abandonnée » dans Mon suivi, et elle descend dans « le reste du tableau de chasse » — rien n'est supprimé, vos notes restent."}">${deja ? "↺" : "×"}</button>`;
 }
 
 function fiabiliteRueHtml(a) {
@@ -1446,6 +1462,8 @@ function carteHtml(a, options) {
     badges.push(`<span class="badge badge-alerte" title="Cette annonce n'apparaît plus dans les résultats de sa source depuis le ${fmtDate(a.date_derniere_vue)} (${a.jours_sans_vue} jours). Elle a probablement été vendue ou retirée — ou, plus rarement, la source a changé de structure. Cliquez le lien pour vérifier avant d'y investir du temps.">${IC.alerte} peut-être vendue · non revue depuis ${a.jours_sans_vue} j</span>`);
   if (suspect)
     badges.push(`<span class="badge badge-alerte">${IC.alerte} rendement à vérifier</span>`);
+  if ((a.flags || []).includes("rendement_sous_objectif"))
+    badges.push(`<span class="badge badge-type" title="Rendement brut sous votre objectif de ${D.analyse.rendement_cible_pct} % : quel que soit le reste du dossier, ce bien ne peut pas entrer au haut du panier — les points d'emplacement ne paient pas un crédit. Il reste visible ici, et une négociation du prix peut changer la donne.">rendement sous objectif</span>`);
   if (cf != null && cf >= 0 && !suspect) {
     const reel = a.loyer_mensuel != null && !a.loyer_estime;
     badges.push(`<span class="badge badge-autofinance" title="${reel
@@ -1753,7 +1771,7 @@ function rendre() {
   const visibles = D.retenues.filter(a => appliquer(a, f));
   // Une annonce écartée à la main OU plus revue en ligne depuis longtemps
   // (probablement vendue/retirée) descend dans le reste du tableau de chasse.
-  const relegue = a => masquees.includes(a.id) || a.peut_etre_retiree;
+  const relegue = a => estAbandonnee(a.id) || a.peut_etre_retiree;
   const prio = visibles.filter(a => (a.score ?? 0) >= D.seuils.vert && !relegue(a));
   const etudier = visibles.filter(a =>
     (a.score ?? 0) >= D.seuils.affichage && (a.score ?? 0) < D.seuils.vert && !relegue(a));
@@ -1767,7 +1785,7 @@ function rendre() {
 
   let index = 0;
   // Seules les meilleures occasions (score enchère ≥ seuil, plafonnées) montent
-  const occasions = (D.encheres || []).filter(e => e.haut_panier && !masquees.includes(e.id));
+  const occasions = (D.encheres || []).filter(e => e.haut_panier && !estAbandonnee(e.id));
   document.getElementById("bloc-prio").innerHTML =
     `<h2 class="section">${IC.trophee} Le haut du panier <span class="nb">score ≥ ${D.seuils.vert} & occasions aux enchères</span></h2>` +
     (prio.length || occasions.length
@@ -1802,8 +1820,8 @@ function rendreEncheres() {
   // Les meilleures occasions sont en haut de page ; le reste est REPLIÉ par
   // défaut (pas du top = pas d'espace), mêmes cartes une fois ouvert. Une
   // occasion masquée manuellement (croix) redescend ici comme les autres.
-  const encheres = (D.encheres || []).filter(e => !e.haut_panier || masquees.includes(e.id));
-  const nbFortes = (D.encheres || []).filter(e => e.haut_panier && !masquees.includes(e.id)).length;
+  const encheres = (D.encheres || []).filter(e => !e.haut_panier || estAbandonnee(e.id));
+  const nbFortes = (D.encheres || []).filter(e => e.haut_panier && !estAbandonnee(e.id)).length;
   const blocEncheres = document.getElementById("bloc-encheres");
   if ((D.encheres || []).length || s.encheres_ecartees) {
     blocEncheres.style.display = "";
@@ -2467,6 +2485,7 @@ function majSuivi(id, statut) {
   }
   localStorage.setItem(CLE_SUIVI, JSON.stringify(suivi));
   majCompteurSuivi();
+  rendre();  // le statut influe sur le classement (« abandonnée » = reléguée)
   if (document.getElementById("vue-suivi").style.display !== "none") rendreSuivi();
 }
 
@@ -2527,11 +2546,32 @@ function initialiser() {
   else if (vueDemandee === "suivi") basculerVue("suivi");
 
   const s = D.stats;
+  // Les pépites ne sont pas un sous-ensemble des nouvelles (une pépite peut
+  // avoir plusieurs jours) : deux phrases distinctes, jamais un « dont »
+  // trompeur. Et une pépite annoncée doit être TROUVABLE : le lien lève les
+  // filtres/masquages qui pourraient la cacher et défile jusqu'à elle.
   document.getElementById("hud").innerHTML =
-    `Ces dernières 48 h : <b>${s.nouvelles}</b> nouvelle${s.nouvelles > 1 ? "s" : ""} annonce${s.nouvelles > 1 ? "s" : ""}` +
-    `${s.pepites ? `, dont <b>${s.pepites}</b> pépite${s.pepites > 1 ? "s" : ""} !` : ", pas de pépite pour l'instant."}<br>` +
+    `Ces dernières 48 h : <b>${s.nouvelles}</b> nouvelle${s.nouvelles > 1 ? "s" : ""} annonce${s.nouvelles > 1 ? "s" : ""}.<br>` +
+    `${s.pepites ? `<b>${s.pepites}</b> pépite${s.pepites > 1 ? "s" : ""} au tableau — <a href="#" id="hud-pepite">la voir →</a><br>` : ""}` +
     `<b>${s.analysees}</b> annonces passées au crible sur 7 jours.` +
     `<span class="maj">Dernière tournée : ${new Date(D.derniere_execution).toLocaleString("fr-FR", {day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"})}</span>`;
+  const lienPepite = document.getElementById("hud-pepite");
+  if (lienPepite) lienPepite.addEventListener("click", ev => {
+    ev.preventDefault();
+    basculerVue("chasse");
+    // Lève tout ce qui peut cacher la pépite : filtres actifs et masquage manuel.
+    document.getElementById("f-type").value = "tous";
+    document.querySelectorAll("#f-dep-liste input:checked").forEach(c => { c.checked = false; });
+    document.getElementById("f-rdt").value = "";
+    document.getElementById("f-score").value = "";
+    document.getElementById("f-nouv").checked = false;
+    const idsPepites = D.retenues.filter(a => (a.score ?? 0) >= D.seuils.pepite).map(a => a.id);
+    masquees = masquees.filter(id => !idsPepites.includes(id));
+    localStorage.setItem(CLE_MASQUEES, JSON.stringify(masquees));
+    rendre();
+    const carte = document.querySelector(".carte.rang-s");
+    if (carte) carte.scrollIntoView({behavior: "smooth", block: "start"});
+  });
   document.getElementById("pied-maj").textContent =
     new Date(D.derniere_execution).toLocaleString("fr-FR");
 
