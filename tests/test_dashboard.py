@@ -115,9 +115,11 @@ def test_html_autonome_et_non_reference(config):
     assert '<meta name="robots" content="noindex, nofollow">' in html
     assert "Murs occupés récents" in html
     assert "pointdevente" in html
-    assert "</script>" in html  # gabarit intact
+    assert '</script>' in html  # gabarit intact
     # Les données embarquées ne peuvent pas fermer la balise script
     assert "fonds de commerce »</" not in html
+    assert 'id="hud-veille"' in html
+    assert 'Lancer la veille' in html
 
 
 def test_generation_fichiers(config, tmp_path):

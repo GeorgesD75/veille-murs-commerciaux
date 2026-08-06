@@ -701,6 +701,13 @@ details.ligne-depliable .carte { margin: 8px 0 14px; animation: none; }
 .comparateur .fermer { float: right; background: var(--gris-fond); border: none;
   border-radius: 8px; padding: 6px 12px; cursor: pointer; font: 600 13px system-ui, sans-serif;
   color: var(--encre-1); }
+.hud { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.hud .btn-veille { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px;
+  border-radius: 999px; background: linear-gradient(135deg, var(--or-vif), #ffbf47);
+  color: #fff; font-weight: 700; font-size: 13px; text-decoration: none; box-shadow: 0 8px 20px rgba(255, 140, 0, 0.18);
+  transition: transform 120ms ease, box-shadow 120ms ease; }
+.hud .btn-veille:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(255, 140, 0, 0.25); }
+.hud .btn-veille:active { transform: translateY(0); }
 
 footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px;
   color: var(--encre-2); font-size: 13px; }
@@ -2605,7 +2612,8 @@ function initialiser() {
     `Ces dernières 48 h : <b>${s.nouvelles}</b> nouvelle${s.nouvelles > 1 ? "s" : ""} annonce${s.nouvelles > 1 ? "s" : ""}.<br>` +
     `${s.pepites ? `<b>${s.pepites}</b> pépite${s.pepites > 1 ? "s" : ""} au tableau — <a href="#" id="hud-pepite">la voir →</a><br>` : ""}` +
     `<b>${s.analysees}</b> annonces passées au crible sur 7 jours.` +
-    `<span class="maj">Dernière tournée : ${new Date(D.derniere_execution).toLocaleString("fr-FR", {day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"})}</span>`;
+    `<span class="maj">Dernière tournée : ${new Date(D.derniere_execution).toLocaleString("fr-FR", {day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"})}</span>` +
+    `<a class="btn-veille" id="hud-veille" href="https://github.com/GeorgesD75/veille-murs-commerciaux/actions/workflows/veille.yml" target="_blank" rel="noopener noreferrer" title="Ouvre GitHub Actions pour lancer la veille à la main">▶ Lancer la veille</a>`;
   const lienPepite = document.getElementById("hud-pepite");
   if (lienPepite) lienPepite.addEventListener("click", ev => {
     ev.preventDefault();
