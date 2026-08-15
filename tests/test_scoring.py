@@ -305,6 +305,20 @@ def test_pas_de_flag_dette_copropriete_sans_mention(config):
     assert "dette_copropriete" not in a.flags
 
 
+def test_bonus_bail_longue_duree_restante(config):
+    a = faire_annonce(description="Murs occupés, bail ferme de 9 ans.")
+    scorer(a, config)
+    assert "bail_longue_duree_restante" in a.bonus_detectes
+    assert a.detail_score["bonus_malus"] == 2.0
+
+
+def test_malus_echeance_bail_proche(config):
+    a = faire_annonce(description="Murs loués, le locataire a donné congé.")
+    scorer(a, config)
+    assert "echeance_bail_proche" in a.bonus_detectes
+    assert a.detail_score["bonus_malus"] == -2.0
+
+
 # --- Flags ---
 
 

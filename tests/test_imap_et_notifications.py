@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from pipeline.modeles import TypeMurs
-from pipeline.notifications import notifier
+from pipeline.notifications import notifier, notifier_sante_sources
 from sources.imap_alertes import PORTAILS, extraire_annonces_html, identifier_portail
 from tests.fabriques import faire_annonce
 
@@ -95,6 +95,10 @@ def test_emails_construits_et_pepite_notifiee_une_seule_fois(config, monkeypatch
     assert "9,2 %" in html_pepite                      # rendement dans l'email
     assert "travaux" in html_pepite                    # lecture du prix incluse
     assert "https://exemple.fr/1" in html_pepite       # lien direct annonce
+    # Liens directs vers CETTE annonce sur le dashboard (pas juste l'accueil) :
+    # raccourcit le trajet entre « pépite reçue » et « vous au téléphone ».
+    assert f"{config['notifications']['url_dashboard'].rstrip('/')}/#annonce=pep1" in html_pepite
+    assert "action=contactee" in html_pepite
 
     sujet_quotidien, html_quotidien = envois[1]
     assert "2" in sujet_quotidien                      # 2 nouveautés
@@ -106,3 +110,62 @@ def test_emails_construits_et_pepite_notifiee_une_seule_fois(config, monkeypatch
     rapport2 = notifier(annonces, [], meta, config)
     assert rapport2["pepites"] == 0
     assert envois == []                                # rien de nouveau -> aucun email
+
+
+# --- Alerte de source en panne ---
+
+
+def _historique_panne(source: str = "imap", jours: int = 2) -> dict:
+    return {source: [
+        {"jour": f"2026-08-{10 + i:02d}", "statut": "erreur", "annonces": 0, "message": "AUTH"}
+        for i in range(jours)
+    ]}
+
+
+def test_alerte_sante_non_configuree_sans_secrets(config, monkeypatch):
+    monkeypatch.delenv("RESEND_API_KEY", raising=False)
+    monkeypatch.delenv("EMAIL_TO", raising=False)
+    meta: dict = {}
+    rapport = notifier_sante_sources(_historique_panne(), meta, config)
+    assert rapport["statut"].startswith("non configurées")
+    assert rapport["nouvelles_alertes"] == 1
+    # la panne est mémorisée même sans envoi, pour ne pas la perdre au run suivant
+    assert meta["sources_en_alerte"] == ["imap"]
+
+
+def test_alerte_sante_envoyee_une_seule_fois_puis_reinitialisee_si_resolue(config, monkeypatch):
+    monkeypatch.setenv("RESEND_API_KEY", "test-cle")
+    monkeypatch.setenv("EMAIL_TO", "georgesdurand75@gmail.com")
+    monkeypatch.setitem(config["notifications"]["alerte_source_en_panne"], "jours_consecutifs", 2)
+    envois: list[tuple[str, str]] = []
+    monkeypatch.setattr(
+        "pipeline.notifications._envoyer",
+        lambda cle, dest, sujet, html: envois.append((sujet, html)),
+    )
+
+    meta: dict = {}
+    rapport = notifier_sante_sources(_historique_panne(), meta, config)
+    assert rapport["statut"] == "ok"
+    assert len(envois) == 1
+    sujet, html = envois[0]
+    assert "1 source" in sujet
+    assert "imap" in html and "AUTH" in html
+
+    # Toujours en panne au run suivant : déjà alertée, pas de nouvel email
+    envois.clear()
+    rapport2 = notifier_sante_sources(_historique_panne(), meta, config)
+    assert rapport2["nouvelles_alertes"] == 0
+    assert envois == []
+
+    # La source repart : elle sort de la mémoire, une rechute redéclenchera une alerte
+    rapport3 = notifier_sante_sources({}, meta, config)
+    assert meta["sources_en_alerte"] == []
+
+
+def test_pas_de_panne_sous_le_seuil(config, monkeypatch):
+    monkeypatch.setenv("RESEND_API_KEY", "test-cle")
+    monkeypatch.setenv("EMAIL_TO", "georgesdurand75@gmail.com")
+    meta: dict = {}
+    rapport = notifier_sante_sources(_historique_panne(jours=1), meta, config)
+    assert rapport["statut"] == "rien à signaler"
+    assert meta["sources_en_alerte"] == []

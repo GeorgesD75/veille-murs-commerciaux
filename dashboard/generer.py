@@ -435,7 +435,7 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .carte.prio { background: var(--bande); border-color: var(--marque); }
 .carte.podium-1 { border-color: var(--or); box-shadow: 0 0 0 1px var(--or); }
 
-.btn-masquer { position: absolute; top: -10px; left: 14px; z-index: 3;
+.btn-masquer { position: absolute; top: -4px; left: 14px; z-index: 3;
   width: 23px; height: 23px; border-radius: 50%; background: var(--surface);
   border: 1.4px solid var(--bord); color: var(--encre-2); font: 700 13px system-ui, sans-serif;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -448,11 +448,6 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
   min-width: 42px; height: 42px; padding: 0 8px; border-radius: 50%;
   font: 700 12.5px Fraunces, Georgia, serif; transform: rotate(7deg);
   box-shadow: 0 3px 8px rgba(0,0,0,.18); pointer-events: none; }
-.sticker-vert { background: radial-gradient(circle at 35% 30%, #2f7c40, var(--vert-texte));
-  color: #eaf7ec; border-radius: 999px; flex-direction: column; line-height: 1.1;
-  pointer-events: auto; cursor: help; }
-.sticker-vert small { font-size: 7.5px; font-weight: 600; letter-spacing: .03em;
-  text-transform: uppercase; }
 .sticker-marteau { background: radial-gradient(circle at 35% 30%, var(--or-vif), var(--or));
   color: #fff8e6; font-size: 17px; }
 @keyframes fretiller { 0%, 100% { transform: rotate(7deg); } 35% { transform: rotate(-6deg) scale(1.12); } 70% { transform: rotate(10deg); } }
@@ -468,6 +463,13 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 @keyframes lueur-pepite {
   0%, 100% { box-shadow: 0 0 0 1px var(--or), 0 8px 26px rgba(180, 138, 30, .16); }
   50% { box-shadow: 0 0 0 1.5px var(--or-vif), 0 10px 34px rgba(214, 165, 50, .30); }
+}
+/* Carte visée par un lien direct (email pépite) : anneau qui s'estompe, pour
+   la retrouver d'un coup d'œil sans se battre avec le box-shadow de .rang-s */
+.carte-ciblee { animation: ping-cible 1.3s ease-out 2; }
+@keyframes ping-cible {
+  0% { outline: 3px solid var(--marque); outline-offset: 3px; }
+  100% { outline: 3px solid transparent; outline-offset: 10px; }
 }
 .pepite-pourquoi { margin-top: 10px; padding: 10px 13px; border-radius: 0 9px 9px 0;
   border-left: 3px solid var(--or-vif); background: var(--or-clair); font-size: 13.5px;
@@ -508,6 +510,7 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .badge-alerte { background: var(--alerte-fond); color: var(--alerte-texte); }
 .badge-rue-plus { background: var(--vert-fond); color: var(--vert-texte); }
 .badge-autofinance { background: var(--vert-fond); color: var(--vert-texte); border: 1px solid currentColor; }
+.badge-decote { background: var(--vert-fond); color: var(--vert-texte); border: 1px solid currentColor; }
 .enclair { margin-top: 10px; padding: 9px 12px; border-left: 3px solid var(--or);
   background: var(--bande); border-radius: 0 9px 9px 0; font-size: 13.5px; color: var(--encre-2); }
 .enclair-titre { font-weight: 700; color: var(--encre-1); font-variant: small-caps; margin-right: 4px; }
@@ -919,7 +922,11 @@ const CLE_MASQUEES = "veille-murs-masquees";
 
 // Profil de financement de l'utilisateur : pilote TOUS les cash-flows du site
 // (métriques, badges « s'autofinance », blocs « En clair », simulateur).
-const PROFIL_DEFAUT = {apport: 0, taux: D.analyse.financement.taux_pct,
+// 20 % par défaut : aligné sur l'apport de RÉFÉRENCE utilisé par le score
+// (config scoring.financement.apport_reference_pct) — sans ça, le cash-flow
+// affiché à 0 % d'apport contredisait au premier coup d'œil un score qui,
+// lui, jugeait déjà le bien finançable à 20 %.
+const PROFIL_DEFAUT = {apport: 20, taux: D.analyse.financement.taux_pct,
                        duree: D.analyse.financement.duree_ans};
 let profil = {...PROFIL_DEFAUT};
 try { profil = {...PROFIL_DEFAUT, ...JSON.parse(localStorage.getItem(CLE_PROFIL) || "{}")}; }
@@ -1511,6 +1518,8 @@ function carteHtml(a, options) {
   const suspect = (a.flags || []).includes("rendement_anormalement_eleve");
   const badges = [];
   badges.push(`<span class="badge badge-type">${a.type_murs === "murs_occupes" ? "Murs occupés" : "Murs libres"}</span>`);
+  if ((a.decote_pct ?? 0) >= 15 && !(a.flags || []).includes("rendement_anormalement_eleve"))
+    badges.push(`<span class="badge badge-decote" title="Prix affiché ${Math.round(a.decote_pct)} % sous le prix/m² MÉDIAN du marché local (référentiel du quartier, détail sur la jauge « marché » de la carte). Une vraie décote… ou un défaut caché : lisez la ligne d'explication du prix.">−${Math.round(a.decote_pct)}% vs marché</span>`);
   if (a.est_nouvelle) badges.push(`<span class="badge badge-nouveau">${IC.etincelle} nouveau</span>`);
   if (a.peut_etre_retiree)
     badges.push(`<span class="badge badge-alerte" title="Cette annonce n'apparaît plus dans les résultats de sa source depuis le ${fmtDate(a.date_derniere_vue)} (${a.jours_sans_vue} jours). Elle a probablement été vendue ou retirée — ou, plus rarement, la source a changé de structure. Cliquez le lien pour vérifier avant d'y investir du temps.">${IC.alerte} peut-être vendue · non revue depuis ${a.jours_sans_vue} j</span>`);
@@ -1578,6 +1587,8 @@ function carteHtml(a, options) {
     taxe_fonciere_locataire: ["Taxe foncière au locataire (annonce)", "plus"],
     enseigne_nationale: ["Enseigne nationale (annonce)", "plus"],
     travaux: ["Travaux signalés (annonce)", "moins"],
+    bail_longue_duree_restante: ["Bail loin de toute échéance (annonce)", "plus"],
+    echeance_bail_proche: ["Échéance de bail proche (annonce)", "moins"],
   };
   const etiquettes = (a.caracteristiques || []).map(c =>
     `<span class="etiquette">${ech(c)}</span>`)
@@ -1616,17 +1627,13 @@ function carteHtml(a, options) {
   const lettreRang = rang(a.score);
   const dansComp = comparaison.includes(a.id);
 
-  // Autocollant d'exception : vraie décote (pastille verte). Les pépites (rang S)
-  // restent signalées par la bordure or + reflet de la carte (.rang-s), sans
-  // icône supplémentaire dans le coin.
-  let sticker = "";
-  if ((a.decote_pct ?? 0) >= 15 && !(a.flags || []).includes("rendement_anormalement_eleve"))
-    sticker = `<span class="sticker sticker-vert" title="Prix affiché ${Math.round(a.decote_pct)} % sous le prix/m² MÉDIAN du marché local (référentiel du quartier, détail sur la jauge « marché » de la carte). Une vraie décote… ou un défaut caché : lisez la ligne d'explication du prix.">−${Math.round(a.decote_pct)}%<small>vs marché</small></span>`;
-
+  // Les pépites (rang S) restent signalées par la bordure or + reflet de la
+  // carte (.rang-s) ; la décote vs marché est désormais un badge en ligne
+  // près du titre (poussé plus haut), non un autocollant flottant sur le
+  // coin de la carte — évite qu'il soit rogné par overflow:hidden sur .rang-s.
   return `<article class="carte${options.prio ? " prio" : ""}${options.medaille === 0 ? " podium-1" : ""}${lettreRang === "S" ? " rang-s" : ""}"
       style="animation-delay:${(options.index || 0) * 45}ms">
     ${boutonMasquerHtml(a.id)}
-    ${sticker}
     <div class="carte-img" data-id="${ech(a.id)}" data-idx="0">${img}</div>
     <div>
       ${tampon}
@@ -2037,7 +2044,9 @@ function rendreSimulateur() {
 const CHECKLIST = [
   {g: "Le bail", items: [
     {id: "bail_date", t: "Bail 3/6/9 lu : date, échéance triennale, loyer à jour",
-      auto: a => (a.bonus_detectes || []).includes("bail_recent") ? "bail récent signalé" : null},
+      auto: a => (a.bonus_detectes || []).includes("echeance_bail_proche") ? "⚠ échéance proche signalée dans l'annonce"
+        : (a.bonus_detectes || []).includes("bail_longue_duree_restante") ? "bail loin de toute échéance signalé"
+        : (a.bonus_detectes || []).includes("bail_recent") ? "bail récent signalé" : null},
     {id: "bail_606", t: "Article 606 et taxe foncière à la charge du locataire",
       auto: a => (a.bonus_detectes || []).includes("taxe_fonciere_locataire") ? "signalé dans l'annonce" : null},
     {id: "bail_destination", t: "Destination du bail large (« tous commerces » idéalement)",
@@ -2729,6 +2738,34 @@ function initialiser() {
     rendre();
   });
   rendre();
+
+  // Lien direct depuis un email (pépite ou récap) : #annonce=<id> lève les
+  // filtres/masquages qui pourraient la cacher et défile jusqu'à la carte ;
+  // #annonce=<id>&action=contactee marque aussi « Contactée » dans Mon suivi
+  // en un clic — pas besoin de rouvrir le menu, l'essentiel est de gagner du
+  // temps entre « pépite détectée » et « vous au téléphone avec l'agence ».
+  if (location.hash.startsWith("#annonce=")) {
+    const parametres = new URLSearchParams(location.hash.slice(1));
+    const idCible = parametres.get("annonce");
+    if (idCible) {
+      document.getElementById("f-type").value = "tous";
+      document.querySelectorAll("#f-dep-liste input:checked").forEach(c => { c.checked = false; });
+      document.getElementById("f-rdt").value = "";
+      document.getElementById("f-score").value = "";
+      document.getElementById("f-nouv").checked = false;
+      const i = masquees.indexOf(idCible);
+      if (i >= 0) masquees.splice(i, 1);
+      localStorage.setItem(CLE_MASQUEES, JSON.stringify(masquees));
+      if (parametres.get("action") === "contactee") majSuivi(idCible, "contactee");  // re-rend déjà
+      else rendre();
+      const cible = document.querySelector(`.carte-img[data-id="${CSS.escape(idCible)}"]`)?.closest(".carte");
+      if (cible) {
+        cible.scrollIntoView({behavior: "smooth", block: "center"});
+        cible.classList.add("carte-ciblee");
+        setTimeout(() => cible.classList.remove("carte-ciblee"), 2600);
+      }
+    }
+  }
 }
 initialiser();
 </script>

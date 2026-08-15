@@ -24,8 +24,9 @@ from pipeline.geo import Trajets
 from pipeline.marche import actualiser_marche
 from pipeline.modeles import Annonce, AnnonceBrute
 from pipeline.normalisation import maintenant_iso, normaliser
-from pipeline.notifications import notifier
+from pipeline.notifications import notifier, notifier_sante_sources
 from pipeline.rue import evaluer_annonces
+from pipeline.sante import mettre_a_jour as mettre_a_jour_sante
 from pipeline.scoring import scorer
 from pipeline.stockage import Stockage
 from pipeline.taux_marche import taux_credit_estime
@@ -153,6 +154,19 @@ def executer() -> dict[str, Any]:
             sante["encheres_publiques"] = {"statut": "erreur", "message": str(exc)}
             log.exception("collecte des enchères en échec, on continue")
 
+    # Historique de santé des sources (data/sante_sources.json) : détecte une
+    # panne silencieuse (source en erreur ou à 0 annonce plusieurs jours de
+    # suite) — sans ça, invisible ailleurs que le pied de page du dashboard.
+    historique_sante = None
+    try:
+        parametres_alerte = config["notifications"].get("alerte_source_en_panne", {})
+        historique_sante = mettre_a_jour_sante(
+            RACINE / "data" / "sante_sources.json", sante, quand,
+            jours_retenus=int(parametres_alerte.get("jours_historique_conserves", 30)),
+        )
+    except Exception:  # noqa: BLE001 — jamais bloquant
+        log.exception("historique de santé des sources en échec, on continue sans")
+
     # Filtrage + enrichissement + scoring recalculés sur tout le stock à chaque run,
     # pour que les changements de config.yaml ou des benchmarks s'appliquent partout.
     seuil_decote = config.scoring["prix_m2_vs_benchmark"]["seuil_decote_pct"]
@@ -206,9 +220,15 @@ def executer() -> dict[str, Any]:
         "encheres_ecartees": encheres_ecartees,
         # Mémoire anti-doublon des emails pépite (complétée par notifier)
         "pepites_notifiees": ancienne_meta.get("pepites_notifiees", []),
+        # Mémoire anti-répétition des alertes de source en panne (complétée
+        # par notifier_sante_sources) : une source déjà signalée ne l'est
+        # pas de nouveau tant qu'elle reste en panne.
+        "sources_en_alerte": ancienne_meta.get("sources_en_alerte", []),
     }
 
     meta["notifications"] = notifier(annonces, nouvelles, meta, config)
+    if historique_sante is not None:
+        meta["notifications_sante"] = notifier_sante_sources(historique_sante, meta, config)
     stockage.sauvegarder(annonces, meta)
 
     try:

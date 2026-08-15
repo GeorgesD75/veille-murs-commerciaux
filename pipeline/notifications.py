@@ -22,6 +22,7 @@ import requests
 
 from pipeline.config import Config
 from pipeline.modeles import Annonce
+from pipeline.sante import sources_en_panne
 
 log = logging.getLogger("collecteur.notifications")
 
@@ -46,7 +47,7 @@ def _fmt_pct(valeur: float | None) -> str:
     return "—" if valeur is None else f"{valeur:.1f} %".replace(".", ",")
 
 
-def _carte_html(a: Annonce) -> str:
+def _carte_html(a: Annonce, url_dashboard: str = "") -> str:
     score = a.score or 0
     couleur = "#1c5e2a" if score >= 75 else ("#8a5a00" if score >= 60 else "#4e544e")
     fond = "#e3efe4" if score >= 75 else ("#f9edd2" if score >= 60 else "#ecede7")
@@ -63,6 +64,23 @@ def _carte_html(a: Annonce) -> str:
         lignes.append(f"<i>{a.lecture_prix}</i>")
     contenu = "<br>".join(lignes)
     type_murs = "Murs occupés" if a.type_murs.value == "murs_occupes" else "Murs libres"
+    # Liens directs vers CETTE annonce sur le dashboard (pas juste la page
+    # d'accueil) : le but est de raccourcir le trajet entre « pépite reçue »
+    # et « vous au téléphone avec l'agence », pas d'ajouter un clic de plus.
+    # « Marquer contactée » écrit le statut dans Mon suivi dès l'ouverture du
+    # lien (localStorage, rien ne transite par un serveur — il n'y en a pas).
+    liens_directs = ""
+    if url_dashboard:
+        base = url_dashboard.rstrip("/")
+        liens_directs = (
+            f' <a href="{base}/#annonce={a.id}"'
+            f' style="background:#fff;color:#1d5240;padding:6px 13px;border:1.5px solid #1d5240;'
+            f'border-radius:8px;text-decoration:none;font-family:Arial,sans-serif;font-size:13px">'
+            f"Voir sur Les Murs →</a>"
+            f' <a href="{base}/#annonce={a.id}&amp;action=contactee"'
+            f' style="color:#82887e;font-family:Arial,sans-serif;font-size:12px;'
+            f'text-decoration:underline;margin-left:4px">✓ Marquer contactée</a>'
+        )
     return f"""<div style="{_STYLE_CARTE}">
   <div style="margin-bottom:6px">
     <span style="{_STYLE_CHIP}background:{fond};color:{couleur}">{score} /100</span>
@@ -75,7 +93,7 @@ def _carte_html(a: Annonce) -> str:
   <div style="font-size:14px;line-height:1.5">{contenu}</div>
   <div style="margin-top:10px"><a href="{a.url}"
     style="background:#1d5240;color:#f2efe4;padding:7px 14px;border-radius:8px;
-    text-decoration:none;font-family:Arial,sans-serif;font-size:13px">Voir l'annonce →</a></div>
+    text-decoration:none;font-family:Arial,sans-serif;font-size:13px">Voir l'annonce →</a>{liens_directs}</div>
 </div>"""
 
 
@@ -150,7 +168,7 @@ def notifier(
 
     try:
         if pepites:
-            corps = "".join(_carte_html(a) for a in pepites)
+            corps = "".join(_carte_html(a, url_dashboard) for a in pepites)
             sujet = f"🔥 Pépite détectée : {pepites[0].titre[:60]} ({pepites[0].score}/100)"
             _envoyer(cle_api, destinataire, sujet,
                      _enveloppe("alerte pépite", corps, url_dashboard))
@@ -161,7 +179,7 @@ def notifier(
             corps = (
                 f"<p style='font-size:14px'>{len(nouvelles_ids)} nouvelle(s) annonce(s) "
                 f"détectée(s) aujourd'hui — voici les mieux notées :</p>"
-                + "".join(_carte_html(a) for a in nouvelles)
+                + "".join(_carte_html(a, url_dashboard) for a in nouvelles)
             )
             sujet = f"Les Murs. — {len(nouvelles_ids)} nouveauté(s), top : {nouvelles[0].score}/100"
             _envoyer(cle_api, destinataire, sujet,
@@ -171,4 +189,63 @@ def notifier(
     except Exception as exc:  # noqa: BLE001 — un échec d'envoi ne casse pas le run
         rapport["statut"] = f"erreur : {exc}"
         log.exception("envoi des notifications en échec")
+    return rapport
+
+
+def notifier_sante_sources(
+    historique: dict[str, list[dict[str, Any]]],
+    meta: dict[str, Any],
+    config: Config,
+) -> dict[str, Any]:
+    """Alerte quand une source reste en panne (erreur ou 0 annonce) plusieurs
+    jours de suite — sans ça, une panne de source est invisible ailleurs que
+    dans le pied de page du dashboard.
+
+    Anti-répétition : une seule alerte par incident, mémorisée dans
+    meta["sources_en_alerte"] (persisté) jusqu'à ce que la source reparte —
+    elle repart alors du bilan et pourra redéclencher une alerte plus tard.
+    """
+    parametres = config["notifications"].get("alerte_source_en_panne", {})
+    seuil = int(parametres.get("jours_consecutifs", 2))
+    cle_api = os.environ.get("RESEND_API_KEY")
+    destinataire = os.environ.get("EMAIL_TO")
+
+    pannes = sources_en_panne(historique, seuil)
+    deja_alertees = set(meta.get("sources_en_alerte", []))
+    meta["sources_en_alerte"] = sorted(p["source"] for p in pannes)
+    nouvelles_pannes = [p for p in pannes if p["source"] not in deja_alertees]
+
+    rapport: dict[str, Any] = {
+        "sources_en_panne": len(pannes), "nouvelles_alertes": len(nouvelles_pannes),
+    }
+    if not nouvelles_pannes:
+        rapport["statut"] = "rien à signaler"
+        return rapport
+    if not cle_api or not destinataire:
+        rapport["statut"] = "non configurées (RESEND_API_KEY / EMAIL_TO absents)"
+        log.warning("alerte source(s) en panne non envoyée : %s", rapport)
+        return rapport
+
+    try:
+        def _ligne(p: dict[str, Any]) -> str:
+            message = f" — {p['dernier_message']}" if p["dernier_message"] else ""
+            return (
+                f"<li><b>{p['source']}</b> — en panne depuis {p['jours']} jour(s) "
+                f"(depuis le {p['depuis']}), dernier statut : {p['dernier_statut']}{message}</li>"
+            )
+        lignes = "".join(_ligne(p) for p in nouvelles_pannes)
+        corps = (
+            f"<p style='font-size:14px'>{len(nouvelles_pannes)} source(s) restent en erreur "
+            f"ou à 0 annonce depuis au moins {seuil} jour(s) — le site a probablement changé "
+            f"de structure, ou un identifiant a expiré.</p><ul style='font-size:14px'>{lignes}</ul>"
+        )
+        sujet = f"⚠️ Les Murs. — {len(nouvelles_pannes)} source(s) en panne"
+        _envoyer(cle_api, destinataire, sujet,
+                 _enveloppe("santé des sources", corps, config["notifications"].get("url_dashboard", "")))
+        rapport["statut"] = "ok"
+        log.warning("email d'alerte source(s) en panne envoyé : %s",
+                    [p["source"] for p in nouvelles_pannes])
+    except Exception as exc:  # noqa: BLE001 — un échec d'envoi ne casse pas le run
+        rapport["statut"] = f"erreur : {exc}"
+        log.exception("envoi de l'alerte source en panne en échec")
     return rapport

@@ -154,6 +154,18 @@ scoring:
       mots: ["dette de copropriété", "dettes de copropriété", "charges impayées",
              "impayés de charges", "copropriété en difficulté", "procédure de copropriété",
              "carence de copropriété", "syndic judiciaire", "administrateur provisoire"]
+    - nom: bail_longue_duree_restante   # un bail loin de toute échéance triennale
+      points: 2                          # sécurise le cash-flow bien mieux qu'un rendement
+      mots: ["bail ferme de 9 ans", "bail de 9 ans fermes", "9 années fermes",
+             "engagement locatif de 9 ans", "aucune échéance triennale avant"]
+    # V1 des mots-clés de bail : pas encore éprouvée sur de vraies annonces
+    # (contrairement au piège fonds de commerce, affiné après un cas réel le
+    # 2026-07-10) — à corriger dès qu'une annonce réelle passe à travers.
+    - nom: echeance_bail_proche   # risque concret : vacance + recherche d'un nouveau
+      points: -2                   # locataire + franchise de loyer à la relocation
+      mots: ["locataire a donné congé", "locataire sortant", "préavis de départ du locataire",
+             "libère les lieux", "quittera les lieux", "ne renouvellera pas son bail",
+             "prochaine échéance triennale", "échéance triennale imminente"]
   dpe:                        # classe énergie annoncée (volet E de l'ESG, le seul qui a de
                               # vraies dents financières à cette échelle) — dans l'enveloppe
                               # bonus/malus. Honnêteté réglementaire : les interdictions de
@@ -245,3 +257,8 @@ notifications:
   email_quotidien: false      # désactivé : uniquement l'alerte pépite (score ≥ seuil pépite)
   max_annonces_email: 5
   url_dashboard: "https://georgesd75.github.io/veille-murs-commerciaux/"
+  alerte_source_en_panne:      # source en erreur OU à 0 annonce plusieurs jours de suite :
+                                # invisible ailleurs que le pied de page du dashboard sans ça
+                                # (constaté 2026-08 : imap 4 jours, cessionpme 5+ jours silencieux)
+    jours_consecutifs: 2       # nombre de jours de suite en panne avant l'email d'alerte
+    jours_historique_conserves: 30   # fenêtre glissante gardée dans data/sante_sources.json
