@@ -289,15 +289,16 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
   text-shadow: 0 2px 0 rgba(0,0,0,.28); }
 .wordmark .point { color: var(--or-vif); }
 .wordmark .trait { display: block; margin-top: 7px; }
-.hud { margin-left: auto; text-align: right; font-size: 13.5px; line-height: 1.6;
+.hud { margin-left: auto; }
+.hud-texte { text-align: right; font-size: 13.5px; line-height: 1.6;
   font-variant-numeric: tabular-nums; max-width: 360px;
   background: rgba(255, 255, 255, .10); border: 1px solid rgba(255, 255, 255, .20);
   border-radius: 14px; padding: 10px 16px;
   backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 4px 14px rgba(0, 0, 0, .12); }
-.hud b { font-size: 15px; color: var(--or-vif); }
-.hud a { color: var(--or-vif); font-weight: 700; text-underline-offset: 3px; }
-.hud .maj { opacity: .7; display: block; font-size: 12px; }
+.hud-texte b { font-size: 15px; color: var(--or-vif); }
+.hud-texte a { color: var(--or-vif); font-weight: 700; text-underline-offset: 3px; }
+.hud-texte .maj { opacity: .7; display: block; font-size: 12px; }
 .auvent { height: 15px; background: repeating-linear-gradient(90deg,
     var(--marque) 0 26px, var(--marque-fonce) 26px 52px);
   -webkit-mask: radial-gradient(13px at 13px 0, #000 97%, #0000) 0 0 / 26px 15px repeat-x;
@@ -447,8 +448,6 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
   min-width: 42px; height: 42px; padding: 0 8px; border-radius: 50%;
   font: 700 12.5px Fraunces, Georgia, serif; transform: rotate(7deg);
   box-shadow: 0 3px 8px rgba(0,0,0,.18); pointer-events: none; }
-.sticker-or { background: radial-gradient(circle at 35% 30%, var(--or-vif), var(--or));
-  color: #fff8e6; font-size: 19px; }
 .sticker-vert { background: radial-gradient(circle at 35% 30%, #2f7c40, var(--vert-texte));
   color: #eaf7ec; border-radius: 999px; flex-direction: column; line-height: 1.1;
   pointer-events: auto; cursor: help; }
@@ -1617,11 +1616,11 @@ function carteHtml(a, options) {
   const lettreRang = rang(a.score);
   const dansComp = comparaison.includes(a.id);
 
-  // Autocollant d'exception : pépite (diamant or) > vraie décote (pastille verte)
+  // Autocollant d'exception : vraie décote (pastille verte). Les pépites (rang S)
+  // restent signalées par la bordure or + reflet de la carte (.rang-s), sans
+  // icône supplémentaire dans le coin.
   let sticker = "";
-  if (lettreRang === "S")
-    sticker = `<span class="sticker sticker-or" title="Pépite — score ≥ ${D.seuils.pepite}">${IC.pepite}</span>`;
-  else if ((a.decote_pct ?? 0) >= 15 && !(a.flags || []).includes("rendement_anormalement_eleve"))
+  if ((a.decote_pct ?? 0) >= 15 && !(a.flags || []).includes("rendement_anormalement_eleve"))
     sticker = `<span class="sticker sticker-vert" title="Prix affiché ${Math.round(a.decote_pct)} % sous le prix/m² MÉDIAN du marché local (référentiel du quartier, détail sur la jauge « marché » de la carte). Une vraie décote… ou un défaut caché : lisez la ligne d'explication du prix.">−${Math.round(a.decote_pct)}%<small>vs marché</small></span>`;
 
   return `<article class="carte${options.prio ? " prio" : ""}${options.medaille === 0 ? " podium-1" : ""}${lettreRang === "S" ? " rang-s" : ""}"
@@ -2609,10 +2608,10 @@ function initialiser() {
   // trompeur. Et une pépite annoncée doit être TROUVABLE : le lien lève les
   // filtres/masquages qui pourraient la cacher et défile jusqu'à elle.
   document.getElementById("hud").innerHTML =
-    `Ces dernières 48 h : <b>${s.nouvelles}</b> nouvelle${s.nouvelles > 1 ? "s" : ""} annonce${s.nouvelles > 1 ? "s" : ""}.<br>` +
+    `<div class="hud-texte">Ces dernières 48 h : <b>${s.nouvelles}</b> nouvelle${s.nouvelles > 1 ? "s" : ""} annonce${s.nouvelles > 1 ? "s" : ""}.<br>` +
     `${s.pepites ? `<b>${s.pepites}</b> pépite${s.pepites > 1 ? "s" : ""} au tableau — <a href="#" id="hud-pepite">la voir →</a><br>` : ""}` +
     `<b>${s.analysees}</b> annonces passées au crible sur 7 jours.` +
-    `<span class="maj">Dernière tournée : ${new Date(D.derniere_execution).toLocaleString("fr-FR", {day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"})}</span>` +
+    `<span class="maj">Dernière tournée : ${new Date(D.derniere_execution).toLocaleString("fr-FR", {day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"})}</span></div>` +
     `<a class="btn-veille" id="hud-veille" href="https://github.com/GeorgesD75/veille-murs-commerciaux/actions/workflows/veille.yml" target="_blank" rel="noopener noreferrer" title="Ouvre GitHub Actions pour lancer la veille à la main">▶ Lancer la veille</a>`;
   const lienPepite = document.getElementById("hud-pepite");
   if (lienPepite) lienPepite.addEventListener("click", ev => {
