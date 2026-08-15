@@ -503,6 +503,7 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .carte-titre { font-size: 16px; font-weight: 600; margin: 0 0 2px; }
 .carte-titre a { color: var(--encre-1); }
 .carte-lieu { color: var(--encre-2); font-size: 13px; margin-bottom: 7px; }
+.jours-marche-stale { color: var(--vert-texte); font-weight: 600; cursor: help; }
 .badges { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: 2px; flex-wrap: wrap; }
 .badge { font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
 .badge-type { background: var(--gris-fond); color: var(--gris-texte); }
@@ -511,6 +512,7 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .badge-rue-plus { background: var(--vert-fond); color: var(--vert-texte); }
 .badge-autofinance { background: var(--vert-fond); color: var(--vert-texte); border: 1px solid currentColor; }
 .badge-decote { background: var(--vert-fond); color: var(--vert-texte); border: 1px solid currentColor; }
+.badge-decote-estime { border-style: dashed; }
 .enclair { margin-top: 10px; padding: 9px 12px; border-left: 3px solid var(--or);
   background: var(--bande); border-radius: 0 9px 9px 0; font-size: 13.5px; color: var(--encre-2); }
 .enclair-titre { font-weight: 700; color: var(--encre-1); font-variant: small-caps; margin-right: 4px; }
@@ -1005,6 +1007,15 @@ const fmtPct = n => n == null ? "—" :
   new Intl.NumberFormat("fr-FR", {maximumFractionDigits: 1}).format(n) + " %";
 const fmtDate = d => d ? new Date(d).toLocaleDateString("fr-FR",
   {day: "numeric", month: "short"}) : "—";
+// Jours sur le marché : une date brute demande un calcul mental, un compteur
+// est un argument de négociation immédiat (un bien qui traîne se négocie
+// plus dur). Seuil à 90 j choisi large : en dessous, rien à en tirer.
+function joursMarcheHtml(dateIso) {
+  if (!dateIso) return "";
+  const jours = Math.max(0, Math.round((Date.now() - new Date(dateIso)) / 86400000));
+  const stale = jours >= 90;
+  return ` · <span${stale ? ` class="jours-marche-stale" title="Un bien qui traîne depuis longtemps se négocie plus dur — bon point d'appui pour une offre."` : ""}>${jours} j sur le marché</span>`;
+}
 
 function classeScore(s) {
   if (s == null) return "gris";
@@ -1518,8 +1529,17 @@ function carteHtml(a, options) {
   const suspect = (a.flags || []).includes("rendement_anormalement_eleve");
   const badges = [];
   badges.push(`<span class="badge badge-type">${a.type_murs === "murs_occupes" ? "Murs occupés" : "Murs libres"}</span>`);
-  if ((a.decote_pct ?? 0) >= 15 && !(a.flags || []).includes("rendement_anormalement_eleve"))
-    badges.push(`<span class="badge badge-decote" title="Prix affiché ${Math.round(a.decote_pct)} % sous le prix/m² MÉDIAN du marché local (référentiel du quartier, détail sur la jauge « marché » de la carte). Une vraie décote… ou un défaut caché : lisez la ligne d'explication du prix.">−${Math.round(a.decote_pct)}% vs marché</span>`);
+  if ((a.decote_pct ?? 0) >= 15 && !(a.flags || []).includes("rendement_anormalement_eleve")) {
+    // La confiance de la décote dépend de sa source : des ventes réelles DVF
+    // valent bien plus qu'un référentiel écrit à la main — un écart qu'on
+    // voyait déjà dans la jauge dépliée (marche-source), mais pas sur ce
+    // badge compact, le seul visible en scannant vite toute la liste.
+    const dvf = (a.benchmark_source || "").includes("DVF");
+    const titre = dvf
+      ? `Prix affiché ${Math.round(a.decote_pct)} % sous le prix/m² MÉDIAN du marché local — ${a.benchmark_source}. Une vraie décote… ou un défaut caché : lisez la ligne d'explication du prix.`
+      : `Prix affiché ${Math.round(a.decote_pct)} % sous un référentiel interne écrit à la main (pas assez de ventes réelles DVF dans cette commune) — moins fiable qu'un historique de ventes. Une vraie décote… ou un défaut caché : lisez la ligne d'explication du prix.`;
+    badges.push(`<span class="badge badge-decote${dvf ? "" : " badge-decote-estime"}" title="${titre}">−${Math.round(a.decote_pct)}% vs marché${dvf ? "" : " (est.)"}</span>`);
+  }
   if (a.est_nouvelle) badges.push(`<span class="badge badge-nouveau">${IC.etincelle} nouveau</span>`);
   if (a.peut_etre_retiree)
     badges.push(`<span class="badge badge-alerte" title="Cette annonce n'apparaît plus dans les résultats de sa source depuis le ${fmtDate(a.date_derniere_vue)} (${a.jours_sans_vue} jours). Elle a probablement été vendue ou retirée — ou, plus rarement, la source a changé de structure. Cliquez le lien pour vérifier avant d'y investir du temps.">${IC.alerte} peut-être vendue · non revue depuis ${a.jours_sans_vue} j</span>`);
@@ -1640,7 +1660,7 @@ function carteHtml(a, options) {
       <div class="carte-titre"><a href="${ech(a.url)}" target="_blank" rel="noopener">${ech(a.titre)}</a>
         <span class="badges">${badges.join("")}</span></div>
       <div class="carte-lieu">${ech(a.ville)}${a.code_postal ? " (" + ech(a.code_postal) + ")" : ""}
-        · détectée le ${fmtDate(a.date_premiere_vue)}${liens}</div>
+        · détectée le ${fmtDate(a.date_premiere_vue)}${joursMarcheHtml(a.date_premiere_vue)}${liens}</div>
       ${etiquettes ? `<div class="etiquettes">${etiquettes}</div>` : ""}
       <div class="metriques">${metriques}</div>
       ${evolutionPrixHtml(a)}

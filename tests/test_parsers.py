@@ -215,19 +215,21 @@ class TestCessionPme:
 
         paris = next(a for a in annonces if a.id_source == "9900001")
         assert paris.ville == "Paris 11e"
-        assert paris.code_postal == "75011"                 # arrondissement -> CP
+        assert paris.code_postal == "75011"                 # les deux depuis le slug de l'URL
         assert paris.prix == 257_000
         assert paris.surface_m2 == 38
         assert paris.type_murs is TypeMurs.MURS_OCCUPES     # « vendus loués »
         assert paris.loyer_mensuel == 1_080                 # « 1 080 Euro TTC / mois »
         assert paris.titre == "Murs de boutique loués secteur Saint-Ambroise"
 
-    def test_cp_depuis_description(self):
+    def test_ville_a_particule_depuis_le_slug(self):
         annonces = SourceCessionPme().extraire(charger("cessionpme_liste.html"))
-        montreuil = next(a for a in annonces if a.id_source == "9900002")
-        assert montreuil.code_postal == "93100"             # depuis « (93100) »
-        assert montreuil.type_murs is TypeMurs.MURS_LIBRES  # « local vide »
-        assert montreuil.prix == 198_000
+        gervais = next(a for a in annonces if a.id_source == "9900002")
+        assert gervais.ville == "Le Pre Saint Gervais"      # particules en minuscule sauf 1re
+        assert gervais.code_postal == "93310"
+        assert gervais.type_murs is TypeMurs.MURS_LIBRES    # « local vide »
+        assert gervais.prix == 198_000
+        assert gervais.surface_m2 == 72
 
 
 # --- geolocaux.com ---

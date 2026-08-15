@@ -49,6 +49,18 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}  # optionnel : critique IA (pipeline/critique.py)
         run: python run.py
 
+      - name: Vérifier la syntaxe JS du dashboard généré
+        # Filet de sécurité gratuit (Node déjà présent sur les runners GitHub) :
+        # une erreur de syntaxe dans le JS embarqué casse TOUTE l'interactivité
+        # du site (filtres, suivi, simulateur…) sans qu'aucun test Python ne
+        # s'en rende compte — les tests ne vérifient que les données envoyées
+        # au dashboard, jamais le script lui-même. Échoue avant de publier
+        # plutôt que de découvrir un site cassé après coup.
+        run: |
+          python -c "import re, sys; html = open('docs/index.html', encoding='utf-8').read(); m = re.search(r'<script>(.*)</script>', html, re.S); m or sys.exit('Aucune balise <script> trouvée dans docs/index.html'); open('_dashboard_check.js', 'w', encoding='utf-8').write(m.group(1))"
+          node --check _dashboard_check.js
+          rm -f _dashboard_check.js
+
       - name: Publier les données et le site
         run: |
           git config user.name "veille-bot"
