@@ -1,0 +1,98 @@
+{
+ "pointdevente": [
+  {
+   "jour": "2026-08-15",
+   "statut": "ok",
+   "annonces": 18,
+   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/2/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+  }
+ ],
+ "murscommerciaux": [
+  {
+   "jour": "2026-08-15",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
+  }
+ ],
+ "iburoshop": [
+  {
+   "jour": "2026-08-15",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
+  }
+ ],
+ "flagship": [
+  {
+   "jour": "2026-08-15",
+   "statut": "ok",
+   "annonces": 1,
+   "message": null
+  }
+ ],
+ "papcommerces": [
+  {
+   "jour": "2026-08-15",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
+  }
+ ],
+ "bienici": [
+  {
+   "jour": "2026-08-15",
+   "statut": "ok",
+   "annonces": 13,
+   "message": null
+  }
+ ],
+ "cessionpme": [
+  {
+   "jour": "2026-08-15",
+   "statut": "ok",
+   "annonces": 26,
+   "message": null
+  }
+ ],
+ "geolocaux": [
+  {
+   "jour": "2026-08-15",
+   "statut": "ok",
+   "annonces": 195,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+  }
+ ],
+ "bureauxlocaux": [
+  {
+   "jour": "2026-08-15",
+   "statut": "ok",
+   "annonces": 697,
+   "message": null
+  }
+ ],
+ "notaires": [
+  {
+   "jour": "2026-08-15",
+   "statut": "ok",
+   "annonces": 2,
+   "message": null
+  }
+ ],
+ "imap": [
+  {
+   "jour": "2026-08-15",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
+  }
+ ],
+ "encheres_publiques": [
+  {
+   "jour": "2026-08-15",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
+  }
+ ]
+}
