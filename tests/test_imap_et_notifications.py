@@ -1,6 +1,7 @@
 """Phase 4 : extraction des alertes email + contenu des emails de notification."""
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 
 from pipeline.modeles import TypeMurs
@@ -84,6 +85,7 @@ def _annonces_notification():
     pepite.score = 85
     pepite.rendement_brut_pct = 9.2
     pepite.lecture_prix = "Décote lisible : des travaux sont signalés dans l'annonce."
+    pepite.bail_echeance_annee = datetime.now().year + 6
     banale = faire_annonce(id="ban1", titre="Murs corrects")
     banale.score = 55
     return {"pep1": pepite, "ban1": banale}
@@ -125,6 +127,7 @@ def test_emails_construits_et_pepite_notifiee_une_seule_fois(config, monkeypatch
     assert "Murs occupés en or" in html_pepite
     assert "9,2 %" in html_pepite                      # rendement dans l'email
     assert "travaux" in html_pepite                    # lecture du prix incluse
+    assert "Bail jusqu'en" in html_pepite and "~6 an" in html_pepite  # échéance de bail incluse
     assert "https://exemple.fr/1" in html_pepite       # lien direct annonce
     # Liens directs vers CETTE annonce sur le dashboard (pas juste l'accueil) :
     # raccourcit le trajet entre « pépite reçue » et « vous au téléphone ».

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import datetime
 from typing import Any
 
 import requests
@@ -60,6 +61,12 @@ def _carte_html(a: Annonce, url_dashboard: str = "") -> str:
         f"<b>{_fmt_pct(a.rendement_brut_pct)}{mention}</b>, "
         f"acte en main {_fmt_pct(a.rendement_acte_en_main_pct)}",
     ]
+    if a.bail_echeance_annee is not None:
+        restant = a.bail_echeance_annee - datetime.now().year
+        lignes.append(
+            f"Bail arrivé à échéance ({a.bail_echeance_annee})" if restant <= 0
+            else f"Bail jusqu'en {a.bail_echeance_annee} (~{restant} an{'s' if restant > 1 else ''})"
+        )
     if a.lecture_prix:
         lignes.append(f"<i>{a.lecture_prix}</i>")
     contenu = "<br>".join(lignes)
