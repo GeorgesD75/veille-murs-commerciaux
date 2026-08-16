@@ -816,13 +816,33 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
           <input id="p-duree" type="number" min="5" max="30" step="1"></div>
         <button id="p-reset" type="button" title="Revenir aux hypothèses par défaut">↺</button>
       </div>
+      <div class="profil-groupe" title="Votre profil fiscal : estimation grossière pour comparer deux régimes, pas un calcul officiel.">
+        <div class="filtre"><label for="p-regime">Ma fiscalité</label>
+          <select id="p-regime">
+            <option value="non_renseigne">Non renseigné</option>
+            <option value="ir">Nom propre (revenus fonciers)</option>
+            <option value="is">Société à l'IS</option>
+          </select></div>
+        <div class="filtre"><label for="p-tmi">Ma tranche d'imposition (TMI)
+          <span class="info-i" title="Visible sur votre avis d'imposition — s'applique seulement au régime « nom propre ». Le calcul ajoute 17,2 % de prélèvements sociaux à cette tranche.">i</span></label>
+          <select id="p-tmi">
+            <option value="0">0 %</option>
+            <option value="11">11 %</option>
+            <option value="30">30 %</option>
+            <option value="41">41 %</option>
+            <option value="45">45 %</option>
+          </select></div>
+        <button id="p-fiscal-reset" type="button" title="Revenir à « non renseigné »">↺</button>
+      </div>
       <button id="f-reset" type="button">Réinitialiser</button>
       <span class="compteur" id="compteur"></span>
     </div>
     <div class="profil-note">Les champs dorés forment votre <b>profil de financement</b> :
       apport, taux et durée sont mémorisés sur cet appareil et recalculent instantanément
       les cash-flows, badges « s'autofinance » et textes « En clair » de toutes les annonces.
-      <span id="taux-marche-note"></span></div>
+      <span id="taux-marche-note"></span>
+      Le profil fiscal (tant que renseigné) ajoute un rendement net d'impôt <b>estimatif</b> —
+      à confirmer avec votre expert-comptable, jamais un calcul officiel.</div>
   </details>
 
   <section id="bloc-prio"></section>
@@ -916,6 +936,7 @@ const D = JSON.parse(document.getElementById("donnees").textContent);
 const CLE_FILTRES = "veille-murs-filtres";
 const CLE_COMP = "veille-murs-comparateur";
 const CLE_PROFIL = "veille-murs-profil";
+const CLE_FISCAL = "veille-murs-fiscal";
 const CLE_MASQUEES = "veille-murs-masquees";
 
 // Profil de financement de l'utilisateur : pilote TOUS les cash-flows du site
@@ -929,6 +950,33 @@ const PROFIL_DEFAUT = {apport: 20, taux: D.analyse.financement.taux_pct,
 let profil = {...PROFIL_DEFAUT};
 try { profil = {...PROFIL_DEFAUT, ...JSON.parse(localStorage.getItem(CLE_PROFIL) || "{}")}; }
 catch (e) {}
+
+// Profil fiscal : "non_renseigne" par défaut — on n'affiche RIEN tant que
+// l'utilisateur n'a pas choisi, plutôt que de deviner. Ce n'est PAS un calcul
+// fiscal officiel : IR ignore les charges déductibles réelles (travaux,
+// intérêts d'emprunt…), IS ignore l'amortissement comptable — les deux
+// dépendent trop du montage personnel pour être généralisés honnêtement.
+// Sert à COMPARER deux régimes, pas à remplacer un expert-comptable.
+const PROFIL_FISCAL_DEFAUT = {regime: "non_renseigne", tmi: 30};
+let profilFiscal = {...PROFIL_FISCAL_DEFAUT};
+try { profilFiscal = {...PROFIL_FISCAL_DEFAUT, ...JSON.parse(localStorage.getItem(CLE_FISCAL) || "{}")}; }
+catch (e) {}
+
+function rendementNetImpot(a) {
+  if (profilFiscal.regime === "non_renseigne" || a.rendement_brut_pct == null || a.prix == null) return null;
+  if (profilFiscal.regime === "ir") {
+    const taux = profilFiscal.tmi / 100 + 0.172;  // TMI + prélèvements sociaux
+    return {pct: a.rendement_brut_pct * (1 - taux), libelle: `Rdt net d'impôt (IR, TMI ${profilFiscal.tmi} %)`};
+  }
+  // IS : barème 15 % jusqu'à 42 500 €, 25 % au-delà — appliqué au loyer
+  // annuel affiché, pas à un bénéfice comptable réel (amortissement non
+  // modélisé, cf. commentaire du profil ci-dessus).
+  const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
+  if (loyer == null) return null;
+  const loyerAnnuel = loyer * 12;
+  const impot = loyerAnnuel <= 42500 ? loyerAnnuel * 0.15 : 42500 * 0.15 + (loyerAnnuel - 42500) * 0.25;
+  return {pct: (loyerAnnuel - impot) / a.prix * 100, libelle: "Rdt net d'impôt (société à l'IS)"};
+}
 
 function finTxt() {  // description du financement courant, pour textes et infobulles
   return (profil.apport > 0 ? `avec ${profil.apport} % d'apport` : "en crédit 100 %")
@@ -1620,6 +1668,11 @@ function carteHtml(a, options) {
       presque toujours irréaliste : à prouver par un bail avant d'y croire."> ⚠</span>` : "") +
     `<span class="info-i" data-sim="${ech(a.id)}"
       title="Loyer − mensualité du coût acte en main (prix × 1,08) financé selon VOTRE profil : ${finTxt()} — hors taxe foncière, assurance et gestion. Réglable dans « Filtres & réglages » ou en cliquant ici.">i</span>`;
+  const fiscal = rendementNetImpot(a);
+  const fiscalHtml = fiscal == null ? "" : fmtPct(fiscal.pct) +
+    ` <span class="info-i" title="Estimation grossière pour COMPARER deux régimes, pas un calcul fiscal officiel — ` +
+    `${profilFiscal.regime === "ir" ? "ignore les charges déductibles réelles (travaux, intérêts d'emprunt…)" : "ignore l'amortissement comptable"}. ` +
+    `À confirmer avec votre expert-comptable. Réglable dans « Filtres & réglages ».">i</span>`;
   const metriques = [
     ["Prix", fmtEuros(a.prix)],
     ["Surface", a.surface_m2 == null ? "—" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²"],
@@ -1628,7 +1681,7 @@ function carteHtml(a, options) {
     ["Rdt acte en main", fmtPct(a.rendement_acte_en_main_pct) + rdtActeInfo],
     [profil.apport > 0 ? `Cash-flow (${profil.apport} % apport)` : "Cash-flow crédit 100 %", cfHtml],
     ["Trajet", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min"],
-  ].map(([l, v]) =>
+  ].concat(fiscal ? [[fiscal.libelle, fiscalHtml]] : []).map(([l, v]) =>
     `<div class="metrique"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
 
   const tampon = options.medaille != null
@@ -2720,6 +2773,27 @@ function initialiser() {
     localStorage.removeItem(CLE_PROFIL);
     for (const [id, cle] of [["p-apport", "apport"], ["p-taux", "taux"], ["p-duree", "duree"]])
       document.getElementById(id).value = profil[cle];
+    rendre();
+  });
+
+  // Profil fiscal : "non renseigné" par défaut, jamais deviné.
+  document.getElementById("p-regime").value = profilFiscal.regime;
+  document.getElementById("p-regime").addEventListener("change", ev => {
+    profilFiscal.regime = ev.target.value;
+    localStorage.setItem(CLE_FISCAL, JSON.stringify(profilFiscal));
+    rendre();
+  });
+  document.getElementById("p-tmi").value = profilFiscal.tmi;
+  document.getElementById("p-tmi").addEventListener("change", ev => {
+    profilFiscal.tmi = parseInt(ev.target.value, 10);
+    localStorage.setItem(CLE_FISCAL, JSON.stringify(profilFiscal));
+    rendre();
+  });
+  document.getElementById("p-fiscal-reset").addEventListener("click", () => {
+    profilFiscal = {...PROFIL_FISCAL_DEFAUT};
+    localStorage.removeItem(CLE_FISCAL);
+    document.getElementById("p-regime").value = profilFiscal.regime;
+    document.getElementById("p-tmi").value = profilFiscal.tmi;
     rendre();
   });
   document.getElementById("f-reset").addEventListener("click", () => {

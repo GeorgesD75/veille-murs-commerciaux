@@ -5,19 +5,31 @@ Règles appliquées systématiquement :
 - 3 à 5 secondes entre deux requêtes, aucune parallélisation ;
 - vérification de robots.txt (en plus de la validation manuelle documentée
   dans chaque parser — le parseur robots de la stdlib ne gère pas les jokers) ;
-- arrêt propre sur HTTP 403/429 : le site refuse, on n'insiste pas.
+- arrêt propre sur HTTP 403/429 : le site refuse, on n'insiste pas ;
+- IPv4 forcé (voir plus bas) : les runners GitHub Actions ont un IPv6 cassé
+  ou absent, et une source dont le DNS répond aussi en IPv6 (ex. pointdevente.fr)
+  échoue alors en « Network is unreachable » — constaté le 2026-08-17, alors
+  que le site répondait normalement en IPv4 depuis un autre réseau.
 """
 from __future__ import annotations
 
 import logging
 import random
+import socket
 import time
 import urllib.robotparser
 from urllib.parse import urlparse
 
 import requests
+import urllib3.util.connection as _urllib3_connexion
 
 log = logging.getLogger("collecteur.http")
+
+# Force IPv4 : sans ça, un hôte publiant AUSSI une adresse IPv6 (courant, sans
+# rapport avec un site cassé) est tenté en premier par urllib3 — et échoue net
+# sur un runner sans connectivité IPv6 sortante, avant même d'essayer l'IPv4
+# qui, lui, aurait fonctionné. Patch global : ce projet n'a aucun besoin d'IPv6.
+_urllib3_connexion.allowed_gai_family = lambda: socket.AF_INET
 
 USER_AGENT = (
     "VeilleMursCommerciaux/0.1 "
