@@ -17,7 +17,9 @@ from sources.bureauxlocaux import SourceBureauxLocaux
 from sources.cessionpme import SourceCessionPme
 from sources.geolocaux import SourceGeolocaux
 from sources.hektor import SourceFlagship, SourceIburoshop
+from sources.iccinvest import SourceIccInvest
 from sources.imap_alertes import SourceImap
+from sources.latourimmo import SourceLaTourImmo
 from sources.mock import SourceMock
 from sources.murscommerciaux import SourceMursCommerciaux
 from sources.notaires import SourceNotaires
@@ -36,6 +38,8 @@ FABRIQUES: dict[str, Callable[..., Source]] = {
     "geolocaux": SourceGeolocaux,
     "bureauxlocaux": SourceBureauxLocaux,
     "notaires": SourceNotaires,
+    "iccinvest": SourceIccInvest,
+    "latourimmo": SourceLaTourImmo,
     "imap": SourceImap,
 }
 

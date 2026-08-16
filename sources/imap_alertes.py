@@ -166,6 +166,29 @@ class SourceImap(Source):
         quand = datetime.now() - timedelta(days=self.jours_max)
         return f"{quand.day}-{_MOIS_IMAP[quand.month - 1]}-{quand.year}"
 
+    def _dossier_a_chercher(self, boite: imaplib.IMAP4_SSL) -> str:
+        """Un filtre Gmail qui range une alerte (label + « ignorer la boîte de
+        réception ») la fait disparaître d'INBOX sans que rien ne le signale —
+        constaté le 2026-08-16 : authentification OK, 0 annonce, deux jours de
+        suite. On cherche donc plutôt le dossier « tous les messages », repéré
+        par l'attribut IMAP standard \\All (RFC 6154) — robuste à son nom
+        localisé (« All Mail » en anglais, « Tous les messages » en français…)
+        plutôt que de deviner un nom fixe. Repli sur self.dossier si absent."""
+        try:
+            statut, dossiers = boite.list()
+        except Exception:  # noqa: BLE001 — repli silencieux
+            return self.dossier
+        if statut != "OK":
+            return self.dossier
+        for ligne in dossiers or []:
+            texte = ligne.decode("utf-8", errors="replace") if isinstance(ligne, bytes) else str(ligne)
+            if "\\All" not in texte:
+                continue
+            noms = re.findall(r'"([^"]*)"', texte)
+            if noms:
+                return noms[-1]
+        return self.dossier
+
     def extraire_message(self, message: email.message.EmailMessage) -> list[AnnonceBrute]:
         partie = message.get_body(preferencelist=("html", "plain"))
         if partie is None:
@@ -189,7 +212,8 @@ class SourceImap(Source):
         annonces: dict[str, AnnonceBrute] = {}
         with imaplib.IMAP4_SSL(self.hote) as boite:
             boite.login(utilisateur, mot_de_passe)
-            boite.select(self.dossier)
+            dossier = self._dossier_a_chercher(boite)
+            boite.select(dossier)
             # Boîte personnelle oblige : on ne cherche QUE les emails des
             # portails connus — le reste de la boîte n'est ni lu ni marqué lu.
             numeros: list[bytes] = []

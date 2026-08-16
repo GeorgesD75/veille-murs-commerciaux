@@ -30,6 +30,29 @@ _CARACTERISTIQUES: list[tuple[str, tuple[str, ...]]] = [
 ]
 
 
+# Année de fin de bail explicitement mentionnée dans l'annonce (« bail jusqu'en
+# 2032 », « échéance triennale en 2028 »…). Volontairement conservateur : une
+# durée DÉDUITE (ex. « bail de 9 ans signé en 2023 ») n'est pas tentée — trop
+# de façons de se tromper pour une info qui finira citée dans une négociation.
+_DATE_PREFIXE = r"(?:\d{1,2}/)?(?:\d{1,2}/)?"  # jour et/ou mois optionnels avant l'année
+_BAIL_FIN_PATTERNS: list[re.Pattern[str]] = [
+    re.compile(rf"bail[^.]{{0,50}}?jusqu['’](?:en|a|au)\s*(?:le\s*)?{_DATE_PREFIXE}(\d{{4}})"),
+    re.compile(rf"bail[^.]{{0,50}}?(?:expire|se termine|prend fin)\s*(?:en|le)?\s*{_DATE_PREFIXE}(\d{{4}})"),
+    re.compile(rf"echeance(?:\s+triennale)?(?:\s+du\s+bail)?\s*(?:prevue\s*)?(?:en|le)?\s*{_DATE_PREFIXE}(\d{{4}})"),
+]
+
+
+def annee_fin_bail(texte: str) -> int | None:
+    texte = normaliser_texte(texte)
+    for motif in _BAIL_FIN_PATTERNS:
+        trouve = motif.search(texte)
+        if trouve:
+            annee = int(trouve.group(1))
+            if 2020 <= annee <= 2060:  # garde-fou : écarte un faux positif improbable
+                return annee
+    return None
+
+
 @dataclass(frozen=True)
 class Benchmark:
     prix_m2_bas: float
@@ -216,6 +239,7 @@ def enrichir(
 
     annonce.caracteristiques = caracteristiques_depuis_texte(annonce.texte_complet())
     annonce.dpe_classe = dpe_depuis_texte(annonce.texte_complet())
+    annonce.bail_echeance_annee = annee_fin_bail(annonce.texte_complet())
 
     # Fourchette de prix du secteur : les VENTES RÉELLES enregistrées (DVF)
     # priment quand la commune en compte assez — un prix effectivement payé

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pipeline.modeles import TypeMurs
 from pipeline.notifications import notifier, notifier_sante_sources
-from sources.imap_alertes import PORTAILS, extraire_annonces_html, identifier_portail
+from sources.imap_alertes import PORTAILS, SourceImap, extraire_annonces_html, identifier_portail
 from tests.fabriques import faire_annonce
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -22,6 +22,37 @@ def test_identifier_portail():
     assert identifier_portail("LeBonCoin <noreply@leboncoin.fr>", "").nom == "leboncoin"
     assert identifier_portail("alertes@geolocaux.com", "").nom == "geolocaux"
     assert identifier_portail("inconnu@exemple.fr", "<html></html>") is None
+
+
+class _BoiteImapFactice:
+    """Réponse `LIST` minimale : juste ce que `_dossier_a_chercher` regarde."""
+    def __init__(self, lignes: list[bytes], statut: str = "OK"):
+        self._lignes = lignes
+        self._statut = statut
+
+    def list(self):
+        return self._statut, self._lignes
+
+
+def test_dossier_a_chercher_trouve_all_mail_via_attribut_special_use():
+    # Repéré par l'attribut IMAP \All (RFC 6154), pas par un nom fixe —
+    # fonctionne donc aussi sur un compte Gmail en français.
+    boite = _BoiteImapFactice([
+        b'(\\HasNoChildren) "/" "INBOX"',
+        b'(\\HasNoChildren \\All) "/" "[Gmail]/Tous les messages"',
+        b'(\\HasNoChildren \\Trash) "/" "[Gmail]/Corbeille"',
+    ])
+    assert SourceImap()._dossier_a_chercher(boite) == "[Gmail]/Tous les messages"
+
+
+def test_dossier_a_chercher_repli_sur_inbox_si_absent():
+    boite = _BoiteImapFactice([b'(\\HasNoChildren) "/" "INBOX"'])
+    assert SourceImap()._dossier_a_chercher(boite) == "INBOX"
+
+
+def test_dossier_a_chercher_repli_sur_inbox_si_list_echoue():
+    boite = _BoiteImapFactice([], statut="NO")
+    assert SourceImap()._dossier_a_chercher(boite) == "INBOX"
 
 
 def test_extraction_alerte_leboncoin():
@@ -167,5 +198,20 @@ def test_pas_de_panne_sous_le_seuil(config, monkeypatch):
     monkeypatch.setenv("EMAIL_TO", "georgesdurand75@gmail.com")
     meta: dict = {}
     rapport = notifier_sante_sources(_historique_panne(jours=1), meta, config)
+    assert rapport["statut"] == "rien à signaler"
+    assert meta["sources_en_alerte"] == []
+
+
+def test_source_sporadique_configuree_n_alerte_pas_a_zero_annonce(config, monkeypatch):
+    # encheres_publiques est listée dans sources_volume_sporadique (config.yaml) :
+    # 0 annonce plusieurs jours de suite ne doit pas déclencher d'alerte.
+    monkeypatch.setenv("RESEND_API_KEY", "test-cle")
+    monkeypatch.setenv("EMAIL_TO", "georgesdurand75@gmail.com")
+    historique = {"encheres_publiques": [
+        {"jour": "2026-08-15", "statut": "ok", "annonces": 0, "message": None},
+        {"jour": "2026-08-16", "statut": "ok", "annonces": 0, "message": None},
+    ]}
+    meta: dict = {}
+    rapport = notifier_sante_sources(historique, meta, config)
     assert rapport["statut"] == "rien à signaler"
     assert meta["sources_en_alerte"] == []

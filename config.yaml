@@ -214,6 +214,10 @@ sources:                      # activer/désactiver une source = une ligne
                                     # données de confiance (prix du mandat, INSEE, bienVendu)
   imap:            {actif: true}    # alertes email LeBonCoin/SeLoger/Geolocaux/BureauxLocaux
                                     # (s'ignore proprement tant que IMAP_USER/IMAP_PASSWORD manquent)
+  iccinvest:       {actif: true, max_pages: 5}   # cabinet indépendant « murs de commerce », listing
+                                    # national — le pipeline filtre à l'IDF comme pour les autres
+  latourimmo:      {actif: true}   # cabinet indépendant Paris/IDF, vente uniquement (location écartée
+                                    # à la source) — une douzaine de biens, page unique non paginée
 
 encheres:                     # score d'INTÉRÊT dédié aux enchères (le prix final
                               # est imprévisible : on ne le prédit pas)
@@ -262,3 +266,10 @@ notifications:
                                 # (constaté 2026-08 : imap 4 jours, cessionpme 5+ jours silencieux)
     jours_consecutifs: 2       # nombre de jours de suite en panne avant l'email d'alerte
     jours_historique_conserves: 30   # fenêtre glissante gardée dans data/sante_sources.json
+    sources_volume_sporadique:  # 0 annonce n'y signale PAS une panne (volume naturellement
+                                 # faible ou irrégulier) — seul un vrai statut d'erreur compte.
+                                 # Constaté le 2026-08-16 : encheres_publiques a déclenché une
+                                 # alerte pour une simple semaine sans enchère IdF dans le budget.
+      - encheres_publiques
+      - notaires
+      - flagship

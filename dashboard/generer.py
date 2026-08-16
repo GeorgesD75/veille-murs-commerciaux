@@ -100,6 +100,7 @@ def preparer_payload(
                 "marche_prix_m2_haut": a.marche_prix_m2_haut,
                 "benchmark_source": a.benchmark_source,
                 "dpe_classe": a.dpe_classe,
+                "bail_echeance_annee": a.bail_echeance_annee,
                 "lecture_prix": a.lecture_prix,
                 "prix_cible_rendement": a.prix_cible_rendement,
                 "temps_trajet_min": a.temps_trajet_min,
@@ -452,14 +453,9 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
   color: #fff8e6; font-size: 17px; }
 @keyframes fretiller { 0%, 100% { transform: rotate(7deg); } 35% { transform: rotate(-6deg) scale(1.12); } 70% { transform: rotate(10deg); } }
 .carte:hover .sticker, .carte-enchere:hover .sticker { animation: fretiller .55s ease; }
-.carte.rang-s { overflow: hidden; border-color: var(--or); position: relative;
-  transform-style: preserve-3d; perspective: 900px;
+.carte.rang-s { border-color: var(--or);
   box-shadow: 0 0 0 1px var(--or), 0 8px 26px rgba(180, 138, 30, .16);
   animation: surgir .4s ease both, lueur-pepite 2.6s ease-in-out infinite; }
-.carte.rang-s::after { content: ""; position: absolute; top: 0; left: -70%; width: 45%; height: 100%;
-  background: linear-gradient(105deg, transparent, rgba(214,165,50,.22), transparent);
-  transform: skewX(-18deg); transition: left .65s ease; pointer-events: none; z-index: 1; }
-.carte.rang-s:hover::after { left: 130%; }
 @keyframes lueur-pepite {
   0%, 100% { box-shadow: 0 0 0 1px var(--or), 0 8px 26px rgba(180, 138, 30, .16); }
   50% { box-shadow: 0 0 0 1.5px var(--or-vif), 0 10px 34px rgba(214, 165, 50, .30); }
@@ -477,7 +473,7 @@ h2.section .nb { font: 600 12px system-ui, sans-serif; color: var(--encre-3);
 .pepite-pourquoi b { color: var(--marque-fonce); }
 @media (prefers-color-scheme: dark) { .pepite-pourquoi b { color: var(--or-vif); } }
 @media (prefers-reduced-motion: reduce) {
-  .carte.rang-s { animation: none; transform: none !important; }
+  .carte.rang-s { animation: none; }
 }
 .tampon { display: inline-block; font-family: Fraunces, Georgia, serif; font-weight: 700;
   font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
@@ -1016,6 +1012,18 @@ function joursMarcheHtml(dateIso) {
   const stale = jours >= 90;
   return ` · <span${stale ? ` class="jours-marche-stale" title="Un bien qui traîne depuis longtemps se négocie plus dur — bon point d'appui pour une offre."` : ""}>${jours} j sur le marché</span>`;
 }
+// Temps de bail restant, quand l'annonce donne une échéance explicite
+// (jamais déduit) : un bail loin de toute échéance sécurise le cash-flow
+// bien mieux qu'un point de rendement.
+function bailEcheanceHtml(a) {
+  if (a.bail_echeance_annee == null) return "";
+  const restant = a.bail_echeance_annee - new Date().getFullYear();
+  const classe = restant <= 2 ? "etiquette-moins" : "etiquette-plus";
+  const texte = restant <= 0
+    ? `Bail arrivé à échéance (${a.bail_echeance_annee})`
+    : `Bail jusqu'en ${a.bail_echeance_annee} (~${restant} an${restant > 1 ? "s" : ""})`;
+  return `<span class="etiquette ${classe}" title="Échéance déduite du texte de l'annonce — à confirmer par le bail avant toute offre.">${texte}</span>`;
+}
 
 function classeScore(s) {
   if (s == null) return "gris";
@@ -1305,31 +1313,26 @@ function explicationPepiteHtml(a) {
 function messageContact(a) {
   // Modèle personnalisé à partir des données déjà connues de l'annonce — à
   // relire et adapter (nom, ton) avant envoi : jamais un envoi automatique.
-  // Logique de négociation, sans jamais tordre un fait :
-  //  1. acheteur CRÉDIBLE et prêt (financement, décision rapide) — c'est ce
-  //     qu'un vendeur achète autant que le prix ;
-  //  2. acheteur INFORMÉ : prix au m² du secteur, historique de prix observé —
-  //     des faits posés calmement déplacent le rapport de force ;
-  //  3. le cadre : c'est le DOSSIER qui doit me convaincre (liste de pièces
-  //     avant visite), pas l'annonce qui doit me faire rêver ;
-  //  4. alternatives réelles : je compare plusieurs biens — dit poliment, une
-  //     seule fois, jamais répété (sinon ça sonne faux).
-  //  On ne chiffre PAS d'offre au premier contact : annoncer un prix avant
-  //  d'avoir lu le bail affaiblit (l'ancre du « prix cible » sert APRÈS visite).
+  // Court et honnête au premier contact (retour utilisateur du 2026-08-16:
+  // la version précédente prêtait à l'acheteur des faits non vérifiés —
+  // « financement déjà préparé avec ma banque », « offre dans la semaine » —
+  // et empilait une longue liste de pièces dès le premier email. Un premier
+  // message trop sûr de lui ou trop chargé sonne faux et braque plus qu'il
+  // n'aide. On garde uniquement ce qui est vrai à coup sûr : les faits de
+  // marché (prix, comparables) tirés des données, jamais une posture prêtée.
+  // On ne chiffre pas d'offre ici : ça se joue après visite, bail en main.
   const nl = String.fromCharCode(10);
   const lignes = [];
-  lignes.push(`Objet : ${a.titre} — demande de dossier avant visite`, "");
+  lignes.push(`Objet : ${a.titre} — demande d'informations avant visite`, "");
   lignes.push("Bonjour,", "");
   const suivi = [];
   if (!a.est_nouvelle && a.date_premiere_vue)
     suivi.push(`que je suis depuis le ${fmtDate(a.date_premiere_vue)}`);
   lignes.push(`Votre annonce « ${a.titre} » à ${a.ville}` +
     `${a.code_postal ? ` (${a.code_postal})` : ""}${suivi.length ? ", " + suivi.join("") : ""}` +
-    `${a.prix != null ? `, affichée à ${fmtEuros(a.prix)}` : ""}, correspond à mes critères.`);
+    `${a.prix != null ? `, affichée à ${fmtEuros(a.prix)}` : ""}, correspond à ce que je recherche.`);
   lignes.push(`Lien : ${a.url}`, "");
-  lignes.push("Je suis investisseur en murs commerciaux en Île-de-France, avec un plan de " +
-    "financement déjà préparé avec ma banque. Concrètement : je visite vite, je lis le dossier " +
-    "vite, et je fais une offre écrite dans la semaine quand le dossier tient.", "");
+  lignes.push("Je suis acheteur pour des murs commerciaux en Île-de-France.", "");
 
   // Faits de marché posés calmement — uniquement quand on les a vraiment.
   const faits = [];
@@ -1342,28 +1345,12 @@ function messageContact(a) {
     faits.push(`les locaux comparables du secteur se négocient entre ${fmtEuros(a.marche_prix_m2_bas)} ` +
       `et ${fmtEuros(a.marche_prix_m2_haut)}/m², le vôtre ressort à ${fmtEuros(a.prix_m2)}/m²`);
   if (faits.length)
-    lignes.push(`Pour être transparent sur ma lecture du marché : ${faits.join(" ; ")}. ` +
-      "J'en tiendrai compte dans mon analyse, pièces en main.", "");
+    lignes.push(`Pour être transparent sur ma lecture du marché : ${faits.join(" ; ")}.`, "");
 
-  lignes.push("Pour préparer une visite utile, pourriez-vous me transmettre :", "");
-  const demandes = [];
-  if (a.type_murs === "murs_occupes") {
-    demandes.push("— le bail commercial complet (et ses avenants) ;");
-    demandes.push("— les 3 dernières quittances de loyer ;");
-    demandes.push("— le montant et la répartition de la taxe foncière et des charges (article 606 inclus) ;");
-    demandes.push("— l'activité et l'ancienneté du locataire (Kbis si possible) ;");
-  } else {
-    demandes.push("— l'historique de location du local (dernier loyer pratiqué, durée de vacance) ;");
-    demandes.push("— la destination autorisée par le règlement de copropriété ;");
-    demandes.push("— le montant de la taxe foncière et des charges de copropriété ;");
-  }
-  demandes.push("— les PV des 3 dernières assemblées générales (travaux votés ou à prévoir) ;");
-  demandes.push("— le DPE" + (!a.images || !a.images.length ? " et quelques photos ;" : " ;"));
-  lignes.push(...demandes, "");
-  lignes.push("J'étudie en parallèle plusieurs locaux comparables dans le secteur — un dossier " +
-    "complet me permet de me positionner rapidement, et je m'engage à vous faire un retour clair " +
-    "dans les jours qui suivent la visite, dans un sens comme dans l'autre.", "");
-  lignes.push("Quelles seraient vos disponibilités cette semaine ou la suivante ?", "");
+  const piece = a.type_murs === "murs_occupes" ? "le bail en cours" : "le dernier loyer pratiqué";
+  lignes.push("Avant d'organiser une visite, le bien est-il toujours disponible ? Et si vous les " +
+    `avez sous la main, ${piece} et le montant de la taxe foncière m'aideraient beaucoup.`, "");
+  lignes.push("Quelles seraient vos disponibilités ?", "");
   lignes.push("Cordialement,", "[Votre nom] — [téléphone]");
   return lignes.join(nl);
 }
@@ -1610,10 +1597,12 @@ function carteHtml(a, options) {
     bail_longue_duree_restante: ["Bail loin de toute échéance (annonce)", "plus"],
     echeance_bail_proche: ["Échéance de bail proche (annonce)", "moins"],
   };
+  const echeanceHtml = bailEcheanceHtml(a);
   const etiquettes = (a.caracteristiques || []).map(c =>
     `<span class="etiquette">${ech(c)}</span>`)
     .concat((a.bonus_detectes || []).filter(n => FAITS[n]).map(n =>
       `<span class="etiquette etiquette-${FAITS[n][1]}">${FAITS[n][0]}</span>`))
+    .concat(echeanceHtml ? [echeanceHtml] : [])
     .join("");
 
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
@@ -1672,7 +1661,7 @@ function carteHtml(a, options) {
     </div>
     ${pourquoiHtml(a)}
     <div class="carte-score">
-      <span class="rang rang-${lettreRang}" title="Rang ${lettreRang} — S ≥ ${D.seuils.pepite}, A ≥ ${D.seuils.vert}, B ≥ ${D.seuils.orange}">${lettreRang}</span>
+      <span class="rang rang-${lettreRang}" title="Rang ${lettreRang} — S ≥ ${D.seuils.pepite}${D.seuils.vert < D.seuils.pepite ? `, A ≥ ${D.seuils.vert}` : ""}, B ≥ ${D.seuils.orange}">${lettreRang}</span>
       <div class="score ${classeScore(a.score)}">${a.score ?? "—"}</div>
       <div class="score-libelle">/100</div>
       <button type="button" class="btn-comp${dansComp ? " actif" : ""}" data-id="${ech(a.id)}">
@@ -2224,22 +2213,6 @@ document.addEventListener("mouseup", ev => {
   glisseX = glisseBoite = null;
 });
 
-// Effet 3D des cartes pépite (rang S) : discret, réservé aux vraies raretés.
-const SANS_MOUVEMENT = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-if (!SANS_MOUVEMENT) {
-  document.addEventListener("mousemove", ev => {
-    const carte = ev.target.closest?.(".carte.rang-s");
-    document.querySelectorAll(".carte.rang-s").forEach(c => { if (c !== carte) c.style.transform = ""; });
-    if (!carte) return;
-    const r = carte.getBoundingClientRect();
-    const px = (ev.clientX - r.left) / r.width - 0.5, py = (ev.clientY - r.top) / r.height - 0.5;
-    carte.style.transform = `perspective(900px) rotateY(${(px * 5).toFixed(2)}deg) rotateX(${(-py * 5).toFixed(2)}deg) translateY(-2px)`;
-  });
-  document.addEventListener("mouseleave", ev => {
-    if (ev.target?.classList?.contains("carte") ?? false) ev.target.style.transform = "";
-  }, true);
-}
-
 document.addEventListener("click", ev => {
   // Carrousel photo
   const car = ev.target.closest(".car-btn");
@@ -2705,7 +2678,8 @@ function initialiser() {
     `+ prix vs marché ${D.maxima.prix_m2_vs_benchmark} + financement ${D.maxima.financement} ` +
     `+ fiscalité ${D.maxima.fiscalite} + trajet ${D.maxima.proximite} + quartier 18e ${D.maxima.quartier} ` +
     `+ bonus/malus (−3 à +5, plafonné à 100). Rangs : S ≥ ${D.seuils.pepite} (pépite, email immédiat), ` +
-    `A ≥ ${D.seuils.vert}, B ≥ ${D.seuils.orange}, C en dessous. Un rendement > 10 % est plafonné ` +
+    (D.seuils.vert < D.seuils.pepite ? `A ≥ ${D.seuils.vert}, ` : "") +
+    `B ≥ ${D.seuils.orange}, C en dessous. Un rendement > 10 % est plafonné ` +
     `sous ${D.seuils.affichage} (piège probable) jusqu'à vérification. ` +
     `« est. » = loyer estimé ou promis, non prouvé par un bail. ` +
     `Le score enchère est un score d'intérêt distinct (voir sa note de section).`;

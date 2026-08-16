@@ -16,6 +16,8 @@ from sources.extraction import (
 )
 from sources.geolocaux import SourceGeolocaux
 from sources.hektor import SourceFlagship, SourceIburoshop
+from sources.iccinvest import SourceIccInvest
+from sources.latourimmo import SourceLaTourImmo
 from sources.murscommerciaux import SourceMursCommerciaux
 from sources.papcommerces import SourcePapCommerces
 from sources.pointdevente import SourcePointDeVente
@@ -299,6 +301,66 @@ class TestGeolocaux:
         # et paris-75 (pas un listing communal) n'ont pas été visitées
         assert len(client.urls) == 3
         assert not source.avertissements
+
+
+# --- iccinvest.com ---
+
+
+class TestIccInvest:
+    def test_extraction(self):
+        annonces = SourceIccInvest().extraire(charger("iccinvest_liste.html"))
+        assert len(annonces) == 3
+
+        paris = next(a for a in annonces if a.id_source == "9910001")
+        assert paris.ville == "Paris"
+        assert paris.code_postal == "75008"          # CP trouvé dans le titre
+        assert paris.prix == 780_000
+        assert paris.surface_m2 == 45
+        assert paris.type_murs is TypeMurs.MURS_OCCUPES     # « loués »
+        assert paris.loyer_mensuel == round(780_000 * 0.075 / 12, 2)  # rentabilité -> loyer
+
+    def test_departement_en_repli_sans_cp_dans_le_texte(self):
+        annonces = SourceIccInvest().extraire(charger("iccinvest_liste.html"))
+        suresnes = next(a for a in annonces if a.id_source == "9910002")
+        assert suresnes.ville == "Suresnes"
+        assert suresnes.code_postal == "92000"       # pas de CP explicite -> repli département
+        assert suresnes.type_murs is TypeMurs.MURS_LIBRES
+        assert suresnes.image_url is None            # default.jpg générique ignorée
+
+    def test_annonce_hors_idf_toujours_extraite(self):
+        # La source ne filtre pas par zone : c'est le rôle du pipeline.
+        annonces = SourceIccInvest().extraire(charger("iccinvest_liste.html"))
+        tours = next(a for a in annonces if a.id_source == "9910003")
+        assert tours.code_postal == "37000"
+        assert tours.prix == 2_300_000
+
+
+# --- latourimmo.com ---
+
+
+class TestLaTourImmo:
+    def test_extraction_vente_seulement(self):
+        annonces = SourceLaTourImmo().extraire(charger("latourimmo_liste.html"))
+        # La carte "Location" (réf 21960) est écartée : hors sujet de l'outil
+        assert len(annonces) == 2
+        assert all("location" not in a.titre.lower() for a in annonces)
+
+    def test_cp_et_ville_depuis_le_titre(self):
+        annonces = SourceLaTourImmo().extraire(charger("latourimmo_liste.html"))
+        montparnasse = next(a for a in annonces if a.id_source == "260")
+        assert montparnasse.code_postal == "75006"
+        assert montparnasse.ville == "Paris"
+        assert montparnasse.prix == 2_690_000
+        assert montparnasse.surface_m2 == 123
+        assert montparnasse.titre == "Boutique 123 m2, Montparnasse, Boulevard du Montparnasse 75006 PARIS"
+
+    def test_ville_composee_avec_tiret(self):
+        annonces = SourceLaTourImmo().extraire(charger("latourimmo_liste.html"))
+        neuilly = next(a for a in annonces if a.id_source == "268")
+        assert neuilly.code_postal == "92200"
+        assert neuilly.ville == "Neuilly-Sur-Seine"
+        assert neuilly.type_murs is TypeMurs.MURS_LIBRES
+        assert neuilly.prix == 3_200_000
 
 
 # --- bienici.com (API JSON) ---

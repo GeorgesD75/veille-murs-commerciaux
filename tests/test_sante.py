@@ -76,3 +76,26 @@ class TestSourcesEnPanne:
             {"jour": "2026-08-11", "statut": "erreur", "annonces": 0, "message": "AUTH"},
         ])
         assert sources_en_panne(historique, jours_consecutifs=2) == []
+
+    def test_source_volume_sporadique_zero_annonce_n_alerte_pas(self):
+        # encheres_publiques : une semaine sans enchère IdF dans le budget est
+        # un résultat plausible, pas une panne (constaté le 2026-08-16).
+        historique = {"encheres_publiques": [
+            {"jour": "2026-08-15", "statut": "ok", "annonces": 0, "message": None},
+            {"jour": "2026-08-16", "statut": "ok", "annonces": 0, "message": None},
+        ]}
+        assert sources_en_panne(
+            historique, jours_consecutifs=2, sources_volume_sporadique={"encheres_publiques"}
+        ) == []
+
+    def test_source_volume_sporadique_reste_alertee_si_vraie_erreur(self):
+        # L'exemption ne couvre que le « 0 annonce » — un statut d'erreur
+        # explicite (identifiants, site en panne…) déclenche toujours.
+        historique = {"encheres_publiques": [
+            {"jour": "2026-08-15", "statut": "erreur", "annonces": 0, "message": "HTTP 500"},
+            {"jour": "2026-08-16", "statut": "erreur", "annonces": 0, "message": "HTTP 500"},
+        ]}
+        pannes = sources_en_panne(
+            historique, jours_consecutifs=2, sources_volume_sporadique={"encheres_publiques"}
+        )
+        assert len(pannes) == 1

@@ -207,10 +207,11 @@ def notifier_sante_sources(
     """
     parametres = config["notifications"].get("alerte_source_en_panne", {})
     seuil = int(parametres.get("jours_consecutifs", 2))
+    sporadiques = set(parametres.get("sources_volume_sporadique", []))
     cle_api = os.environ.get("RESEND_API_KEY")
     destinataire = os.environ.get("EMAIL_TO")
 
-    pannes = sources_en_panne(historique, seuil)
+    pannes = sources_en_panne(historique, seuil, sporadiques)
     deja_alertees = set(meta.get("sources_en_alerte", []))
     meta["sources_en_alerte"] = sorted(p["source"] for p in pannes)
     nouvelles_pannes = [p for p in pannes if p["source"] not in deja_alertees]

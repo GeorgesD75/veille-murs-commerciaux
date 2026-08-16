@@ -21,8 +21,15 @@ from typing import Any
 log = logging.getLogger("collecteur.sante")
 
 
-def _en_panne(entree: dict[str, Any]) -> bool:
-    return entree.get("statut") != "ok" or entree.get("annonces", 0) == 0
+def _en_panne(entree: dict[str, Any], volume_sporadique: bool) -> bool:
+    """0 annonce ne compte comme panne que pour une source à volume normalement
+    régulier — pour une source par nature sporadique (enchères sans lot cette
+    semaine, notaires à faible volume IdF…), 0 est un résultat plausible, pas
+    un signe de casse. Constaté en pratique le 2026-08-16 : encheres_publiques
+    a déclenché une alerte pour une simple semaine calme."""
+    if entree.get("statut") != "ok":
+        return True
+    return not volume_sporadique and entree.get("annonces", 0) == 0
 
 
 def charger(chemin: Path) -> dict[str, list[dict[str, Any]]]:
@@ -63,14 +70,19 @@ def mettre_a_jour(
 
 
 def sources_en_panne(
-    historique: dict[str, list[dict[str, Any]]], jours_consecutifs: int
+    historique: dict[str, list[dict[str, Any]]],
+    jours_consecutifs: int,
+    sources_volume_sporadique: set[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Sources dont les N derniers jours connus sont TOUS en panne (erreur ou
     0 annonce). Une source jamais vue ou trop récente n'est jamais retenue."""
+    sporadiques = sources_volume_sporadique or set()
     resultat = []
     for nom, entrees in historique.items():
         recentes = entrees[-jours_consecutifs:]
-        if len(recentes) < jours_consecutifs or not all(_en_panne(e) for e in recentes):
+        if len(recentes) < jours_consecutifs or not all(
+            _en_panne(e, nom in sporadiques) for e in recentes
+        ):
             continue
         resultat.append({
             "source": nom,

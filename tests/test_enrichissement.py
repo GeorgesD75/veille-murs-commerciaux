@@ -145,6 +145,31 @@ def test_dpe_renseigne_sur_l_annonce(benchmarks):
     assert a.dpe_classe == "G"
 
 
+def test_annee_fin_bail_jusquen():
+    from pipeline.enrichissement import annee_fin_bail
+    assert annee_fin_bail("Murs loués, bail jusqu'en 2032, aucune échéance avant.") == 2032
+    assert annee_fin_bail("Bail jusqu'à 2029, locataire sérieux.") == 2029
+    assert annee_fin_bail("Bail jusqu'au 15/03/2030, loyer à jour.") == 2030
+
+
+def test_annee_fin_bail_expire_ou_echeance():
+    from pipeline.enrichissement import annee_fin_bail
+    assert annee_fin_bail("Attention, le bail expire en 2027.") == 2027
+    assert annee_fin_bail("Échéance triennale prévue en 2028.") == 2028
+
+
+def test_annee_fin_bail_absente_ou_hors_bornes():
+    from pipeline.enrichissement import annee_fin_bail
+    assert annee_fin_bail("Murs loués, bail 3/6/9 en cours, rien de plus précisé.") is None
+    assert annee_fin_bail("Immeuble construit en 1978, bail jusqu'en 1985.") is None  # hors bornes
+
+
+def test_annee_fin_bail_renseignee_sur_l_annonce(benchmarks):
+    a = faire_annonce(description="Murs loués, bail jusqu'en 2032.")
+    enrichir(a, benchmarks, seuil_decote_pct=20)
+    assert a.bail_echeance_annee == 2032
+
+
 def test_dpe_passoire_malus_et_vertueux_bonus(config, benchmarks):
     from pipeline.scoring import scorer
     passoire = faire_annonce(description="Local commercial, DPE : G.")
