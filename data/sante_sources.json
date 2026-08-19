@@ -26,9 +26,9 @@
   },
   {
    "jour": "2026-08-19",
-   "statut": "erreur",
-   "annonces": 0,
-   "message": "HTTPSConnectionPool(host='www.pointdevente.fr', port=443): Max retries exceeded with url: /fr/acheter-murs-commerciaux-paris/lf393 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.pointdevente.fr', port=443) at 0x7f40627bf800>, 'Connection to www.pointdevente.fr timed out. (connect timeout=30)'))"
+   "statut": "ok",
+   "annonces": 30,
+   "message": null
   }
  ],
  "murscommerciaux": [
@@ -187,7 +187,7 @@
   {
    "jour": "2026-08-19",
    "statut": "ok",
-   "annonces": 7,
+   "annonces": 5,
    "message": null
   }
  ],
@@ -219,7 +219,7 @@
   {
    "jour": "2026-08-19",
    "statut": "ok",
-   "annonces": 19,
+   "annonces": 16,
    "message": null
   }
  ],
