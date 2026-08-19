@@ -23,6 +23,12 @@
    "statut": "ok",
    "annonces": 30,
    "message": null
+  },
+  {
+   "jour": "2026-08-19",
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "HTTPSConnectionPool(host='www.pointdevente.fr', port=443): Max retries exceeded with url: /fr/acheter-murs-commerciaux-paris/lf393 (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.pointdevente.fr', port=443) at 0x7f40627bf800>, 'Connection to www.pointdevente.fr timed out. (connect timeout=30)'))"
   }
  ],
  "murscommerciaux": [
@@ -46,6 +52,12 @@
   },
   {
    "jour": "2026-08-18",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
+  },
+  {
+   "jour": "2026-08-19",
    "statut": "ok",
    "annonces": 16,
    "message": null
@@ -75,6 +87,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-08-19",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "flagship": [
@@ -98,6 +116,12 @@
   },
   {
    "jour": "2026-08-18",
+   "statut": "ok",
+   "annonces": 1,
+   "message": null
+  },
+  {
+   "jour": "2026-08-19",
    "statut": "ok",
    "annonces": 1,
    "message": null
@@ -127,6 +151,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-08-19",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "bienici": [
@@ -150,6 +180,12 @@
   },
   {
    "jour": "2026-08-18",
+   "statut": "ok",
+   "annonces": 7,
+   "message": null
+  },
+  {
+   "jour": "2026-08-19",
    "statut": "ok",
    "annonces": 7,
    "message": null
@@ -179,6 +215,12 @@
    "statut": "ok",
    "annonces": 26,
    "message": null
+  },
+  {
+   "jour": "2026-08-19",
+   "statut": "ok",
+   "annonces": 19,
+   "message": null
   }
  ],
  "geolocaux": [
@@ -202,6 +244,12 @@
   },
   {
    "jour": "2026-08-18",
+   "statut": "ok",
+   "annonces": 195,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+  },
+  {
+   "jour": "2026-08-19",
    "statut": "ok",
    "annonces": 195,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
@@ -231,6 +279,12 @@
    "statut": "ok",
    "annonces": 665,
    "message": null
+  },
+  {
+   "jour": "2026-08-19",
+   "statut": "ok",
+   "annonces": 666,
+   "message": null
   }
  ],
  "notaires": [
@@ -254,6 +308,12 @@
   },
   {
    "jour": "2026-08-18",
+   "statut": "ok",
+   "annonces": 2,
+   "message": null
+  },
+  {
+   "jour": "2026-08-19",
    "statut": "ok",
    "annonces": 2,
    "message": null
@@ -283,6 +343,12 @@
    "statut": "erreur",
    "annonces": 0,
    "message": "SELECT command error: BAD [b'Could not parse command']"
+  },
+  {
+   "jour": "2026-08-19",
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "SELECT command error: BAD [b'Could not parse command']"
   }
  ],
  "encheres_publiques": [
@@ -309,6 +375,12 @@
    "statut": "ok",
    "annonces": 0,
    "message": null
+  },
+  {
+   "jour": "2026-08-19",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
   }
  ],
  "iccinvest": [
@@ -329,6 +401,12 @@
    "statut": "ok",
    "annonces": 100,
    "message": null
+  },
+  {
+   "jour": "2026-08-19",
+   "statut": "ok",
+   "annonces": 100,
+   "message": null
   }
  ],
  "latourimmo": [
@@ -346,6 +424,12 @@
   },
   {
    "jour": "2026-08-18",
+   "statut": "ok",
+   "annonces": 11,
+   "message": null
+  },
+  {
+   "jour": "2026-08-19",
    "statut": "ok",
    "annonces": 11,
    "message": null
