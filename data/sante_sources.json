@@ -39,8 +39,8 @@
   {
    "jour": "2026-08-21",
    "statut": "ok",
-   "annonces": 28,
-   "message": null
+   "annonces": 20,
+   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/1/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -259,7 +259,7 @@
   {
    "jour": "2026-08-21",
    "statut": "ok",
-   "annonces": 6,
+   "annonces": 8,
    "message": null
   }
  ],
@@ -303,7 +303,7 @@
   {
    "jour": "2026-08-21",
    "statut": "ok",
-   "annonces": 19,
+   "annonces": 25,
    "message": null
   }
  ],
@@ -347,8 +347,8 @@
   {
    "jour": "2026-08-21",
    "statut": "ok",
-   "annonces": 194,
-   "message": "/vente/local-commercial/evry-91000/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/evry-91000/; garde-fou de 90 requêtes atteint : collecte partielle"
+   "annonces": 195,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
