@@ -281,29 +281,29 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
 .masthead { background: linear-gradient(115deg, var(--marque-fonce), var(--marque) 55%, var(--marque-fonce));
   color: var(--marque-encre);
   border-top: 3px solid var(--or); box-shadow: inset 0 -1px 0 rgba(255,255,255,.08); }
-.masthead-inner { max-width: 1380px; margin: 0 auto; padding: 26px 24px 18px;
-  display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
-.enseigne { display: flex; align-items: center; gap: 18px; }
-.enseigne svg.devanture { width: 64px; height: 64px; color: var(--or-vif); flex: none; }
-.wordmark { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 54px;
+.masthead-inner { max-width: 1380px; margin: 0 auto; padding: 18px 24px 14px;
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.enseigne { display: flex; align-items: center; gap: 14px; }
+.enseigne svg.devanture { width: 50px; height: 50px; color: var(--or-vif); flex: none; }
+.wordmark { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 42px;
   letter-spacing: .015em; margin: 0; line-height: .95;
   text-shadow: 0 2px 0 rgba(0,0,0,.28); }
 .wordmark .point { color: var(--or-vif); }
-.wordmark .trait { display: block; margin-top: 7px; }
+.wordmark .trait { display: block; margin-top: 4px; }
 .hud { margin-left: auto; }
-.hud-texte { text-align: right; font-size: 13.5px; line-height: 1.6;
+.hud-texte { text-align: right; font-size: 12.5px; line-height: 1.42;
   font-variant-numeric: tabular-nums; max-width: 360px;
   background: rgba(255, 255, 255, .10); border: 1px solid rgba(255, 255, 255, .20);
-  border-radius: 14px; padding: 10px 16px;
+  border-radius: 12px; padding: 7px 14px;
   backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 4px 14px rgba(0, 0, 0, .12); }
-.hud-texte b { font-size: 15px; color: var(--or-vif); }
+.hud-texte b { font-size: 13.5px; color: var(--or-vif); }
 .hud-texte a { color: var(--or-vif); font-weight: 700; text-underline-offset: 3px; }
-.hud-texte .maj { opacity: .7; display: block; font-size: 12px; }
-.auvent { height: 15px; background: repeating-linear-gradient(90deg,
+.hud-texte .maj { opacity: .7; display: block; font-size: 11px; }
+.auvent { height: 10px; background: repeating-linear-gradient(90deg,
     var(--marque) 0 26px, var(--marque-fonce) 26px 52px);
-  -webkit-mask: radial-gradient(13px at 13px 0, #000 97%, #0000) 0 0 / 26px 15px repeat-x;
-  mask: radial-gradient(13px at 13px 0, #000 97%, #0000) 0 0 / 26px 15px repeat-x; }
+  -webkit-mask: radial-gradient(9px at 13px 0, #000 97%, #0000) 0 0 / 26px 10px repeat-x;
+  mask: radial-gradient(9px at 13px 0, #000 97%, #0000) 0 0 / 26px 10px repeat-x; }
 
 .page { max-width: 1380px; margin: 0 auto; padding: 10px 24px 90px; }
 
@@ -622,12 +622,6 @@ a.btn-outil:hover { text-decoration: none; border-color: var(--marque); }
 .jauge .val { text-align: right; font-variant-numeric: tabular-nums; }
 
 .carte-score { display: flex; flex-direction: column; align-items: center; gap: 5px; justify-content: start; }
-.rang { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 15px;
-  width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.rang-S { background: var(--or-clair); color: var(--or); box-shadow: 0 0 0 2px var(--or); }
-.rang-A { background: var(--vert-fond); color: var(--vert-texte); box-shadow: 0 0 0 2px var(--vert-texte); }
-.rang-B { background: var(--orange-fond); color: var(--orange-texte); }
-.rang-C { background: var(--gris-fond); color: var(--gris-texte); }
 .score { width: 64px; height: 64px; border-radius: 14px; display: flex; align-items: center;
   justify-content: center; font-family: Fraunces, Georgia, serif;
   font-size: 27px; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -1079,14 +1073,6 @@ function classeScore(s) {
   if (s >= D.seuils.orange) return "orange";
   return "gris";
 }
-function rang(s) {
-  if (s == null) return "C";
-  if (s >= D.seuils.pepite) return "S";
-  if (s >= D.seuils.vert) return "A";
-  if (s >= D.seuils.orange) return "B";
-  return "C";
-}
-
 function verdictMarche(a) {
   if (a.prix_m2 < a.marche_prix_m2_bas)
     return '<span class="bon">sous la fourchette du marché</span>';
@@ -1688,14 +1674,16 @@ function carteHtml(a, options) {
 
   const tampon = options.medaille != null
     ? `<div><span class="tampon">${TAMPONS[options.medaille]}</span></div>` : "";
-  const lettreRang = rang(a.score);
+  const pepite = (a.score ?? 0) >= D.seuils.pepite;
   const dansComp = comparaison.includes(a.id);
 
-  // Les pépites (rang S) restent signalées par la bordure or + reflet de la
-  // carte (.rang-s) ; la décote vs marché est désormais un badge en ligne
-  // près du titre (poussé plus haut), non un autocollant flottant sur le
-  // coin de la carte — évite qu'il soit rogné par overflow:hidden sur .rang-s.
-  return `<article class="carte${options.prio ? " prio" : ""}${options.medaille === 0 ? " podium-1" : ""}${lettreRang === "S" ? " rang-s" : ""}"
+  // Les pépites (score ≥ seuil pépite) restent signalées par la bordure or +
+  // reflet de la carte (.rang-s) ; la décote vs marché est un badge en ligne
+  // près du titre, non un autocollant flottant sur le coin de la carte —
+  // évite qu'il soit rogné par overflow:hidden. Pas de rang lettré (S/A/B/C) :
+  // abandonné (retour utilisateur du 2026-08-22) — le saut direct de B à S
+  // (79 -> 80) semblait arbitraire ; seul le score /100 reste affiché.
+  return `<article class="carte${options.prio ? " prio" : ""}${options.medaille === 0 ? " podium-1" : ""}${pepite ? " rang-s" : ""}"
       style="animation-delay:${(options.index || 0) * 45}ms">
     ${boutonMasquerHtml(a.id)}
     <div class="carte-img" data-id="${ech(a.id)}" data-idx="0">${img}</div>
@@ -1710,13 +1698,12 @@ function carteHtml(a, options) {
       ${evolutionPrixHtml(a)}
       ${jaugeMarcheHtml(a)}
       ${enClairHtml(a)}
-      ${lettreRang === "S" ? explicationPepiteHtml(a) : ""}
+      ${pepite ? explicationPepiteHtml(a) : ""}
       ${faitsClesHtml(a)}
       ${questionsReponsesHtml(a)}
     </div>
     ${pourquoiHtml(a)}
     <div class="carte-score">
-      <span class="rang rang-${lettreRang}" title="Rang ${lettreRang} — S ≥ ${D.seuils.pepite}${D.seuils.vert < D.seuils.pepite ? `, A ≥ ${D.seuils.vert}` : ""}, B ≥ ${D.seuils.orange}">${lettreRang}</span>
       <div class="score ${classeScore(a.score)}">${a.score ?? "—"}</div>
       <div class="score-libelle">/100</div>
       <button type="button" class="btn-comp${dansComp ? " actif" : ""}" data-id="${ech(a.id)}">
@@ -1857,7 +1844,6 @@ function enchereHtml(e, index) {
     </div>
     ${pourquoiEnchereHtml(e)}
     <div class="carte-score">
-      <span class="rang rang-S" style="visibility:hidden"></span>
       <div class="score or">${e.score_enchere ?? "—"}</div>
       <div class="score-libelle">enchère /100</div>
     </div>
@@ -1998,7 +1984,7 @@ function ouvrirComparateur() {
        <span style="color:var(--encre-3)">${ech(b.ville)} (${ech(b.code_postal)})</span>`],
     ["Score", b => {
       const top = (b.score ?? -1) === meilleur(x => x.score);
-      return `<span class="${top ? "meilleur" : ""}">${b.score} /100 · rang ${rang(b.score)}</span>`;
+      return `<span class="${top ? "meilleur" : ""}">${b.score} /100</span>`;
     }],
     ["Prix", b => fmtEuros(b.prix)],
     ["Prix/m²", b => `${fmtEuros(b.prix_m2)} <span style="color:var(--encre-3)">(marché ${fmtEuros(b.marche_prix_m2_bas)}–${fmtEuros(b.marche_prix_m2_haut)})</span>`],
@@ -2732,9 +2718,9 @@ function initialiser() {
     `Barème /100 : rendement ${D.maxima.rendement} + emplacement ${D.maxima.emplacement} ` +
     `+ prix vs marché ${D.maxima.prix_m2_vs_benchmark} + financement ${D.maxima.financement} ` +
     `+ fiscalité ${D.maxima.fiscalite} + trajet ${D.maxima.proximite} + quartier 18e ${D.maxima.quartier} ` +
-    `+ bonus/malus (−3 à +5, plafonné à 100). Rangs : S ≥ ${D.seuils.pepite} (pépite, email immédiat), ` +
-    (D.seuils.vert < D.seuils.pepite ? `A ≥ ${D.seuils.vert}, ` : "") +
-    `B ≥ ${D.seuils.orange}, C en dessous. Un rendement > 10 % est plafonné ` +
+    `+ bonus/malus (−3 à +5, plafonné à 100). Score ≥ ${D.seuils.pepite} : pépite (email immédiat). ` +
+    `Score ≥ ${D.seuils.vert} : haut du panier. Sous ${D.seuils.orange} : le reste du marché. ` +
+    `Un rendement > 10 % est plafonné ` +
     `sous ${D.seuils.affichage} (piège probable) jusqu'à vérification. ` +
     `« est. » = loyer estimé ou promis, non prouvé par un bail. ` +
     `Le score enchère est un score d'intérêt distinct (voir sa note de section).`;
