@@ -25,6 +25,20 @@ def test_identifier_portail():
     assert identifier_portail("inconnu@exemple.fr", "<html></html>") is None
 
 
+def test_identifier_portail_nouveaux_2026_08_22():
+    assert identifier_portail("alertes@logic-immo.com", "").nom == "logic_immo"
+    assert identifier_portail("noreply@reprise-entreprise.bpifrance.fr", "").nom == "bourse_des_locaux"
+    assert identifier_portail("contact@avendrealouer.fr", "").nom == "avendrealouer"
+
+
+def test_motif_lien_bourse_des_locaux_id_hexadecimal():
+    portail = next(p for p in PORTAILS if p.nom == "bourse_des_locaux")
+    href = ("https://reprise-entreprise.bpifrance.fr/locaux/annonce-locaux/"
+            "vente-de-murs-de-boutique-yvelines-78-86ec40815c14bec3a9e53a6091e37970")
+    trouve = portail.motif_lien.search(href)
+    assert trouve and trouve.group(1) == "86ec40815c14bec3a9e53a6091e37970"
+
+
 class _BoiteImapFactice:
     """Réponse `LIST` minimale : juste ce que `_dossier_a_chercher` regarde."""
     def __init__(self, lignes: list[bytes], statut: str = "OK"):

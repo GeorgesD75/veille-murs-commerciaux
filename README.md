@@ -108,6 +108,17 @@ Gmail**. Critères conseillés partout : *achat / vente · local commercial ·
   recherche « Acheter · Local commercial · Île-de-France » → **Créer une alerte email**.
 - **Geolocaux** ([geolocaux.com](https://www.geolocaux.com)) : Achat → Local
   commercial → Île-de-France → **Alerte email**.
+- **Logic-immo** ([logic-immo.com](https://www.logic-immo.com)) : gros volume
+  (2 400+ annonces IdF constatées) → recherche « Local commercial » → **Créer une alerte**.
+- **Bourse des locaux** ([reprise-entreprise.bpifrance.fr](https://reprise-entreprise.bpifrance.fr/locaux))
+  : plateforme Bpifrance, 1 200+ annonces IdF, refuse le scraping direct mais
+  propose ses propres alertes email → compte gratuit → **Alerte personnalisée**.
+- **A Vendre A Louer** ([avendrealouer.fr](https://www.avendrealouer.fr)) :
+  local commercial → Île-de-France → **Créer une alerte**.
+- Ces trois derniers sont ajoutés le 2026-08-22, motif de lien non encore
+  vérifié sur un vrai message : après la première alerte reçue, vérifiez sur
+  le site que l'annonce est bien remontée à la tournée suivante — sinon,
+  transférez l'email reçu pour affiner l'extraction.
 - Bonus : les alertes de n'importe quel autre portail envoyées à cette boîte
   seront tentées aussi — au pire elles sont ignorées proprement.
 

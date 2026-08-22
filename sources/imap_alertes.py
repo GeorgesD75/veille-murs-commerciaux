@@ -69,6 +69,23 @@ PORTAILS: list[Portail] = [
         "geolocaux", ("geolocaux.com",),
         re.compile(r"https?://(?:www\.)?geolocaux\.com/[^\s\"'<>]*?(\d{4,})"),
     ),
+    # Les trois ci-dessous sont NON VÉRIFIÉS (motifs de lien devinés faute
+    # d'avoir reçu un vrai message) — recommandés le 2026-08-22 : gros volume
+    # (Logic-immo, Bpifrance) ou scraping direct bloqué (Bpifrance renvoie
+    # une page d'erreur WAF, avendrealouer.fr refuse même robots.txt). Un
+    # premier message réel forwardé permettra d'affiner motif_lien au besoin.
+    Portail(
+        "logic_immo", ("logic-immo.com",),
+        re.compile(r"https?://(?:www\.)?logic-immo\.com/[^\s\"'<>]*?(\d{5,})"),
+    ),
+    Portail(
+        "bourse_des_locaux", ("reprise-entreprise.bpifrance.fr",),
+        re.compile(r"https?://(?:www\.)?reprise-entreprise\.bpifrance\.fr/locaux/[^\s\"'<>]*-([a-f0-9]{8,})"),
+    ),
+    Portail(
+        "avendrealouer", ("avendrealouer.fr",),
+        re.compile(r"https?://(?:www\.)?avendrealouer\.fr/[^\s\"'<>]*?(\d{5,})"),
+    ),
 ]
 
 
