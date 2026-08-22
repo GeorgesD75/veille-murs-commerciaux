@@ -29,6 +29,15 @@ def test_identifier_portail_nouveaux_2026_08_22():
     assert identifier_portail("alertes@logic-immo.com", "").nom == "logic_immo"
     assert identifier_portail("noreply@reprise-entreprise.bpifrance.fr", "").nom == "bourse_des_locaux"
     assert identifier_portail("contact@avendrealouer.fr", "").nom == "avendrealouer"
+    assert identifier_portail("alertes@iadfrance.fr", "").nom == "iad"
+    assert identifier_portail("alertes@pap.fr", "").nom == "pap"
+
+
+def test_pap_ne_matche_pas_papcommerces():
+    # pap.fr (alertes) est distinct de papcommerces.fr (déjà scrapé en direct,
+    # source "papcommerces") : "pap.fr" n'est pas une sous-chaîne de
+    # "papcommerces.fr" (le "." tombe après "commerces", pas après "pap").
+    assert identifier_portail("contact@papcommerces.fr", "") is None
 
 
 def test_motif_lien_bourse_des_locaux_id_hexadecimal():

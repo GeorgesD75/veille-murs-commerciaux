@@ -86,6 +86,17 @@ PORTAILS: list[Portail] = [
         "avendrealouer", ("avendrealouer.fr",),
         re.compile(r"https?://(?:www\.)?avendrealouer\.fr/[^\s\"'<>]*?(\d{5,})"),
     ),
+    # Idem non vérifiés — alertes créées par l'utilisateur le 2026-08-22.
+    Portail(
+        "iad", ("iadfrance.fr",),
+        re.compile(r"https?://(?:www\.)?iadfrance\.fr/[^\s\"'<>]*?(\d{5,})"),
+    ),
+    Portail(
+        # Distinct de papcommerces.fr (déjà scrapé directement, source séparée) :
+        # pap.fr est le site généraliste PAP, alertes propres.
+        "pap", ("pap.fr",),
+        re.compile(r"https?://(?:www\.)?pap\.fr/[^\s\"'<>]*?(\d{5,})"),
+    ),
 ]
 
 

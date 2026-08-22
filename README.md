@@ -114,8 +114,13 @@ Gmail**. Critères conseillés partout : *achat / vente · local commercial ·
   : plateforme Bpifrance, 1 200+ annonces IdF, refuse le scraping direct mais
   propose ses propres alertes email → compte gratuit → **Alerte personnalisée**.
 - **A Vendre A Louer** ([avendrealouer.fr](https://www.avendrealouer.fr)) :
-  local commercial → Île-de-France → **Créer une alerte**.
-- Ces trois derniers sont ajoutés le 2026-08-22, motif de lien non encore
+  local commercial → Île-de-France → **Créer une alerte** (site instable par
+  moments — si le formulaire d'alerte ne charge pas, retentez plus tard).
+- **IAD France** ([iadfrance.fr](https://www.iadfrance.fr)) : réseau
+  d'agents indépendants → recherche local commercial IdF → **Créer une alerte**.
+- **PAP** ([pap.fr](https://www.pap.fr)) : distinct de PAP Commerces
+  (papcommerces.fr, déjà scrapé directement) → **Créer une alerte email**.
+- Ces cinq derniers sont ajoutés le 2026-08-22, motif de lien non encore
   vérifié sur un vrai message : après la première alerte reçue, vérifiez sur
   le site que l'annonce est bien remontée à la tournée suivante — sinon,
   transférez l'email reçu pour affiner l'extraction.
