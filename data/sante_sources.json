@@ -295,7 +295,7 @@
   {
    "jour": "2026-08-22",
    "statut": "ok",
-   "annonces": 11,
+   "annonces": 12,
    "message": null
   }
  ],
@@ -544,9 +544,9 @@
   },
   {
    "jour": "2026-08-22",
-   "statut": "erreur",
+   "statut": "ok",
    "annonces": 0,
-   "message": "SELECT command error: BAD [b'Could not parse command']"
+   "message": null
   }
  ],
  "encheres_publiques": [
