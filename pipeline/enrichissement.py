@@ -10,6 +10,7 @@ from pipeline.comparables import LoyersComparables
 from pipeline.geo import GRANDE_COURONNE
 from pipeline.modeles import Annonce, TypeMurs
 from pipeline.texte import normaliser_texte
+from sources.extraction import extraire_nombre
 
 # Frais d'acquisition (notaire, enregistrement…) retenus pour le rendement « acte en main ».
 TAUX_FRAIS_ACQUISITION = 1.08
@@ -51,6 +52,42 @@ def annee_fin_bail(texte: str) -> int | None:
             if 2020 <= annee <= 2060:  # garde-fou : écarte un faux positif improbable
                 return annee
     return None
+
+
+# « Emplacement n°1 » : LE critère qu'un professionnel du commerce regarde en
+# premier (flux, visibilité) — pas une donnée géospatiale qu'une API publique
+# mesure, un jugement du secteur repris tel quel par le rédacteur de l'annonce
+# quand il le connaît. Seule la forme standard « emplacement n°X (bis) » est
+# reconnue (jamais deviné depuis « 1ère catégorie » ou une paraphrase) : moins
+# de rappel, mais aucun faux positif à documenter plus tard.
+_EMPLACEMENT_NUMERO = re.compile(
+    r"emplacement\s*(?:n|no|numero)\.?\s*[°#]?\s*(1\s*bis|1er|1|2|3)\b"
+)
+
+
+def emplacement_numero_depuis_texte(texte: str) -> str | None:
+    trouve = _EMPLACEMENT_NUMERO.search(normaliser_texte(texte))
+    if not trouve:
+        return None
+    brut = trouve.group(1).replace(" ", "")
+    return "1" if brut == "1er" else brut
+
+
+# Taxe foncière ANNUELLE (toujours annuelle en France, jamais mensuelle) —
+# quand l'annonce donne un montant, il vaut mieux que le cash-flow affiché en
+# tienne compte plutôt que de rester optimiste. Absente : le cash-flow garde
+# son hypothèse actuelle (hors taxe foncière), rien n'est deviné.
+_TAXE_FONCIERE = re.compile(r"taxe\s*fonciere[^.\d]{0,30}?(\d[\d\s.,]{2,})\s*€")
+
+
+def taxe_fonciere_annuelle_depuis_texte(texte: str) -> float | None:
+    trouve = _TAXE_FONCIERE.search(normaliser_texte(texte))
+    if not trouve:
+        return None
+    montant = extraire_nombre(trouve.group(1))
+    if montant is None or not (100 <= montant <= 50_000):  # garde-fou de plausibilité
+        return None
+    return montant
 
 
 @dataclass(frozen=True)
@@ -240,6 +277,8 @@ def enrichir(
     annonce.caracteristiques = caracteristiques_depuis_texte(annonce.texte_complet())
     annonce.dpe_classe = dpe_depuis_texte(annonce.texte_complet())
     annonce.bail_echeance_annee = annee_fin_bail(annonce.texte_complet())
+    annonce.emplacement_numero = emplacement_numero_depuis_texte(annonce.texte_complet())
+    annonce.taxe_fonciere_annuelle = taxe_fonciere_annuelle_depuis_texte(annonce.texte_complet())
 
     # Fourchette de prix du secteur : les VENTES RÉELLES enregistrées (DVF)
     # priment quand la commune en compte assez — un prix effectivement payé

@@ -101,6 +101,8 @@ def preparer_payload(
                 "benchmark_source": a.benchmark_source,
                 "dpe_classe": a.dpe_classe,
                 "bail_echeance_annee": a.bail_echeance_annee,
+                "emplacement_numero": a.emplacement_numero,
+                "taxe_fonciere_annuelle": a.taxe_fonciere_annuelle,
                 "lecture_prix": a.lecture_prix,
                 "prix_cible_rendement": a.prix_cible_rendement,
                 "temps_trajet_min": a.temps_trajet_min,
@@ -1067,6 +1069,18 @@ function bailEcheanceHtml(a) {
   return `<span class="etiquette ${classe}" title="Échéance déduite du texte de l'annonce — à confirmer par le bail avant toute offre.">${texte}</span>`;
 }
 
+function emplacementNumeroHtml(a) {
+  if (!a.emplacement_numero) return "";
+  const classe = a.emplacement_numero === "3" ? "etiquette-moins" : "etiquette-plus";
+  const libelle = a.emplacement_numero === "1bis" ? "n°1 bis" : `n°${a.emplacement_numero}`;
+  return `<span class="etiquette ${classe}" title="Classement d'emplacement donné par l'annonce elle-même (flux, visibilité) — jamais déduit, à vérifier sur place comme le reste.">Emplacement ${libelle}</span>`;
+}
+
+function taxeFonciereHtml(a) {
+  if (a.taxe_fonciere_annuelle == null) return "";
+  return `<span class="etiquette" title="Montant donné par l'annonce — déjà déduit du cash-flow affiché ci-dessus.">Taxe foncière ${fmtEuros(a.taxe_fonciere_annuelle)}/an</span>`;
+}
+
 function classeScore(s) {
   if (s == null) return "gris";
   if (s >= D.seuils.vert) return "vert";
@@ -1159,16 +1173,24 @@ function jaugeMarcheHtml(a) {
   </div>`;
 }
 
+// Taxe foncière mensualisée, SEULEMENT quand l'annonce donne un montant —
+// sinon 0, comme avant (jamais devinée). Un cash-flow qui l'ignore reste
+// optimiste par rapport à la réalité ; autant le corriger quand on le sait.
+function taxeFonciereMensuelle(a) {
+  return (a.taxe_fonciere_annuelle ?? 0) / 12;
+}
+
 function cashflowMensuel(a) {
   // Coût acte en main (prix × 1,08) financé selon le PROFIL de l'utilisateur
-  // (apport, taux, durée) — hors taxe foncière et gestion.
+  // (apport, taux, durée) — hors assurance et gestion dans tous les cas ;
+  // hors taxe foncière SEULEMENT si l'annonce ne la précise pas.
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   if (loyer == null || a.prix == null) return null;
   const emprunt = (a.prix * 1.08) * (1 - profil.apport / 100);
-  if (emprunt <= 0) return Math.round(loyer);
+  if (emprunt <= 0) return Math.round(loyer - taxeFonciereMensuelle(a));
   const t = profil.taux / 100 / 12, n = profil.duree * 12;
   const m = emprunt * t / (1 - Math.pow(1 + t, -n));
-  return Math.round(loyer - m);
+  return Math.round(loyer - m - taxeFonciereMensuelle(a));
 }
 
 function apportMinimalCashflowPositif(a) {
@@ -1178,10 +1200,11 @@ function apportMinimalCashflowPositif(a) {
   // répond à la question personnelle « avec MES conditions, il me faut combien ? »
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   if (loyer == null || a.prix == null) return null;
+  const taxe = taxeFonciereMensuelle(a);
   for (const apport of [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]) {
     const emprunt = (a.prix * 1.08) * (1 - apport / 100);
     const m = emprunt > 0 ? mensualite(emprunt, profil.taux, profil.duree) : 0;
-    if (loyer - m >= 0) return apport;
+    if (loyer - m - taxe >= 0) return apport;
   }
   return null;  // jamais positif, même à 90 % d'apport
 }
@@ -1574,8 +1597,10 @@ function carteHtml(a, options) {
     badges.push(`<span class="badge badge-type" title="Rendement brut sous votre objectif de ${D.analyse.rendement_cible_pct} % : quel que soit le reste du dossier, ce bien ne peut pas entrer au haut du panier — les points d'emplacement ne paient pas un crédit. Il reste visible ici, et une négociation du prix peut changer la donne.">rendement sous objectif</span>`);
   if (cf != null && cf >= 0 && !suspect) {
     const reel = a.loyer_mensuel != null && !a.loyer_estime;
+    const taxeTxt = a.taxe_fonciere_annuelle != null
+      ? `, taxe foncière déduite (${fmtEuros(a.taxe_fonciere_annuelle)}/an)` : ", hors taxe foncière";
     badges.push(`<span class="badge badge-autofinance" title="${reel
-      ? `Le loyer du bail en place couvre la mensualité (financement ${finTxt()}, hors taxe foncière et gestion) : le bien se paie tout seul.`
+      ? `Le loyer du bail en place couvre la mensualité (financement ${finTxt()}${taxeTxt}, hors gestion) : le bien se paie tout seul.`
       : `Au loyer ESTIMÉ, le bien couvrirait son crédit (${finTxt()}) — à prouver par un bail.`}">${IC.etincelle} ${reel ? "s'autofinance" : "s'autofinancerait"}</span>`);
   }
   // Emplacement mesuré RUE PAR RUE (Base Adresse Nationale + densité de
@@ -1633,12 +1658,12 @@ function carteHtml(a, options) {
     bail_longue_duree_restante: ["Bail loin de toute échéance (annonce)", "plus"],
     echeance_bail_proche: ["Échéance de bail proche (annonce)", "moins"],
   };
-  const echeanceHtml = bailEcheanceHtml(a);
+  const etiquettesExtra = [bailEcheanceHtml(a), emplacementNumeroHtml(a), taxeFonciereHtml(a)].filter(Boolean);
   const etiquettes = (a.caracteristiques || []).map(c =>
     `<span class="etiquette">${ech(c)}</span>`)
     .concat((a.bonus_detectes || []).filter(n => FAITS[n]).map(n =>
       `<span class="etiquette etiquette-${FAITS[n][1]}">${FAITS[n][0]}</span>`))
-    .concat(echeanceHtml ? [echeanceHtml] : [])
+    .concat(etiquettesExtra)
     .join("");
 
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
@@ -1655,7 +1680,8 @@ function carteHtml(a, options) {
     (suspect ? `<span title="Calculé sur le loyer PROMIS par le vendeur — un tel niveau est
       presque toujours irréaliste : à prouver par un bail avant d'y croire."> ⚠</span>` : "") +
     `<span class="info-i" data-sim="${ech(a.id)}"
-      title="Loyer − mensualité du coût acte en main (prix × 1,08) financé selon VOTRE profil : ${finTxt()} — hors taxe foncière, assurance et gestion. Réglable dans « Filtres & réglages » ou en cliquant ici.">i</span>`;
+      title="Loyer − mensualité du coût acte en main (prix × 1,08) financé selon VOTRE profil : ${finTxt()}${a.taxe_fonciere_annuelle != null
+        ? ` − taxe foncière (${fmtEuros(a.taxe_fonciere_annuelle)}/an, donnée par l'annonce)` : " — hors taxe foncière (non précisée par l'annonce)"}, hors assurance et gestion. Réglable dans « Filtres & réglages » ou en cliquant ici.">i</span>`;
   const fiscal = rendementNetImpot(a);
   const fiscalHtml = fiscal == null ? "" : fmtPct(fiscal.pct) +
     ` <span class="info-i" title="Estimation grossière pour COMPARER deux régimes, pas un calcul fiscal officiel — ` +
@@ -2035,21 +2061,22 @@ function ouvrirSimulateur(id) {
 function rendreSimulateur() {
   const a = D.retenues.find(x => x.id === simId);
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
+  const taxe = taxeFonciereMensuelle(a);
   const cout = simEtat.prix * 1.08;
   const apportEuros = Math.round(cout * simEtat.apport / 100);
   const emprunt = Math.max(0, cout - apportEuros);
   const m = emprunt > 0 ? mensualite(emprunt, simEtat.taux, simEtat.duree) : 0;
-  const cf = loyer != null ? Math.round(loyer - m) : null;
+  const cf = loyer != null ? Math.round(loyer - m - taxe) : null;
   const interets = Math.round(m * simEtat.duree * 12 - emprunt);
   const coc = (loyer != null && apportEuros > 0)
-    ? ((loyer - m) * 12 / apportEuros * 100) : null;
+    ? ((loyer - m - taxe) * 12 / apportEuros * 100) : null;
 
   // Grille de scénarios : le triangle apport × durée
   const apports = [10, 20, 30], durees = [15, 20, 25];
   let meilleurCf = -Infinity;
   const cellules = durees.map(d => apports.map(ap => {
     const e2 = cout * (1 - ap / 100);
-    const cf2 = loyer != null ? Math.round(loyer - mensualite(e2, simEtat.taux, d)) : null;
+    const cf2 = loyer != null ? Math.round(loyer - mensualite(e2, simEtat.taux, d) - taxe) : null;
     if (cf2 != null && cf2 > meilleurCf) meilleurCf = cf2;
     return cf2;
   }));
@@ -2084,10 +2111,11 @@ function rendreSimulateur() {
     </div>
     ${grille}
     <p style="font-size:12px;color:var(--encre-3);margin-top:10px">Calcul : coût acte en main = prix × 1,08
-    (droits ~7,5 % + frais) ; mensualité = annuité classique ; cash-flow = loyer − mensualité.
-    Hors assurance emprunteur (~0,2-0,4 %/an), taxe foncière et gestion. Le taux par défaut est
-    une moyenne de marché à ajuster avec votre banque — aucune donnée bancaire en direct ici,
-    par honnêteté.</p>`;
+    (droits ~7,5 % + frais) ; mensualité = annuité classique ; cash-flow = loyer − mensualité${taxe > 0
+      ? ` − taxe foncière (${fmtEuros(a.taxe_fonciere_annuelle)}/an, donnée par l'annonce)` : ""}.
+    Hors assurance emprunteur (~0,2-0,4 %/an) et gestion${taxe > 0 ? "" : " ; taxe foncière non précisée par l'annonce, donc pas déduite"}.
+    Le taux par défaut est une moyenne de marché à ajuster avec votre banque — aucune donnée
+    bancaire en direct ici, par honnêteté.</p>`;
 }
 
 /* ---- Checklist par annonce (persistée) ---- */

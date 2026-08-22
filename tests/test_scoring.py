@@ -82,6 +82,29 @@ def test_emplacement_petite_couronne_dynamique(config):
     assert a.detail_score["emplacement"] == 20.0
 
 
+def test_emplacement_numero_1_bonifie(config):
+    a = faire_annonce(ville="Pantin", departement="93")
+    a.emplacement_numero = "1"
+    scorer(a, config)
+    assert a.detail_score["emplacement"] == 23.0  # 20 (base) + 3
+
+
+def test_emplacement_numero_3_penalise(config):
+    a = faire_annonce(ville="Pantin", departement="93")
+    a.emplacement_numero = "3"
+    scorer(a, config)
+    assert a.detail_score["emplacement"] == 17.0  # 20 (base) - 3
+
+
+def test_emplacement_numero_ne_depasse_pas_l_enveloppe_paris(config):
+    # Paris est déjà au plafond (25 pts) : un emplacement n°1 ne peut pas
+    # pousser le score au-delà de l'enveloppe de la catégorie.
+    a = faire_annonce(ville="Paris 18e", code_postal="75018", departement="75")
+    a.emplacement_numero = "1"
+    scorer(a, config)
+    assert a.detail_score["emplacement"] == 25.0
+
+
 def test_emplacement_commune_dynamique_nom_long(config):
     a = faire_annonce(ville="Saint-Ouen-sur-Seine", code_postal="93400", departement="93")
     scorer(a, config)

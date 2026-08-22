@@ -170,6 +170,47 @@ def test_annee_fin_bail_renseignee_sur_l_annonce(benchmarks):
     assert a.bail_echeance_annee == 2032
 
 
+def test_emplacement_numero_formes_courantes():
+    from pipeline.enrichissement import emplacement_numero_depuis_texte
+    assert emplacement_numero_depuis_texte("Bel emplacement n°1 sur rue commerçante.") == "1"
+    assert emplacement_numero_depuis_texte("Emplacement N°1 bis, très bon passage.") == "1bis"
+    assert emplacement_numero_depuis_texte("Emplacement numéro 2, correct.") == "2"
+    assert emplacement_numero_depuis_texte("emplacement no3, secondaire.") == "3"
+    assert emplacement_numero_depuis_texte("Local vide, aucune mention.") is None
+
+
+def test_emplacement_numero_pas_devine_depuis_autre_chose():
+    from pipeline.enrichissement import emplacement_numero_depuis_texte
+    # "emplacement" seul, sans marqueur n°/numero, ne doit rien matcher
+    assert emplacement_numero_depuis_texte("Très bel emplacement, 1er étage.") is None
+
+
+def test_emplacement_numero_renseigne_sur_l_annonce(benchmarks):
+    a = faire_annonce(description="Murs loués, emplacement n°1 sur rue passante.")
+    enrichir(a, benchmarks, seuil_decote_pct=20)
+    assert a.emplacement_numero == "1"
+
+
+def test_taxe_fonciere_annuelle_extraite():
+    from pipeline.enrichissement import taxe_fonciere_annuelle_depuis_texte
+    assert taxe_fonciere_annuelle_depuis_texte("Murs loués, taxe foncière : 3 200 €/an.") == 3200
+    assert taxe_fonciere_annuelle_depuis_texte("Taxe foncière de 1500€ à la charge du bailleur.") == 1500
+    assert taxe_fonciere_annuelle_depuis_texte("Aucune mention de taxe ici.") is None
+
+
+def test_taxe_fonciere_annuelle_hors_bornes_ecartee():
+    from pipeline.enrichissement import taxe_fonciere_annuelle_depuis_texte
+    # 50€ de taxe foncière annuelle est implausible pour un local commercial :
+    # probablement une erreur de lecture (ex. confusion avec autre chose)
+    assert taxe_fonciere_annuelle_depuis_texte("Taxe foncière : 50 €.") is None
+
+
+def test_taxe_fonciere_renseignee_sur_l_annonce(benchmarks):
+    a = faire_annonce(description="Murs loués, taxe foncière : 2400€/an, loyer stable.")
+    enrichir(a, benchmarks, seuil_decote_pct=20)
+    assert a.taxe_fonciere_annuelle == 2400
+
+
 def test_dpe_passoire_malus_et_vertueux_bonus(config, benchmarks):
     from pipeline.scoring import scorer
     passoire = faire_annonce(description="Local commercial, DPE : G.")

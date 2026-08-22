@@ -49,6 +49,11 @@ def _points_emplacement(annonce: Annonce, cfg: dict, categorie: str) -> float:
             and annonce.rue_nb_vacants >= seuil_vacance
         ):
             points += float(rue_cfg.get("malus_vacance_points", 0))
+    # « Emplacement n°1/2/3 » : le jugement du secteur, quand l'annonce le
+    # précise — même enveloppe que l'ajustement rue par rue, jamais un poste
+    # à part (c'est la même dimension : la qualité de l'emplacement).
+    if annonce.emplacement_numero:
+        points += float((cfg.get("emplacement_numero") or {}).get(annonce.emplacement_numero, 0))
     plafond = float(cfg["emplacement"]["paris"])  # enveloppe maximale de la catégorie
     return max(0.0, min(plafond, points))
 

@@ -77,6 +77,8 @@ class Annonce:
     benchmark_source: str | None = None   # « N ventes réelles 2023-2025 (DVF) » ou « référentiel interne »
     dpe_classe: str | None = None         # classe énergie A-G si l'annonce la donne (volet E de l'ESG)
     bail_echeance_annee: int | None = None  # année de fin de bail explicitement mentionnée
+    emplacement_numero: str | None = None   # "1", "1bis", "2", "3" si l'annonce le précise
+    taxe_fonciere_annuelle: float | None = None  # € / an, si l'annonce donne un montant
     temps_trajet_min: int | None = None
     caracteristiques: list[str] = field(default_factory=list)  # extraction, terrasse…
     lecture_prix: str = ""                     # phrase : pourquoi ce prix est haut/bas
