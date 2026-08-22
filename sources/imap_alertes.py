@@ -213,7 +213,11 @@ class SourceImap(Source):
         with imaplib.IMAP4_SSL(self.hote) as boite:
             boite.login(utilisateur, mot_de_passe)
             dossier = self._dossier_a_chercher(boite)
-            boite.select(dossier)
+            # Un nom de dossier avec espaces (ex. « [Gmail]/Tous les messages »
+            # en français) doit être une chaîne IMAP entre guillemets — sans
+            # ça le serveur refuse la commande (« Could not parse command »,
+            # constaté le 2026-08-22 juste après l'ajout de cette recherche).
+            boite.select(f'"{dossier}"')
             # Boîte personnelle oblige : on ne cherche QUE les emails des
             # portails connus — le reste de la boîte n'est ni lu ni marqué lu.
             numeros: list[bytes] = []

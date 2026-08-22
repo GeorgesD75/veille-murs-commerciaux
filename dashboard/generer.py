@@ -1359,46 +1359,48 @@ function explicationPepiteHtml(a) {
 }
 
 function messageContact(a) {
-  // Modèle personnalisé à partir des données déjà connues de l'annonce — à
-  // relire et adapter (nom, ton) avant envoi : jamais un envoi automatique.
-  // Court et honnête au premier contact (retour utilisateur du 2026-08-16:
-  // la version précédente prêtait à l'acheteur des faits non vérifiés —
-  // « financement déjà préparé avec ma banque », « offre dans la semaine » —
-  // et empilait une longue liste de pièces dès le premier email. Un premier
-  // message trop sûr de lui ou trop chargé sonne faux et braque plus qu'il
-  // n'aide. On garde uniquement ce qui est vrai à coup sûr : les faits de
-  // marché (prix, comparables) tirés des données, jamais une posture prêtée.
-  // On ne chiffre pas d'offre ici : ça se joue après visite, bail en main.
+  // Modèle personnalisé — à relire et adapter avant envoi, jamais un envoi
+  // automatique. Retour utilisateur du 2026-08-17 : plus court, moins
+  // formaté-IA, jamais "je suis cette annonce depuis" (ça sonne robotique).
+  // Se concentrer sur ce qui MANQUE vraiment : raison de la vente, durée de
+  // bail restante, loyer, charges — mais seulement quand l'annonce ne le dit
+  // pas déjà (inutile de redemander un loyer ou une échéance déjà connus).
   const nl = String.fromCharCode(10);
   const lignes = [];
-  lignes.push(`Objet : ${a.titre} — demande d'informations avant visite`, "");
+  lignes.push(`Objet : ${a.titre} — quelques questions avant de visiter`, "");
   lignes.push("Bonjour,", "");
-  const suivi = [];
-  if (!a.est_nouvelle && a.date_premiere_vue)
-    suivi.push(`que je suis depuis le ${fmtDate(a.date_premiere_vue)}`);
-  lignes.push(`Votre annonce « ${a.titre} » à ${a.ville}` +
-    `${a.code_postal ? ` (${a.code_postal})` : ""}${suivi.length ? ", " + suivi.join("") : ""}` +
-    `${a.prix != null ? `, affichée à ${fmtEuros(a.prix)}` : ""}, correspond à ce que je recherche.`);
+  lignes.push(`Je m'intéresse à votre annonce « ${a.titre} » à ${a.ville}` +
+    `${a.code_postal ? ` (${a.code_postal})` : ""}` +
+    `${a.prix != null ? `, affichée à ${fmtEuros(a.prix)}` : ""}.`);
   lignes.push(`Lien : ${a.url}`, "");
-  lignes.push("Je suis acheteur pour des murs commerciaux en Île-de-France.", "");
+  lignes.push("Je cherche des murs commerciaux en Île-de-France, disponible rapidement pour visiter.", "");
 
-  // Faits de marché posés calmement — uniquement quand on les a vraiment.
+  // Faits de marché — seulement quand on les a vraiment, glissés en aparté
+  // plutôt qu'encadrés dans un paragraphe "transparence" trop formel.
   const faits = [];
   const hist = a.historique_prix || [];
   if (hist.length >= 2 && hist[hist.length - 1].prix < hist[0].prix)
-    faits.push(`j'ai noté l'évolution du prix demandé (${fmtEuros(hist[0].prix)} le ` +
-      `${fmtDate(hist[0].date)}, ${fmtEuros(hist[hist.length - 1].prix)} aujourd'hui)`);
+    faits.push(`j'ai vu que le prix était passé de ${fmtEuros(hist[0].prix)} à ` +
+      `${fmtEuros(hist[hist.length - 1].prix)} depuis le ${fmtDate(hist[0].date)}`);
   if (a.decote_pct != null && a.decote_pct <= -5 && a.prix_m2 != null
       && a.marche_prix_m2_bas != null && a.marche_prix_m2_haut != null)
-    faits.push(`les locaux comparables du secteur se négocient entre ${fmtEuros(a.marche_prix_m2_bas)} ` +
-      `et ${fmtEuros(a.marche_prix_m2_haut)}/m², le vôtre ressort à ${fmtEuros(a.prix_m2)}/m²`);
-  if (faits.length)
-    lignes.push(`Pour être transparent sur ma lecture du marché : ${faits.join(" ; ")}.`, "");
+    faits.push(`le secteur se négocie plutôt entre ${fmtEuros(a.marche_prix_m2_bas)} et ` +
+      `${fmtEuros(a.marche_prix_m2_haut)}/m², contre ${fmtEuros(a.prix_m2)}/m² ici`);
+  if (faits.length) lignes.push(`Au passage, ${faits.join(" ; ")}.`, "");
 
-  const piece = a.type_murs === "murs_occupes" ? "le bail en cours" : "le dernier loyer pratiqué";
-  lignes.push("Avant d'organiser une visite, le bien est-il toujours disponible ? Et si vous les " +
-    `avez sous la main, ${piece} et le montant de la taxe foncière m'aideraient beaucoup.`, "");
-  lignes.push("Quelles seraient vos disponibilités ?", "");
+  const questions = ["Le bien est-il toujours disponible ?", "Pour quelle raison vendez-vous ?"];
+  if (a.type_murs === "murs_occupes") {
+    if (a.bail_echeance_annee == null)
+      questions.push("Il y a un bail en cours : savez-vous combien de temps il reste avant la prochaine échéance ?");
+    if (a.loyer_mensuel == null)
+      questions.push("Quel est le loyer actuel ?");
+  } else if (a.loyer_mensuel == null) {
+    questions.push("Le local a-t-il déjà été loué ? À quel loyer ?");
+  }
+  questions.push("Et à combien s'élèvent les charges (copropriété, taxe foncière) ?");
+  lignes.push(...questions.map(q => `- ${q}`), "");
+
+  lignes.push("Quelles seraient vos disponibilités pour une visite ?", "");
   lignes.push("Cordialement,", "[Votre nom] — [téléphone]");
   return lignes.join(nl);
 }
