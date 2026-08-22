@@ -70,5 +70,22 @@ jobs:
             echo "Rien de nouveau à publier."
           else
             git commit -m "Tournée du $(date -u +%F)"
-            git push
+            # Un push concurrent (une session de travail humaine, typiquement)
+            # peut arriver pendant les ~2-20 min de la tournée : on se rebase
+            # dessus au lieu d'échouer platement (constaté le 2026-08-22).
+            succes=0
+            for essai in 1 2 3; do
+              git fetch origin master
+              if git rebase origin/master && git push; then
+                succes=1
+                break
+              fi
+              echo "Tentative $essai : rebase/push en échec (course avec un autre push), nouvel essai dans 5 s..."
+              git rebase --abort 2>/dev/null || true
+              sleep 5
+            done
+            if [ "$succes" -ne 1 ]; then
+              echo "Échec de la publication après 3 tentatives."
+              exit 1
+            fi
           fi
