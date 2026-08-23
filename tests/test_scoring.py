@@ -371,6 +371,33 @@ def test_pas_de_flag_sous_le_seuil(config):
     assert "rendement_anormalement_eleve" not in a.flags
 
 
+def test_flag_prix_m2_anormalement_bas(config):
+    # Pantin (93) : plancher petite couronne 1500 €/m² (config.yaml). Constaté
+    # en pratique le 2026-08-24 sur bureauxlocaux : un prix/m² à 69 €/m²
+    # affichait un badge "−96 % vs marché" — une incohérence de données
+    # (surface probablement erronée), pas une vraie affaire.
+    a = faire_annonce(prix=100_000, surface_m2=100)  # 1000 €/m², sous les 1500
+    scorer(a, config)
+    assert "prix_m2_anormalement_bas" in a.flags
+    assert a.score < config.scoring["seuils"]["affichage"]
+
+
+def test_pas_de_flag_prix_m2_normal(config):
+    a = faire_annonce(prix=250_000, surface_m2=100)  # 2500 €/m², au-dessus du plancher
+    scorer(a, config)
+    assert "prix_m2_anormalement_bas" not in a.flags
+
+
+def test_prix_m2_bas_pas_double_flag_avec_rendement_suspect(config):
+    # Les deux garde-fous protègent la même chose (fiabilité de l'affichage) :
+    # pas la peine de lister deux fois le même bien comme suspect.
+    a = faire_annonce(prix=100_000, surface_m2=100)
+    a.rendement_brut_pct = 20.0
+    scorer(a, config)
+    assert "rendement_anormalement_eleve" in a.flags
+    assert "prix_m2_anormalement_bas" not in a.flags
+
+
 # --- Cas complet : la pépite doit dépasser le seuil d'alerte immédiate ---
 
 

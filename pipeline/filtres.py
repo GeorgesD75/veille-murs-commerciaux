@@ -24,19 +24,32 @@ def detecter_fonds_de_commerce(annonce: Annonce, config: Config) -> str | None:
     return None
 
 
+def plancher_prix_m2(departement: str, config: Config) -> float | None:
+    """Prix/m² plancher plausible du département, ou None hors zone connue.
+
+    Partagé avec le scoring (pipeline/scoring.py) : un prix/m² sous ce seuil
+    est TOUJOURS statistiquement improbable pour des murs commerciaux, que
+    « murs » soit mentionné ou non dans l'annonce — seul le filtre d'EXCLUSION
+    ci-dessous fait cette distinction (elle sert à démasquer un fonds de
+    commerce déguisé, pas à juger la plausibilité générale du prix).
+    """
+    if departement == "75":
+        return config.filtres["prix_m2_plancher_paris"]
+    if departement in PETITE_COURONNE:
+        return config.filtres["prix_m2_plancher_petite_couronne"]
+    if departement in GRANDE_COURONNE:
+        return config.filtres["prix_m2_plancher_grande_couronne"]
+    return None
+
+
 def controle_coherence_prix(annonce: Annonce, config: Config) -> str | None:
     """Un prix/m² anormalement bas trahit souvent un fonds ou un droit au bail."""
     if not annonce.prix or not annonce.surface_m2:
         return None
-    prix_m2 = annonce.prix / annonce.surface_m2
-    if annonce.departement == "75":
-        plancher = config.filtres["prix_m2_plancher_paris"]
-    elif annonce.departement in PETITE_COURONNE:
-        plancher = config.filtres["prix_m2_plancher_petite_couronne"]
-    elif annonce.departement in GRANDE_COURONNE:
-        plancher = config.filtres["prix_m2_plancher_grande_couronne"]
-    else:
+    plancher = plancher_prix_m2(annonce.departement, config)
+    if plancher is None:
         return None
+    prix_m2 = annonce.prix / annonce.surface_m2
     if prix_m2 < plancher and not _mentionne_murs(normaliser_texte(annonce.texte_complet())):
         return (
             f"suspect_fonds : {prix_m2:.0f} €/m² sous le plancher de {plancher} €/m² "

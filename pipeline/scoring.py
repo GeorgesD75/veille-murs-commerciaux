@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pipeline.config import Config
+from pipeline.filtres import plancher_prix_m2
 from pipeline.geo import categorie_emplacement
 from pipeline.modeles import Annonce
 from pipeline.texte import cle_commune, normaliser_texte
@@ -189,6 +190,24 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
         # déguisé. Signalé ⚠️ ET plafonné sous le seuil d'affichage, pour qu'un
         # piège ne trône jamais en haut du panier ni ne déclenche l'email pépite.
         annonce.flags.append("rendement_anormalement_eleve")
+        plafond = int(cfg["seuils"].get("affichage", cfg["seuils"]["orange"])) - 1
+        annonce.score = min(annonce.score, plafond)
+
+    # Même garde-fou que ci-dessus, pour le prix/m² plutôt que le rendement :
+    # constaté en pratique le 2026-08-24 sur bureauxlocaux — une annonce dont
+    # le prix/m² tombe sous le plancher plausible du département affichait un
+    # badge « −96 % vs marché » alors qu'il s'agissait d'une incohérence de
+    # données (surface probablement erronée), pas d'une vraie affaire. Le
+    # filtre d'exclusion (pipeline/filtres.py) ne l'attrape QUE si « murs »
+    # n'est pas mentionné (son but est de démasquer un fonds déguisé) — ici on
+    # protège la fiabilité de l'AFFICHAGE, indépendamment de cette mention.
+    if (
+        annonce.prix and annonce.surface_m2
+        and (plancher := plancher_prix_m2(annonce.departement, config)) is not None
+        and annonce.prix / annonce.surface_m2 < plancher
+        and "rendement_anormalement_eleve" not in annonce.flags  # déjà signalé/plafonné
+    ):
+        annonce.flags.append("prix_m2_anormalement_bas")
         plafond = int(cfg["seuils"].get("affichage", cfg["seuils"]["orange"])) - 1
         annonce.score = min(annonce.score, plafond)
 
