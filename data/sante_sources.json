@@ -387,7 +387,7 @@
   {
    "jour": "2026-08-23",
    "statut": "ok",
-   "annonces": 15,
+   "annonces": 16,
    "message": null
   }
  ],
@@ -768,6 +768,22 @@
    "jour": "2026-08-23",
    "statut": "ok",
    "annonces": 11,
+   "message": null
+  }
+ ],
+ "orpi": [
+  {
+   "jour": "2026-08-23",
+   "statut": "ok",
+   "annonces": 107,
+   "message": null
+  }
+ ],
+ "arthurloyd": [
+  {
+   "jour": "2026-08-23",
+   "statut": "ok",
+   "annonces": 18,
    "message": null
   }
  ]
