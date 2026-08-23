@@ -46,6 +46,30 @@ def test_iad_matche_le_vrai_domaine_d_envoi_pas_le_site_public():
     assert identifier_portail("alertes@iadfrance.fr", "").nom == "iad"  # gardé par précaution
 
 
+def test_bienici_alerte_matche_le_domaine_reel():
+    # Échantillon réel du 2026-08-23 : "Bien'ici <no_reply@bienici.com>"
+    assert identifier_portail("Bien'ici <no_reply@bienici.com>", "").nom == "bienici_alerte"
+
+
+def test_motif_lien_bienici_alerte_structure_reelle():
+    portail = next(p for p in PORTAILS if p.nom == "bienici_alerte")
+    href = "https://www.bienici.com/annonce/abc123def456"
+    trouve = portail.motif_lien.search(href)
+    assert trouve and trouve.group(1) == "abc123def456"
+
+
+def test_echantillons_reels_2026_08_23_deja_couverts():
+    # Les 4 adresses transférées par l'utilisateur le 2026-08-23 : 3 étaient
+    # déjà reconnues avant tout changement de code (seloger en substring
+    # large, pap.fr déjà ajouté), seul Bien'ici manquait.
+    assert identifier_portail(
+        "SeLoger Bureaux & Commerces <alertes@annonces.seloger-bureaux-commerces.com>", ""
+    ).nom == "seloger_bureaux"
+    assert identifier_portail("SeLoger <annonces@alertes.seloger.com>", "").nom == "seloger_bureaux"
+    assert identifier_portail("PAP.fr <users-alertes@pap.fr>", "").nom == "pap"
+    assert identifier_portail("Bien'ici <no_reply@bienici.com>", "").nom == "bienici_alerte"
+
+
 def test_pap_ne_matche_pas_papcommerces():
     # pap.fr (alertes) est distinct de papcommerces.fr (déjà scrapé en direct,
     # source "papcommerces") : "pap.fr" n'est pas une sous-chaîne de

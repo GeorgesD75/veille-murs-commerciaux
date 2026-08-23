@@ -103,6 +103,16 @@ PORTAILS: list[Portail] = [
         "pap", ("pap.fr",),
         re.compile(r"https?://(?:www\.)?pap\.fr/[^\s\"'<>]*?(\d{5,})"),
     ),
+    Portail(
+        # Expéditeur réel (2026-08-23) : no_reply@bienici.com. Probablement
+        # redondant avec sources/bienici.py (API directe, déjà active) — gardé
+        # quand même en filet de sécurité si l'API change un jour, coût nul
+        # (le dédoublonnage cross-sources fusionne les doublons). Motif de
+        # lien basé sur la vraie structure d'URL du site (bienici.py:87),
+        # pas une supposition — plus fiable que les autres ajouts récents.
+        "bienici_alerte", ("bienici.com",),
+        re.compile(r"https?://(?:www\.)?bienici\.com/annonce/([a-z0-9]{5,})"),
+    ),
 ]
 
 
