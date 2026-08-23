@@ -88,8 +88,14 @@ PORTAILS: list[Portail] = [
     ),
     # Idem non vérifiés — alertes créées par l'utilisateur le 2026-08-22.
     Portail(
-        "iad", ("iadfrance.fr",),
-        re.compile(r"https?://(?:www\.)?iadfrance\.fr/[^\s\"'<>]*?(\d{5,})"),
+        # Expéditeur réel (échantillon du 2026-08-23) : notif.iadinternational.com,
+        # PAS iadfrance.fr — IAD envoie ses emails via un domaine transactionnel
+        # distinct du site public. Les deux domaines sont reconnus par précaution
+        # (site public + domaine d'envoi), le second retrouvé de justesse grâce à
+        # un vrai message transféré (sans lui, ce portail n'aurait jamais rien
+        # remonté malgré l'alerte bien créée).
+        "iad", ("iadfrance.fr", "iadinternational.com"),
+        re.compile(r"https?://(?:www\.)?(?:iadfrance\.fr|[a-z0-9.-]*iadinternational\.com)/[^\s\"'<>]*?(\d{5,})"),
     ),
     Portail(
         # Distinct de papcommerces.fr (déjà scrapé directement, source séparée) :
@@ -181,13 +187,17 @@ class SourceImap(Source):
 
     def __init__(
         self, hote: str = "imap.gmail.com", dossier: str = "INBOX",
-        jours_max: int = 3,
+        jours_max: int = 14,
     ) -> None:
         super().__init__()
         self.hote = hote
         self.dossier = dossier
         # Ne regarder que les alertes récentes : protège une boîte personnelle
         # pleine d'anciens non-lus (ils ne sont ni traités ni marqués lus).
+        # Relevé à 14 j le 2026-08-23 (défaut précédent : 3 j) : une vraie
+        # alerte Logic-immo, non lue, vieille de 6 jours, s'est révélée
+        # invisible pour le robot à cause de cette fenêtre trop courte —
+        # certains portails alertent par lots espacés, pas au quotidien.
         self.jours_max = jours_max
 
     def _depuis(self) -> str:

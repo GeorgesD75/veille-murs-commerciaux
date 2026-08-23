@@ -29,8 +29,21 @@ def test_identifier_portail_nouveaux_2026_08_22():
     assert identifier_portail("alertes@logic-immo.com", "").nom == "logic_immo"
     assert identifier_portail("noreply@reprise-entreprise.bpifrance.fr", "").nom == "bourse_des_locaux"
     assert identifier_portail("contact@avendrealouer.fr", "").nom == "avendrealouer"
-    assert identifier_portail("alertes@iadfrance.fr", "").nom == "iad"
     assert identifier_portail("alertes@pap.fr", "").nom == "pap"
+
+
+def test_logic_immo_matche_le_domaine_d_envoi_reel():
+    # Échantillon réel du 2026-08-23 : "LogicImmo <annonces@alertes.logic-immo.com>"
+    assert identifier_portail("LogicImmo <annonces@alertes.logic-immo.com>", "").nom == "logic_immo"
+
+
+def test_iad_matche_le_vrai_domaine_d_envoi_pas_le_site_public():
+    # Échantillon réel du 2026-08-23 : "iad France <no-reply@notif.iadinternational.com>" —
+    # PAS iadfrance.fr (le site public), la première hypothèse était fausse.
+    assert identifier_portail(
+        "iad France <no-reply@notif.iadinternational.com>", ""
+    ).nom == "iad"
+    assert identifier_portail("alertes@iadfrance.fr", "").nom == "iad"  # gardé par précaution
 
 
 def test_pap_ne_matche_pas_papcommerces():
