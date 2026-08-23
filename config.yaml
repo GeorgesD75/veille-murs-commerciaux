@@ -230,6 +230,9 @@ sources:                      # activer/désactiver une source = une ligne
                                     # national — le pipeline filtre à l'IDF comme pour les autres
   latourimmo:      {actif: true}   # cabinet indépendant Paris/IDF, vente uniquement (location écartée
                                     # à la source) — une douzaine de biens, page unique non paginée
+  orpi:            {actif: true, max_pages: 9}   # réseau national d'agences, filtre IDF unique
+                                    # (pas d'itération département par département) — 9 pages
+                                    # constatées le 2026-08-23, la 10e renvoie un 404 propre
 
 encheres:                     # score d'INTÉRÊT dédié aux enchères (le prix final
                               # est imprévisible : on ne le prédit pas)

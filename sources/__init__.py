@@ -23,6 +23,7 @@ from sources.latourimmo import SourceLaTourImmo
 from sources.mock import SourceMock
 from sources.murscommerciaux import SourceMursCommerciaux
 from sources.notaires import SourceNotaires
+from sources.orpi import SourceOrpi
 from sources.papcommerces import SourcePapCommerces
 from sources.pointdevente import SourcePointDeVente
 
@@ -40,6 +41,7 @@ FABRIQUES: dict[str, Callable[..., Source]] = {
     "notaires": SourceNotaires,
     "iccinvest": SourceIccInvest,
     "latourimmo": SourceLaTourImmo,
+    "orpi": SourceOrpi,
     "imap": SourceImap,
 }
 

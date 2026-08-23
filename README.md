@@ -1,8 +1,8 @@
 # Les Murs. — votre veille de murs commerciaux, automatique
 
 Chaque matin à 7 h, ce système :
-1. fait la tournée de **8 sources** (sites spécialisés, API, alertes email des grands
-   portails, ventes aux enchères) ;
+1. fait la tournée de **14 sources** (sites spécialisés, API, alertes email d'une
+   dizaine de grands portails, ventes aux enchères) ;
 2. **écarte les pièges** (fonds de commerce déguisés, prix incohérents, hors zone,
    rendements trop beaux pour être vrais) ;
 3. **note chaque annonce sur 100** (rendement, emplacement, prix vs marché, trajet,

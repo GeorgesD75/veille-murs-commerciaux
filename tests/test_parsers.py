@@ -19,6 +19,7 @@ from sources.hektor import SourceFlagship, SourceIburoshop
 from sources.iccinvest import SourceIccInvest
 from sources.latourimmo import SourceLaTourImmo
 from sources.murscommerciaux import SourceMursCommerciaux
+from sources.orpi import SourceOrpi
 from sources.papcommerces import SourcePapCommerces
 from sources.pointdevente import SourcePointDeVente
 
@@ -361,6 +362,41 @@ class TestLaTourImmo:
         assert neuilly.ville == "Neuilly-Sur-Seine"
         assert neuilly.type_murs is TypeMurs.MURS_LIBRES
         assert neuilly.prix == 3_200_000
+
+
+# --- orpi.com ---
+
+
+class TestOrpi:
+    def test_deduplique_la_carte_a_la_une(self):
+        annonces = SourceOrpi().extraire(charger("orpi_liste.html"))
+        # 4 cartes dans la fixture, dont 1 doublon ("à la une") -> 3 annonces uniques
+        assert len(annonces) == 3
+
+        paris = next(a for a in annonces if a.id_source == "fea52176-c880-466e-b118-c9b4ce55374f")
+        assert paris.ville == "Paris 18"
+        assert paris.code_postal == "75018"                 # les deux depuis le slug de l'URL
+        assert paris.prix == 163_000                        # depuis le JSON data-eulerian-action
+        assert paris.surface_m2 == 25.18
+        assert paris.titre == "Local commercial Paris 18"
+
+    def test_prix_et_surface_depuis_le_json_pas_le_texte_affiche(self):
+        annonces = SourceOrpi().extraire(charger("orpi_liste.html"))
+        vincennes = next(a for a in annonces if a.id_source == "3865b04a-ff72-4eea-b399-7df74b87702d")
+        assert vincennes.ville == "Vincennes"
+        assert vincennes.code_postal == "94300"
+        assert vincennes.prix == 2_250_000
+        assert vincennes.surface_m2 == 350
+        assert vincennes.type_murs is TypeMurs.MURS_OCCUPES  # "vendus loués"
+
+    def test_id_au_format_departement_underscore(self):
+        annonces = SourceOrpi().extraire(charger("orpi_liste.html"))
+        # data-reference="91_0965" (underscore) mais l'URL utilise un tiret ("91-0965") :
+        # l'id_source retenu vient de l'URL, seule source fiable et cohérente avec le lien.
+        bures = next(a for a in annonces if a.id_source == "91-0965")
+        assert bures.ville == "Bures sur Yvette"           # particule en minuscule, comme cessionpme.py
+        assert bures.code_postal == "91440"
+        assert bures.type_murs is TypeMurs.MURS_LIBRES       # "libre de toute occupation"
 
 
 # --- bienici.com (API JSON) ---
