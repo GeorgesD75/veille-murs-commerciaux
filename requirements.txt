@@ -5,3 +5,4 @@ beautifulsoup4>=4.12
 pytest>=8.0
 openpyxl>=3.1
 anthropic>=0.40
+Pillow>=10.0    # scripts/verifier_apercu.py (garde-fou visuel du header, CI seulement)

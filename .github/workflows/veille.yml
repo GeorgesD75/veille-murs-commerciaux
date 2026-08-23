@@ -61,6 +61,15 @@ jobs:
           node --check _dashboard_check.js
           rm -f _dashboard_check.js
 
+      - name: Vérifier que le header n'a pas explosé en hauteur
+        # Deuxième filet, complémentaire au précédent : du JS syntaxiquement
+        # valide peut quand même produire une mise en page cassée (déjà
+        # arrivé — le header a un jour occupé la moitié de l'écran, cf.
+        # scripts/verifier_apercu.py). Chrome est préinstallé sur les
+        # runners GitHub ; si jamais il manquait, le script s'ignore
+        # proprement plutôt que de bloquer la tournée pour un outil annexe.
+        run: python scripts/verifier_apercu.py
+
       - name: Publier les données et le site
         run: |
           git config user.name "veille-bot"
