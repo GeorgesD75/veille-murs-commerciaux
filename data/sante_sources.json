@@ -47,6 +47,12 @@
    "statut": "ok",
    "annonces": 28,
    "message": null
+  },
+  {
+   "jour": "2026-08-23",
+   "statut": "ok",
+   "annonces": 28,
+   "message": null
   }
  ],
  "murscommerciaux": [
@@ -94,6 +100,12 @@
   },
   {
    "jour": "2026-08-22",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
+  },
+  {
+   "jour": "2026-08-23",
    "statut": "ok",
    "annonces": 16,
    "message": null
@@ -147,6 +159,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-08-23",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "flagship": [
@@ -194,6 +212,12 @@
   },
   {
    "jour": "2026-08-22",
+   "statut": "ok",
+   "annonces": 1,
+   "message": null
+  },
+  {
+   "jour": "2026-08-23",
    "statut": "ok",
    "annonces": 1,
    "message": null
@@ -247,6 +271,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-08-23",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "bienici": [
@@ -294,6 +324,12 @@
   },
   {
    "jour": "2026-08-22",
+   "statut": "ok",
+   "annonces": 12,
+   "message": null
+  },
+  {
+   "jour": "2026-08-23",
    "statut": "ok",
    "annonces": 12,
    "message": null
@@ -347,6 +383,12 @@
    "statut": "ok",
    "annonces": 15,
    "message": null
+  },
+  {
+   "jour": "2026-08-23",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
   }
  ],
  "geolocaux": [
@@ -394,6 +436,12 @@
   },
   {
    "jour": "2026-08-22",
+   "statut": "ok",
+   "annonces": 195,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+  },
+  {
+   "jour": "2026-08-23",
    "statut": "ok",
    "annonces": 195,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
@@ -447,6 +495,12 @@
    "statut": "ok",
    "annonces": 666,
    "message": null
+  },
+  {
+   "jour": "2026-08-23",
+   "statut": "ok",
+   "annonces": 666,
+   "message": null
   }
  ],
  "notaires": [
@@ -494,6 +548,12 @@
   },
   {
    "jour": "2026-08-22",
+   "statut": "ok",
+   "annonces": 2,
+   "message": null
+  },
+  {
+   "jour": "2026-08-23",
    "statut": "ok",
    "annonces": 2,
    "message": null
@@ -547,6 +607,12 @@
    "statut": "ok",
    "annonces": 0,
    "message": null
+  },
+  {
+   "jour": "2026-08-23",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
   }
  ],
  "encheres_publiques": [
@@ -597,6 +663,12 @@
    "statut": "ok",
    "annonces": 0,
    "message": null
+  },
+  {
+   "jour": "2026-08-23",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
   }
  ],
  "iccinvest": [
@@ -641,6 +713,12 @@
    "statut": "ok",
    "annonces": 100,
    "message": null
+  },
+  {
+   "jour": "2026-08-23",
+   "statut": "ok",
+   "annonces": 100,
+   "message": null
   }
  ],
  "latourimmo": [
@@ -682,6 +760,12 @@
   },
   {
    "jour": "2026-08-22",
+   "statut": "ok",
+   "annonces": 11,
+   "message": null
+  },
+  {
+   "jour": "2026-08-23",
    "statut": "ok",
    "annonces": 11,
    "message": null
