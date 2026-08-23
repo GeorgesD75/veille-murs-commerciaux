@@ -1573,9 +1573,10 @@ function pourquoiHtml(a) {
 function carteHtml(a, options) {
   const cf = cashflowMensuel(a);
   const suspect = (a.flags || []).includes("rendement_anormalement_eleve");
+  const prixSuspect = (a.flags || []).includes("prix_m2_anormalement_bas");
   const badges = [];
   badges.push(`<span class="badge badge-type">${a.type_murs === "murs_occupes" ? "Murs occupés" : "Murs libres"}</span>`);
-  if ((a.decote_pct ?? 0) >= 15 && !(a.flags || []).includes("rendement_anormalement_eleve")) {
+  if ((a.decote_pct ?? 0) >= 15 && !suspect && !prixSuspect) {
     // La confiance de la décote dépend de sa source : des ventes réelles DVF
     // valent bien plus qu'un référentiel écrit à la main — un écart qu'on
     // voyait déjà dans la jauge dépliée (marche-source), mais pas sur ce
@@ -1591,6 +1592,8 @@ function carteHtml(a, options) {
     badges.push(`<span class="badge badge-alerte" title="Cette annonce n'apparaît plus dans les résultats de sa source depuis le ${fmtDate(a.date_derniere_vue)} (${a.jours_sans_vue} jours). Elle a probablement été vendue ou retirée — ou, plus rarement, la source a changé de structure. Cliquez le lien pour vérifier avant d'y investir du temps.">${IC.alerte} peut-être vendue · non revue depuis ${a.jours_sans_vue} j</span>`);
   if (suspect)
     badges.push(`<span class="badge badge-alerte">${IC.alerte} rendement à vérifier</span>`);
+  if (prixSuspect)
+    badges.push(`<span class="badge badge-alerte" title="Prix affiché sous le seuil plausible pour ce secteur (€/m²) — probablement une incohérence entre le prix et la surface indiqués par l'annonce (parfois la surface d'un ensemble plus grand que le lot vendu), pas une vraie affaire. Score plafonné et décote masquée en attendant vérification.">${IC.alerte} prix/m² incohérent — à vérifier</span>`);
   if ((a.flags || []).includes("localisation_incoherente"))
     badges.push(`<span class="badge badge-alerte" title="Le nom de ville (banlieue) et le code postal (parisien) se contredisent — c'est souvent le code postal de l'AGENCE, pas du bien. L'emplacement a été noté d'après la ville, plus fiable ; vérifiez l'adresse réelle avant toute démarche.">${IC.alerte} localisation à vérifier</span>`);
   if ((a.flags || []).includes("rendement_sous_objectif"))
