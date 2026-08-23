@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from pipeline.modeles import TypeMurs
+from sources.arthurloyd import SourceArthurLoyd
 from sources.bienici import SourceBienici
 from sources.cessionpme import SourceCessionPme
 from sources.extraction import (
@@ -49,6 +50,11 @@ def test_extraire_surface():
     assert extraire_surface("Vente Commerce Paris 18 75018 43 m²") == 43
     assert extraire_surface("local d'environ 147m² occupé") == 147
     assert extraire_surface("aucune") is None
+
+
+def test_extraire_surface_avec_espace_milliers():
+    assert extraire_surface("local de 1 328 m2 en angle de rue") == 1_328
+    assert extraire_surface("Vente Commerce Paris 18 75018 43 m2") == 43
 
 
 def test_loyer_annuel_depuis_description():
@@ -397,6 +403,39 @@ class TestOrpi:
         assert bures.ville == "Bures sur Yvette"           # particule en minuscule, comme cessionpme.py
         assert bures.code_postal == "91440"
         assert bures.type_murs is TypeMurs.MURS_LIBRES       # "libre de toute occupation"
+
+
+# --- arthur-loyd.com ---
+
+
+class TestArthurLoyd:
+    def test_extraction(self):
+        annonces = SourceArthurLoyd().extraire(charger("arthurloyd_liste.html"))
+        assert len(annonces) == 3
+
+        nemours = next(a for a in annonces if a.id_source == "155005")
+        assert nemours.ville == "Nemours"
+        assert nemours.code_postal == "77140"
+        assert nemours.prix == 950_000
+        assert nemours.surface_m2 == 900
+        assert nemours.type_murs is TypeMurs.MURS_LIBRES
+
+    def test_bail_en_cours_detecte_via_le_titre(self):
+        annonces = SourceArthurLoyd().extraire(charger("arthurloyd_liste.html"))
+        paris = next(a for a in annonces if a.id_source == "159072")
+        assert paris.ville == "Paris"
+        assert paris.code_postal == "75009"
+        assert paris.prix == 470_000
+        assert paris.type_murs is TypeMurs.MURS_OCCUPES  # "bail commercial en cours"
+
+    def test_ville_accentuee_a_tiret(self):
+        annonces = SourceArthurLoyd().extraire(charger("arthurloyd_liste.html"))
+        cannes = next(a for a in annonces if a.id_source == "157803")
+        assert cannes.ville == "Cannes-Écluse"
+        assert cannes.code_postal == "77130"
+        assert cannes.prix == 1_700_000
+        assert cannes.surface_m2 == 1_328
+        assert cannes.type_murs is TypeMurs.MURS_LIBRES  # "vendu libre"
 
 
 # --- bienici.com (API JSON) ---

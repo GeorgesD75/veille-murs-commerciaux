@@ -18,8 +18,12 @@ _LOYER_GENERIQUE = re.compile(
     re.IGNORECASE,
 )
 _RENTABILITE = re.compile(r"rentabilit\w*[^0-9%]{0,30}(\d+(?:[.,]\d+)?)\s*%", re.IGNORECASE)
-# « 43 m² », « 147m2 », « 20.00 m 2 » (exposant recollé avec un espace)
-_SURFACE = re.compile(r"(\d+(?:[.,]\d+)?)\s*m\s*(?:²|2)(?![\da-z])", re.IGNORECASE)
+# « 43 m² », « 147m2 », « 20.00 m 2 » (exposant recollé avec un espace),
+# « 1 328 m² » (espace milliers — constaté le 2026-08-23 sur arthur-loyd.com,
+# où les grandes surfaces industrielles/commerciales dépassent couramment 999 m²)
+_SURFACE = re.compile(
+    r"(\d{1,3}(?:[\s  ]\d{3})*(?:[.,]\d+)?)\s*m\s*(?:²|2)(?![\da-z])", re.IGNORECASE
+)
 
 RENDEMENT_MAX_PLAUSIBLE = 0.20  # au-delà de 20 %/an, la donnée est suspecte
 
@@ -60,11 +64,12 @@ def extraire_nombre(texte: str | None) -> float | None:
 
 
 def extraire_surface(texte: str | None) -> float | None:
-    """Première surface « NN m² » d'un texte."""
+    """Première surface « NN m² » d'un texte (tolère un espace milliers,
+    ex. « 1 328 m² » — même logique de normalisation que extraire_nombre)."""
     if not texte:
         return None
     trouve = _SURFACE.search(texte)
-    return float(trouve.group(1).replace(",", ".")) if trouve else None
+    return extraire_nombre(trouve.group(1)) if trouve else None
 
 
 def loyer_mensuel_depuis_texte(texte: str | None, prix: float | None) -> float | None:

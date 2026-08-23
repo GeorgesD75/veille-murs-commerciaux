@@ -11,6 +11,7 @@ from functools import partial
 from typing import Callable
 
 from pipeline.config import Config
+from sources.arthurloyd import SourceArthurLoyd
 from sources.base import Source
 from sources.bienici import SourceBienici
 from sources.bureauxlocaux import SourceBureauxLocaux
@@ -29,6 +30,7 @@ from sources.pointdevente import SourcePointDeVente
 
 FABRIQUES: dict[str, Callable[..., Source]] = {
     "mock": SourceMock,
+    "arthurloyd": SourceArthurLoyd,
     "pointdevente": SourcePointDeVente,
     "murscommerciaux": SourceMursCommerciaux,
     "iburoshop": SourceIburoshop,
