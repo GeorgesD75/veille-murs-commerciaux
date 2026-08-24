@@ -57,7 +57,7 @@
   {
    "jour": "2026-08-24",
    "statut": "ok",
-   "annonces": 28,
+   "annonces": 29,
    "message": null
   }
  ],
@@ -367,7 +367,7 @@
   {
    "jour": "2026-08-24",
    "statut": "ok",
-   "annonces": 12,
+   "annonces": 15,
    "message": null
   }
  ],
@@ -865,7 +865,7 @@
   {
    "jour": "2026-08-24",
    "statut": "ok",
-   "annonces": 115,
+   "annonces": 99,
    "message": null
   }
  ],
