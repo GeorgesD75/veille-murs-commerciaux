@@ -403,7 +403,7 @@
   {
    "jour": "2026-08-25",
    "statut": "ok",
-   "annonces": 14,
+   "annonces": 16,
    "message": null
   }
  ],
@@ -471,7 +471,7 @@
   {
    "jour": "2026-08-25",
    "statut": "ok",
-   "annonces": 16,
+   "annonces": 26,
    "message": null
   }
  ],
@@ -607,7 +607,7 @@
   {
    "jour": "2026-08-25",
    "statut": "ok",
-   "annonces": 671,
+   "annonces": 672,
    "message": null
   }
  ],
@@ -955,7 +955,7 @@
   {
    "jour": "2026-08-25",
    "statut": "ok",
-   "annonces": 124,
+   "annonces": 130,
    "message": null
   }
  ],
