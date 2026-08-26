@@ -69,8 +69,8 @@
   {
    "jour": "2026-08-26",
    "statut": "ok",
-   "annonces": 21,
-   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/1/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 27,
+   "message": null
   }
  ],
  "murscommerciaux": [
@@ -439,7 +439,7 @@
   {
    "jour": "2026-08-26",
    "statut": "ok",
-   "annonces": 16,
+   "annonces": 17,
    "message": null
   }
  ],
@@ -513,7 +513,7 @@
   {
    "jour": "2026-08-26",
    "statut": "ok",
-   "annonces": 17,
+   "annonces": 26,
    "message": null
   }
  ],
@@ -587,7 +587,7 @@
   {
    "jour": "2026-08-26",
    "statut": "ok",
-   "annonces": 194,
+   "annonces": 195,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
@@ -1045,7 +1045,7 @@
   {
    "jour": "2026-08-26",
    "statut": "ok",
-   "annonces": 119,
+   "annonces": 131,
    "message": null
   }
  ],
