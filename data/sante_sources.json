@@ -65,6 +65,12 @@
    "statut": "ok",
    "annonces": 29,
    "message": null
+  },
+  {
+   "jour": "2026-08-26",
+   "statut": "ok",
+   "annonces": 21,
+   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/1/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -130,6 +136,12 @@
   },
   {
    "jour": "2026-08-25",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
+  },
+  {
+   "jour": "2026-08-26",
    "statut": "ok",
    "annonces": 16,
    "message": null
@@ -201,6 +213,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-08-26",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "flagship": [
@@ -266,6 +284,12 @@
   },
   {
    "jour": "2026-08-25",
+   "statut": "ok",
+   "annonces": 1,
+   "message": null
+  },
+  {
+   "jour": "2026-08-26",
    "statut": "ok",
    "annonces": 1,
    "message": null
@@ -337,6 +361,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-08-26",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "bienici": [
@@ -402,6 +432,12 @@
   },
   {
    "jour": "2026-08-25",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
+  },
+  {
+   "jour": "2026-08-26",
    "statut": "ok",
    "annonces": 16,
    "message": null
@@ -473,6 +509,12 @@
    "statut": "ok",
    "annonces": 26,
    "message": null
+  },
+  {
+   "jour": "2026-08-26",
+   "statut": "ok",
+   "annonces": 17,
+   "message": null
   }
  ],
  "geolocaux": [
@@ -541,6 +583,12 @@
    "statut": "ok",
    "annonces": 195,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+  },
+  {
+   "jour": "2026-08-26",
+   "statut": "ok",
+   "annonces": 194,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -606,6 +654,12 @@
   },
   {
    "jour": "2026-08-25",
+   "statut": "ok",
+   "annonces": 672,
+   "message": null
+  },
+  {
+   "jour": "2026-08-26",
    "statut": "ok",
    "annonces": 672,
    "message": null
@@ -677,6 +731,12 @@
    "statut": "ok",
    "annonces": 2,
    "message": null
+  },
+  {
+   "jour": "2026-08-26",
+   "statut": "ok",
+   "annonces": 2,
+   "message": null
   }
  ],
  "imap": [
@@ -742,6 +802,12 @@
   },
   {
    "jour": "2026-08-25",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
+  },
+  {
+   "jour": "2026-08-26",
    "statut": "ok",
    "annonces": 0,
    "message": null
@@ -813,6 +879,12 @@
    "statut": "ok",
    "annonces": 0,
    "message": null
+  },
+  {
+   "jour": "2026-08-26",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
   }
  ],
  "iccinvest": [
@@ -872,6 +944,12 @@
   },
   {
    "jour": "2026-08-25",
+   "statut": "ok",
+   "annonces": 100,
+   "message": null
+  },
+  {
+   "jour": "2026-08-26",
    "statut": "ok",
    "annonces": 100,
    "message": null
@@ -937,6 +1015,12 @@
    "statut": "ok",
    "annonces": 11,
    "message": null
+  },
+  {
+   "jour": "2026-08-26",
+   "statut": "ok",
+   "annonces": 11,
+   "message": null
   }
  ],
  "orpi": [
@@ -957,6 +1041,12 @@
    "statut": "ok",
    "annonces": 118,
    "message": null
+  },
+  {
+   "jour": "2026-08-26",
+   "statut": "ok",
+   "annonces": 119,
+   "message": null
   }
  ],
  "arthurloyd": [
@@ -974,6 +1064,12 @@
   },
   {
    "jour": "2026-08-25",
+   "statut": "ok",
+   "annonces": 18,
+   "message": null
+  },
+  {
+   "jour": "2026-08-26",
    "statut": "ok",
    "annonces": 18,
    "message": null
