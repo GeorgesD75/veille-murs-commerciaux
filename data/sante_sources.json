@@ -77,6 +77,12 @@
    "statut": "ok",
    "annonces": 19,
    "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/1/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+  },
+  {
+   "jour": "2026-08-28",
+   "statut": "ok",
+   "annonces": 27,
+   "message": null
   }
  ],
  "murscommerciaux": [
@@ -154,6 +160,12 @@
   },
   {
    "jour": "2026-08-27",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
+  },
+  {
+   "jour": "2026-08-28",
    "statut": "ok",
    "annonces": 16,
    "message": null
@@ -237,6 +249,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-08-28",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "flagship": [
@@ -314,6 +332,12 @@
   },
   {
    "jour": "2026-08-27",
+   "statut": "ok",
+   "annonces": 1,
+   "message": null
+  },
+  {
+   "jour": "2026-08-28",
    "statut": "ok",
    "annonces": 1,
    "message": null
@@ -397,6 +421,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-08-28",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "bienici": [
@@ -474,6 +504,12 @@
   },
   {
    "jour": "2026-08-27",
+   "statut": "ok",
+   "annonces": 15,
+   "message": null
+  },
+  {
+   "jour": "2026-08-28",
    "statut": "ok",
    "annonces": 15,
    "message": null
@@ -557,6 +593,12 @@
    "statut": "ok",
    "annonces": 26,
    "message": null
+  },
+  {
+   "jour": "2026-08-28",
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "500 Server Error: Internal Server Error for url: https://www.cessionpme.com/annonces,vente-immobilier-entreprise-locaux-commerciaux-boutiques-ile-de-france,54,8,V,10,offres.html"
   }
  ],
  "geolocaux": [
@@ -636,6 +678,12 @@
    "jour": "2026-08-27",
    "statut": "ok",
    "annonces": 194,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+  },
+  {
+   "jour": "2026-08-28",
+   "statut": "ok",
+   "annonces": 193,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
@@ -717,6 +765,12 @@
    "statut": "ok",
    "annonces": 667,
    "message": null
+  },
+  {
+   "jour": "2026-08-28",
+   "statut": "ok",
+   "annonces": 666,
+   "message": null
   }
  ],
  "notaires": [
@@ -797,6 +851,12 @@
    "statut": "ok",
    "annonces": 3,
    "message": null
+  },
+  {
+   "jour": "2026-08-28",
+   "statut": "ok",
+   "annonces": 2,
+   "message": null
   }
  ],
  "imap": [
@@ -874,6 +934,12 @@
   },
   {
    "jour": "2026-08-27",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
+  },
+  {
+   "jour": "2026-08-28",
    "statut": "ok",
    "annonces": 0,
    "message": null
@@ -957,6 +1023,12 @@
    "statut": "ok",
    "annonces": 0,
    "message": null
+  },
+  {
+   "jour": "2026-08-28",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
   }
  ],
  "iccinvest": [
@@ -1028,6 +1100,12 @@
   },
   {
    "jour": "2026-08-27",
+   "statut": "ok",
+   "annonces": 100,
+   "message": null
+  },
+  {
+   "jour": "2026-08-28",
    "statut": "ok",
    "annonces": 100,
    "message": null
@@ -1105,6 +1183,12 @@
    "statut": "ok",
    "annonces": 11,
    "message": null
+  },
+  {
+   "jour": "2026-08-28",
+   "statut": "ok",
+   "annonces": 11,
+   "message": null
   }
  ],
  "orpi": [
@@ -1137,6 +1221,12 @@
    "statut": "ok",
    "annonces": 96,
    "message": null
+  },
+  {
+   "jour": "2026-08-28",
+   "statut": "ok",
+   "annonces": 133,
+   "message": null
   }
  ],
  "arthurloyd": [
@@ -1166,6 +1256,12 @@
   },
   {
    "jour": "2026-08-27",
+   "statut": "ok",
+   "annonces": 18,
+   "message": null
+  },
+  {
+   "jour": "2026-08-28",
    "statut": "ok",
    "annonces": 18,
    "message": null
