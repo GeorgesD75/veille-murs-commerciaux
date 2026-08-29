@@ -1007,8 +1007,8 @@
   {
    "jour": "2026-08-29",
    "statut": "ok",
-   "annonces": 0,
-   "message": null
+   "annonces": 4,
+   "message": "logic_immo : 7 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message)"
   }
  ],
  "encheres_publiques": [
@@ -1185,8 +1185,8 @@
   {
    "jour": "2026-08-29",
    "statut": "ok",
-   "annonces": 100,
-   "message": null
+   "annonces": 80,
+   "message": "/annonces/page/4/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "latourimmo": [
@@ -1315,7 +1315,7 @@
   {
    "jour": "2026-08-29",
    "statut": "ok",
-   "annonces": 95,
+   "annonces": 112,
    "message": null
   }
  ],
