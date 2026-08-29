@@ -1,7 +1,7 @@
 # Les Murs. — votre veille de murs commerciaux, automatique
 
-Chaque matin à 7 h, ce système :
-1. fait la tournée de **15 sources** (sites spécialisés, API, alertes email d'une
+Trois fois par jour (7 h, 15 h, 23 h), ce système :
+1. fait la tournée de **16 sources** (sites spécialisés, API, alertes email d'une
    dizaine de grands portails, ventes aux enchères) ;
 2. **écarte les pièges** (fonds de commerce déguisés, prix incohérents, hors zone,
    rendements trop beaux pour être vrais) ;
@@ -136,7 +136,7 @@ alerte reçue ; à la tournée suivante, l'annonce apparaît sur le site.
 2. Deux minutes plus tard : la coche verte ✅, votre site est à jour, et vous
    recevez l'email du jour s'il y a des nouveautés.
 
-C'est terminé : chaque matin à 7 h, tout se refait sans vous.
+C'est terminé : trois fois par jour, tout se refait sans vous.
 
 ---
 
@@ -179,8 +179,8 @@ dashboard/generer.py    Le site « Les Murs. » (1 fichier autonome, non référ
 data/annonces.json      La mémoire (committée à chaque tournée = historique gratuit)
 data/marche.json        Le paysage du marché (ILC, prix logements, taux OAT,
                         défaillances IdF — INSEE/Eurostat, rafraîchi ~1×/mois)
-tests/                  96 tests automatiques, joués avant chaque tournée
-.github/workflows/      Le réveil-matin (cron 7 h Paris + bouton manuel)
+tests/                  309 tests automatiques, joués avant chaque tournée
+.github/workflows/      Le réveil (cron 7 h/15 h/23 h Paris + bouton manuel)
 ```
 
 Choix assumés, en une ligne chacun : stockage JSON versionné (diffs lisibles) ;
