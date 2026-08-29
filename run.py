@@ -13,6 +13,7 @@ import sys
 from typing import Any
 
 from dashboard.generer import generer_dashboard
+from pipeline.approfondissement import approfondir_annonces
 from pipeline.comparables import LoyersComparables
 from pipeline.config import RACINE, Config
 from pipeline.critique import generer_critiques
@@ -166,6 +167,13 @@ def executer() -> dict[str, Any]:
         )
     except Exception:  # noqa: BLE001 — jamais bloquant
         log.exception("historique de santé des sources en échec, on continue sans")
+
+    # Pages de DÉTAIL des meilleures annonces : loyer réel, DPE, copro, rue…
+    # AVANT filtrage et scoring, pour que tous les détecteurs voient ce texte.
+    try:
+        approfondir_annonces(annonces, config)
+    except Exception:  # noqa: BLE001 — enrichissement optionnel, jamais bloquant
+        log.exception("approfondissement en échec, on continue sans")
 
     # Filtrage + enrichissement + scoring recalculés sur tout le stock à chaque run,
     # pour que les changements de config.yaml ou des benchmarks s'appliquent partout.

@@ -268,6 +268,13 @@ analyse:
     seuil_score: 60           # générée une seule fois par annonce retenue à score ≥ seuil
     max_par_run: 15           # plafond d'appels API par tournée (coût + temps) ; sans
                               # ANTHROPIC_API_KEY, la fonctionnalité s'ignore proprement
+  approfondissement:          # lecture de la PAGE DE DÉTAIL des meilleures annonces
+                              # (pipeline/approfondissement.py) : loyer réel, DPE, dettes de
+                              # copro, article 606, nom de rue — tout ce que la page de liste
+                              # tait. Poli (robots.txt, délais), plafonné par tournée.
+    actif: true
+    max_par_run: 10
+    budget_secondes: 90
   dvf:                        # ventes réelles de locaux commerciaux (pipeline/dvf.py) : la
                               # fourchette de prix d'un secteur vient des prix PAYÉS chez le
                               # notaire quand la commune compte assez de ventes

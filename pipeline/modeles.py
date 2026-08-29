@@ -105,12 +105,16 @@ class Annonce:
     bonus_detectes: list[str] = field(default_factory=list)  # règles bonus/malus déclenchées
     fiscalite_detectes: list[str] = field(default_factory=list)  # signaux fiscaux détectés
 
+    # Approfondissement : texte de la PAGE DE DÉTAIL (pipeline/approfondissement.py)
+    approfondie: bool = False       # page lue (ou refusée) : on n'y revient pas
+    texte_detail: str = ""          # nourrit texte_complet(), donc TOUS les détecteurs
+
     # Exclusion
     exclue: bool = False
     raison_exclusion: str | None = None
 
     def texte_complet(self) -> str:
-        return f"{self.titre} {self.description}"
+        return f"{self.titre} {self.description} {self.texte_detail}".rstrip()
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
