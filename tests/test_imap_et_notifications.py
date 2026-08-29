@@ -1,13 +1,20 @@
 """Phase 4 : extraction des alertes email + contenu des emails de notification."""
 from __future__ import annotations
 
+import base64
 from datetime import datetime
 from email.message import EmailMessage
 from pathlib import Path
 
 from pipeline.modeles import TypeMurs
 from pipeline.notifications import notifier, notifier_sante_sources
-from sources.imap_alertes import PORTAILS, SourceImap, extraire_annonces_html, identifier_portail
+from sources.imap_alertes import (
+    PORTAILS,
+    SourceImap,
+    _decoder_segment_base64,
+    extraire_annonces_html,
+    identifier_portail,
+)
 from tests.fabriques import faire_annonce
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -84,6 +91,207 @@ def test_motif_lien_bourse_des_locaux_id_hexadecimal():
             "vente-de-murs-de-boutique-yvelines-78-86ec40815c14bec3a9e53a6091e37970")
     trouve = portail.motif_lien.search(href)
     assert trouve and trouve.group(1) == "86ec40815c14bec3a9e53a6091e37970"
+
+
+# --- Diagnostic du 2026-08-29 : logic_immo/iad/bienici_alerte à 0 annonce ---
+# malgré des mails réels non lus (cf. imap-alertes-diagnostic). curl -I sur un
+# vrai lien a montré deux mécanismes distincts, testés ci-dessous.
+
+
+def test_motif_lien_logic_immo_id_alphanumerique_reel():
+    # Vrai lien résolu (curl -I, 2026-08-29) : l'ID n'est PAS numérique
+    # (l'ancien motif \d{5,} ne l'aurait jamais reconnu).
+    portail = next(p for p in PORTAILS if p.nom == "logic_immo")
+    href = ("https://www.logic-immo.com/detail-annonce/vente/ile-de-france/paris-75/"
+            "paris-75000/26JC84IUAZTN?utm_source=crm-b2c&utm_medium=email")
+    trouve = portail.motif_lien.search(href)
+    assert trouve and trouve.group(1) == "26JC84IUAZTN"
+
+
+def test_motif_lien_bienici_alerte_slug_avec_tiret_reel():
+    # Vrai slug décodé (base64, 2026-08-29) : contient un tiret, contrairement
+    # au motif d'origine [a-z0-9] (jamais vérifié sur un vrai message).
+    portail = next(p for p in PORTAILS if p.nom == "bienici_alerte")
+    href = "https://www.bienici.com/annonce/immo-facile-61351792"
+    trouve = portail.motif_lien.search(href)
+    assert trouve and trouve.group(1) == "immo-facile-61351792"
+
+
+def test_decoder_segment_base64_revele_l_url_bienici():
+    reelle = "https://www.bienici.com/annonce/immo-facile-61351792?x=1"
+    encode = base64.urlsafe_b64encode(reelle.encode()).decode().rstrip("=")
+    href = f"https://link.bienici.com/lnk/AAA/8/token/{encode}"
+    assert _decoder_segment_base64(href) == reelle
+
+
+def test_decoder_segment_base64_renvoie_none_si_pas_du_base64():
+    # Le "qs" de logic_immo n'est PAS l'URL réelle encodée (curl -I confirme
+    # que le token est opaque, résolu seulement par une vraie redirection).
+    href = "https://click.by.logic-immo.com/?qs=ABB7InYiOjEsImQiOjQ5ODN9AD"
+    assert _decoder_segment_base64(href) is None
+
+
+def test_extraction_bienici_via_base64_sans_reseau():
+    # Bout en bout, sans mock réseau : le décodage base64 suffit.
+    portail = next(p for p in PORTAILS if p.nom == "bienici_alerte")
+    reelle = "https://www.bienici.com/annonce/immo-facile-61351792"
+    encode = base64.urlsafe_b64encode(reelle.encode()).decode().rstrip("=")
+    html = (
+        "<html><body><div>"
+        f'<a href="https://link.bienici.com/lnk/AAA/8/tok/{encode}">Voir</a>'
+        "<p>Paris 75018 - 250 000 €</p>"
+        "</div></body></html>"
+    )
+    annonces = extraire_annonces_html(html, portail)
+    assert len(annonces) == 1
+    assert annonces[0].id_source == "immo-facile-61351792"
+
+
+def test_extraction_via_redirection_logic_immo_uniquement_dans_un_bloc_a_prix():
+    portail = next(p for p in PORTAILS if p.nom == "logic_immo")
+    appels: list[str] = []
+
+    def resoudre_factice(href: str) -> str | None:
+        appels.append(href)
+        return ("https://www.logic-immo.com/detail-annonce/vente/ile-de-france/"
+                 "paris-75/paris-75000/26JC84IUAZTN?utm_source=crm-b2c")
+
+    html_avec_prix = (
+        "<html><body><div>"
+        '<a href="https://click.by.logic-immo.com/?qs=TOKEN1">Voir l\'annonce</a>'
+        "<p>Local commercial Paris 75018 - 250 000 €</p>"
+        "</div></body></html>"
+    )
+    annonces = extraire_annonces_html(html_avec_prix, portail, resoudre_redirection=resoudre_factice)
+    assert len(appels) == 1
+    assert len(annonces) == 1
+    assert annonces[0].id_source == "26JC84IUAZTN"
+    assert annonces[0].source == "alerte_logic_immo"
+
+    # Un lien hors bloc à prix (logo, désabonnement...) partage le MÊME
+    # redirecteur opaque — sans ce garde-fou, on cramerait le budget réseau
+    # (SourceImap.max_redirections) sur du bruit plutôt que sur de vraies annonces.
+    appels.clear()
+    html_sans_prix = (
+        "<html><body><div>"
+        '<a href="https://click.by.logic-immo.com/?qs=LOGOTOKEN">Logo</a>'
+        "</div></body></html>"
+    )
+    annonces_logo = extraire_annonces_html(html_sans_prix, portail, resoudre_redirection=resoudre_factice)
+    assert appels == []
+    assert annonces_logo == []
+
+
+def test_extraction_sans_resoudre_redirection_ne_plante_pas():
+    # Portail via_redirection mais appelant qui ne fournit rien (ex. anciens
+    # tests, ou futur appelant) : dégrade proprement à 0 annonce, pas d'erreur.
+    portail = next(p for p in PORTAILS if p.nom == "logic_immo")
+    html = (
+        "<html><body><div>"
+        '<a href="https://click.by.logic-immo.com/?qs=TOKEN1">Voir</a>'
+        "<p>250 000 €</p>"
+        "</div></body></html>"
+    )
+    assert extraire_annonces_html(html, portail) == []
+
+
+def test_resoudre_redirection_suit_le_302_et_respecte_le_budget(monkeypatch):
+    appels: list[str] = []
+
+    class _ReponseFactice:
+        def __init__(self, statut: int, location: str | None = None) -> None:
+            self.status_code = statut
+            self.headers = {"Location": location} if location else {}
+
+    def head_factice(url: str, **kwargs):
+        appels.append(url)
+        return _ReponseFactice(302, "https://www.logic-immo.com/detail-annonce/x/26JC84IUAZTN")
+
+    monkeypatch.setattr("sources.imap_alertes.requests.head", head_factice)
+
+    source = SourceImap(max_redirections=2)
+    assert source._resoudre_redirection("https://click.by.logic-immo.com/?qs=A") == \
+        "https://www.logic-immo.com/detail-annonce/x/26JC84IUAZTN"
+    assert source._resoudre_redirection("https://click.by.logic-immo.com/?qs=B") == \
+        "https://www.logic-immo.com/detail-annonce/x/26JC84IUAZTN"
+    # Budget épuisé (2) : le 3e appel ne fait même plus de requête réseau.
+    assert source._resoudre_redirection("https://click.by.logic-immo.com/?qs=C") is None
+    assert len(appels) == 2
+
+
+def test_resoudre_redirection_renvoie_none_hors_redirection(monkeypatch):
+    class _ReponseFactice:
+        status_code = 200
+        headers: dict = {}
+
+    monkeypatch.setattr("sources.imap_alertes.requests.head", lambda url, **kw: _ReponseFactice())
+    assert SourceImap()._resoudre_redirection("https://x") is None
+
+
+def test_resoudre_redirection_jamais_bloquant_sur_erreur_reseau(monkeypatch):
+    def leve(url: str, **kwargs):
+        raise OSError("timeout")
+
+    monkeypatch.setattr("sources.imap_alertes.requests.head", leve)
+    assert SourceImap()._resoudre_redirection("https://x") is None
+
+
+def test_collecter_remet_non_lu_si_le_budget_de_redirection_est_a_sec(monkeypatch):
+    # Sans ça, un message dont l'annonce n'a pas pu être résolue faute de
+    # budget reste marqué \Seen (fetch RFC822 le fait dès la lecture) et
+    # l'annonce est perdue pour toujours, jamais retentée.
+    monkeypatch.setenv("IMAP_USER", "test@exemple.fr")
+    monkeypatch.setenv("IMAP_PASSWORD", "x")
+
+    message = EmailMessage()
+    message["From"] = "LogicImmo <annonces@alertes.logic-immo.com>"
+    message["Subject"] = "1 nouvelle annonce : 75018"
+    message.set_content(
+        '<html><body><div><a href="https://click.by.logic-immo.com/?qs=TOKEN1">Voir</a>'
+        "<p>250 000 €</p></div></body></html>",
+        subtype="html",
+    )
+
+    class _BoiteFactice:
+        def __init__(self) -> None:
+            self.flags_retires: list[tuple] = []
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def login(self, *a, **kw):
+            pass
+
+        def list(self):
+            return "OK", [b'(\\HasNoChildren \\All) "/" "[Gmail]/Tous les messages"']
+
+        def select(self, *a, **kw):
+            pass
+
+        def search(self, charset, criteres):
+            if "logic-immo.com" in criteres:
+                return "OK", [b"1"]
+            return "OK", [b""]
+
+        def fetch(self, numero, quoi):
+            return "OK", [(b"1 (RFC822 {...})", message.as_bytes())]
+
+        def store(self, numero, drapeau, valeur):
+            self.flags_retires.append((numero, drapeau, valeur))
+            return "OK", [b""]
+
+    boite = _BoiteFactice()
+    monkeypatch.setattr("sources.imap_alertes.imaplib.IMAP4_SSL", lambda hote: boite)
+
+    source = SourceImap(max_redirections=0)  # budget déjà à sec avant même le 1er lien
+    resultat = source.collecter()
+
+    assert resultat == []
+    assert boite.flags_retires == [(b"1", "-FLAGS", "\\Seen")]
+    assert any("motif de lien" in a for a in source.avertissements)
 
 
 class _BoiteImapFactice:

@@ -7,11 +7,12 @@
 Le mot de passe d'application est demandé de façon interactive (getpass) : il
 reste sur cette machine, jamais envoyé nulle part, jamais collé dans un chat.
 
-Affiche, pour chaque email des portails connus (lu ou non lu, 14 derniers
-jours) : l'expéditeur, l'objet, et les liens bruts trouvés dans le corps —
-avec un repère [OK]/[??] selon que motif_lien du portail les reconnaît déjà.
-Sert à corriger motif_lien pour les portails jamais vérifiés sur un vrai
-message (logic_immo notamment, cf. imap-alertes-diagnostic).
+Rejoue EXACTEMENT la même extraction que sources.imap_alertes (base64 local +
+vraie redirection HTTP budgétée) sur les emails déjà reçus (lus ou non, 14
+derniers jours) : affiche les annonces réellement extraites, et pour les
+messages identifiés mais à 0 annonce, les liens bruts avec un repère
+[OK]/[REDIRECTION]/[??] pour corriger motif_lien au besoin (cf.
+imap-alertes-diagnostic).
 """
 from __future__ import annotations
 
@@ -20,19 +21,28 @@ import email.policy
 import getpass
 import imaplib
 import os
+import re
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import unquote
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import requests  # noqa: E402
 from bs4 import BeautifulSoup  # noqa: E402
 
-from sources.imap_alertes import PORTAILS, identifier_portail  # noqa: E402
+from sources.imap_alertes import (  # noqa: E402
+    PORTAILS,
+    _decoder_segment_base64,
+    extraire_annonces_html,
+    identifier_portail,
+)
 
 HOTE = "imap.gmail.com"
 JOURS_MAX = 14
-MAX_LIENS_PAR_MESSAGE = 8
+MAX_LIENS_AFFICHES = 8
+MAX_REDIRECTIONS_TOTAL = 30  # même ordre de grandeur qu'en prod (config.yaml)
 
 
 def dossier_all_mail(boite: imaplib.IMAP4_SSL) -> str:
@@ -41,7 +51,6 @@ def dossier_all_mail(boite: imaplib.IMAP4_SSL) -> str:
         for ligne in dossiers or []:
             texte = ligne.decode("utf-8", errors="replace") if isinstance(ligne, bytes) else str(ligne)
             if "\\All" in texte:
-                import re
                 noms = re.findall(r'"([^"]*)"', texte)
                 if noms:
                     return noms[-1]
@@ -54,8 +63,22 @@ def main() -> None:
         "Mot de passe d'application (IMAP_PASSWORD, invisible) : "
     )
 
-    from datetime import datetime, timedelta
-    depuis = (datetime.now() - timedelta(days=JOURS_MAX))
+    redirections_restantes = [MAX_REDIRECTIONS_TOTAL]  # liste = mutable dans la closure
+
+    def resoudre(href: str) -> str | None:
+        if redirections_restantes[0] <= 0:
+            return None
+        redirections_restantes[0] -= 1
+        try:
+            reponse = requests.head(href, allow_redirects=False, timeout=8,
+                                     headers={"User-Agent": "Mozilla/5.0"})
+        except Exception:
+            return None
+        if reponse.status_code in (301, 302, 303, 307, 308):
+            return reponse.headers.get("Location")
+        return None
+
+    depuis = datetime.now() - timedelta(days=JOURS_MAX)
     mois = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     depuis_imap = f"{depuis.day}-{mois[depuis.month - 1]}-{depuis.year}"
 
@@ -95,23 +118,41 @@ def main() -> None:
             print(f"Objet   : {sujet}")
             print(f"Portail : {portail.nom if portail else '(non reconnu — domaine absent de PORTAILS)'}")
 
+            if portail is None:
+                print()
+                continue
+
+            annonces = extraire_annonces_html(html, portail, resoudre_redirection=resoudre)
+            if annonces:
+                for a in annonces:
+                    print(f"  ✓ {a.titre} — {a.ville or '?'} {a.code_postal or ''} — "
+                          f"{a.prix or '?'} € — {a.url}")
+                print()
+                continue
+
+            print("  0 annonce extraite. Liens bruts trouvés :")
             soup = BeautifulSoup(html, "html.parser")
             hrefs = [str(a["href"]) for a in soup.find_all("a", href=True)]
-            print(f"Liens trouvés : {len(hrefs)} (affichage des {MAX_LIENS_PAR_MESSAGE} premiers pertinents)")
             affiches = 0
             for href in hrefs:
-                if affiches >= MAX_LIENS_PAR_MESSAGE:
+                if affiches >= MAX_LIENS_AFFICHES:
                     break
-                decode = unquote(href)
-                marque = "[??]"
-                if portail is not None and portail.motif_lien.search(decode):
-                    marque = "[OK]"
-                # Ignore les liens évidemment hors-sujet (désabonnement, logos, pixels de tracking).
                 if any(mot in href.lower() for mot in ("unsubscribe", "desabon", "logo", "pixel", ".png", ".gif")):
                     continue
-                print(f"  {marque} {href}")
+                decode = unquote(href)
+                marque = "[??]"
+                if portail.motif_lien.search(decode):
+                    marque = "[OK, mais pas extrait ?!]"
+                elif _decoder_segment_base64(href):
+                    marque = "[base64 décodable, motif_lien à vérifier]"
+                elif portail.via_redirection:
+                    marque = "[via_redirection : résolu ci-dessus, motif_lien à revoir si toujours 0]"
+                print(f"    {marque} {href}")
                 affiches += 1
             print()
+
+        if redirections_restantes[0] <= 0:
+            print(f"⚠ Budget de {MAX_REDIRECTIONS_TOTAL} redirections épuisé — relance si besoin.")
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ messages reçus. Une annonce mal lue est ignorée, jamais bloquante.
 """
 from __future__ import annotations
 
+import base64
 import email
 import email.policy
 import imaplib
@@ -31,8 +32,10 @@ import os
 import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Callable
 from urllib.parse import unquote
 
+import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
@@ -54,6 +57,12 @@ class Portail:
     nom: str
     domaines: tuple[str, ...]           # reconnus dans l'expéditeur ou les liens
     motif_lien: re.Pattern              # groupe 1 = identifiant de l'annonce
+    # True si les liens de CE portail passent par un redirecteur opaque
+    # (Selligent/Adobe Campaign...) où seul un vrai aller-retour HTTP révèle
+    # la destination — confirmé le 2026-08-29 par curl -I sur logic_immo et
+    # iad (302 avec Location:, pas de trace de l'URL réelle dans le lien
+    # lui-même). Voir SourceImap._resoudre_redirection.
+    via_redirection: bool = False
 
 
 PORTAILS: list[Portail] = [
@@ -69,14 +78,23 @@ PORTAILS: list[Portail] = [
         "geolocaux", ("geolocaux.com",),
         re.compile(r"https?://(?:www\.)?geolocaux\.com/[^\s\"'<>]*?(\d{4,})"),
     ),
-    # Les trois ci-dessous sont NON VÉRIFIÉS (motifs de lien devinés faute
+    # Les deux ci-dessous restent NON VÉRIFIÉS (motifs de lien devinés faute
     # d'avoir reçu un vrai message) — recommandés le 2026-08-22 : gros volume
-    # (Logic-immo, Bpifrance) ou scraping direct bloqué (Bpifrance renvoie
-    # une page d'erreur WAF, avendrealouer.fr refuse même robots.txt). Un
-    # premier message réel forwardé permettra d'affiner motif_lien au besoin.
+    # (Bpifrance) ou scraping direct bloqué (Bpifrance renvoie une page
+    # d'erreur WAF, avendrealouer.fr refuse même robots.txt). Un premier
+    # message réel forwardé permettra d'affiner motif_lien au besoin.
     Portail(
+        # Diagnostiqué le 2026-08-29 (0 annonce, 6 j de suite, alors que des
+        # mails arrivaient bien, non lus) via scripts/diagnostiquer_imap.py +
+        # curl -I sur un vrai lien : tous les liens de l'email passent par
+        # click.by.logic-immo.com/?qs=<jeton opaque>, AUCUNE trace de l'URL
+        # réelle dedans (contrairement à Bien'ici, cf. bienici_alerte) — un
+        # curl -I confirme un 302 vers www.logic-immo.com/detail-annonce/.../
+        # <ID alphanumérique majuscule>, d'où via_redirection=True. L'ancien
+        # motif (\d{5,}) ne collait de toute façon pas à cet ID réel.
         "logic_immo", ("logic-immo.com",),
-        re.compile(r"https?://(?:www\.)?logic-immo\.com/[^\s\"'<>]*?(\d{5,})"),
+        re.compile(r"https?://(?:www\.)?logic-immo\.com/[^\s\"'<>]*?([A-Z0-9]{8,})\b"),
+        via_redirection=True,
     ),
     Portail(
         "bourse_des_locaux", ("reprise-entreprise.bpifrance.fr",),
@@ -93,9 +111,15 @@ PORTAILS: list[Portail] = [
         # distinct du site public. Les deux domaines sont reconnus par précaution
         # (site public + domaine d'envoi), le second retrouvé de justesse grâce à
         # un vrai message transféré (sans lui, ce portail n'aurait jamais rien
-        # remonté malgré l'alerte bien créée).
+        # remonté malgré l'alerte bien créée). Seul l'EXPÉDITEUR avait été
+        # vérifié à l'époque : les liens, eux, passent par le redirecteur
+        # Selligent clic.iadinternational.com/f/a/<jeton>~~ — aussi opaque que
+        # logic_immo (diagnostiqué le 2026-08-29, curl -I confirme un 302 vers
+        # iadfrance.fr/redirect/property?propertyListingRef=<id numérique>,
+        # que le motif ci-dessous reconnaît déjà une fois résolu).
         "iad", ("iadfrance.fr", "iadinternational.com"),
         re.compile(r"https?://(?:www\.)?(?:iadfrance\.fr|[a-z0-9.-]*iadinternational\.com)/[^\s\"'<>]*?(\d{5,})"),
+        via_redirection=True,
     ),
     Portail(
         # Distinct de papcommerces.fr (déjà scrapé directement, source séparée) :
@@ -108,10 +132,15 @@ PORTAILS: list[Portail] = [
         # redondant avec sources/bienici.py (API directe, déjà active) — gardé
         # quand même en filet de sécurité si l'API change un jour, coût nul
         # (le dédoublonnage cross-sources fusionne les doublons). Motif de
-        # lien basé sur la vraie structure d'URL du site (bienici.py:87),
-        # pas une supposition — plus fiable que les autres ajouts récents.
+        # lien basé sur la vraie structure d'URL du site (bienici.py:87) —
+        # mais la vraie URL n'apparaît en clair NULLE PART dans le lien
+        # envoyé : Bien'ici emballe tout dans link.bienici.com/lnk/.../<n>/
+        # <base64 de l'URL réelle> (diagnostiqué le 2026-08-29). Slug réel
+        # observé "immo-facile-61351792" (tiret inclus, d'où [a-z0-9-] et
+        # non [a-z0-9]) — voir _decoder_segment_base64, tenté avant toute
+        # requête réseau puisque décodable localement, sans redirection.
         "bienici_alerte", ("bienici.com",),
-        re.compile(r"https?://(?:www\.)?bienici\.com/annonce/([a-z0-9]{5,})"),
+        re.compile(r"https?://(?:www\.)?bienici\.com/annonce/([a-z0-9-]{5,})"),
     ),
 ]
 
@@ -136,15 +165,60 @@ def _bloc_annonce(lien: Tag) -> Tag:
     return bloc
 
 
-def extraire_annonces_html(html: str, portail: Portail) -> list[AnnonceBrute]:
-    """Annonces contenues dans le HTML d'un email d'alerte."""
+def _decoder_segment_base64(href: str) -> str | None:
+    """Certains redirecteurs (Selligent/Actito — ex. Bien'ici, cf. bienici_alerte)
+    encodent la VRAIE destination en base64 dans le dernier segment du chemin :
+    décodable localement, sans requête réseau, contrairement aux jetons
+    opaques de logic_immo/iad (Portail.via_redirection). None si le segment
+    n'est pas du base64 valide ou ne décode pas vers une URL http(s)."""
+    segment = href.split("?", 1)[0].rstrip("/").rsplit("/", 1)[-1]
+    if len(segment) < 8:
+        return None
+    manquant = -len(segment) % 4
+    try:
+        decode = base64.urlsafe_b64decode(segment + "=" * manquant).decode("utf-8")
+    except Exception:  # noqa: BLE001 — segment pas du base64, ou pas de l'UTF-8
+        return None
+    return decode if decode.startswith("http") else None
+
+
+def extraire_annonces_html(
+    html: str, portail: Portail,
+    resoudre_redirection: Callable[[str], str | None] | None = None,
+) -> list[AnnonceBrute]:
+    """Annonces contenues dans le HTML d'un email d'alerte.
+
+    Trois façons de retrouver la vraie destination derrière un lien, essayées
+    dans l'ordre (la première qui satisfait motif_lien l'emporte) :
+    1. le lien brut, décodé %XX (cas simple, lien direct vers le portail) ;
+    2. décodage base64 de son dernier segment (cf. _decoder_segment_base64) ;
+    3. une vraie redirection HTTP via `resoudre_redirection`, fourni par
+       l'appelant et budgété — seul recours pour un jeton opaque
+       (portail.via_redirection ; voir SourceImap._resoudre_redirection).
+    """
     soup = BeautifulSoup(html, "html.parser")
     annonces: dict[str, AnnonceBrute] = {}
     for lien in soup.find_all("a", href=True):
-        # Les alertes passent par des liens de tracking : on cherche le motif
-        # dans l'URL décodée (l'URL réelle y est souvent encapsulée).
-        href = unquote(str(lien["href"]))
+        href_brut = str(lien["href"])
+        href = unquote(href_brut)
         trouve = portail.motif_lien.search(href)
+
+        if not trouve:
+            decode = _decoder_segment_base64(href_brut)
+            if decode:
+                trouve = portail.motif_lien.search(decode)
+
+        if not trouve and portail.via_redirection and resoudre_redirection is not None:
+            # Ces redirecteurs emballent TOUS les liens d'un email (logo,
+            # réseaux sociaux, désabonnement...) dans le même format opaque,
+            # indiscernables sans un vrai aller-retour HTTP — on ne le tente
+            # donc que sur les liens dans un bloc à prix, pour ne pas cramer
+            # le budget réseau plafonné (SourceImap.max_redirections) en pure perte.
+            if "€" in _bloc_annonce(lien).get_text():
+                reelle = resoudre_redirection(href_brut)
+                if reelle:
+                    trouve = portail.motif_lien.search(reelle)
+
         if not trouve:
             continue
         id_source = trouve.group(1)
@@ -197,7 +271,7 @@ class SourceImap(Source):
 
     def __init__(
         self, hote: str = "imap.gmail.com", dossier: str = "INBOX",
-        jours_max: int = 14,
+        jours_max: int = 14, max_redirections: int = 20,
     ) -> None:
         super().__init__()
         self.hote = hote
@@ -209,6 +283,17 @@ class SourceImap(Source):
         # invisible pour le robot à cause de cette fenêtre trop courte —
         # certains portails alertent par lots espacés, pas au quotidien.
         self.jours_max = jours_max
+        # Plafond de vraies requêtes HTTP par tournée pour résoudre les jetons
+        # opaques (portails via_redirection) — chaque appel coûte un aller-
+        # retour réseau réel, contrairement au reste de cette source (pure
+        # lecture IMAP). Décompté au fil des messages, jamais réinitialisé
+        # en cours de run : voir _resoudre_redirection.
+        self._redirections_restantes = max_redirections
+        # Vrai si _resoudre_redirection a dû renoncer FAUTE de budget (pas
+        # parce que le lien ne menait nulle part) pendant le message en
+        # cours — remis à zéro par collecter() avant chaque message, lu juste
+        # après pour décider s'il faut annuler le \Seen (cf. collecter()).
+        self.budget_epuise = False
 
     def _depuis(self) -> str:
         quand = datetime.now() - timedelta(days=self.jours_max)
@@ -237,6 +322,28 @@ class SourceImap(Source):
                 return noms[-1]
         return self.dossier
 
+    def _resoudre_redirection(self, href: str) -> str | None:
+        """Suit UNE redirection HTTP (302 Selligent/Adobe Campaign) pour
+        révéler la vraie destination d'un jeton opaque — cf. curl -I sur un
+        vrai lien logic_immo/iad le 2026-08-29, Portail.via_redirection.
+        Plafonné (self._redirections_restantes) : jamais réinitialisé en
+        cours de run, jamais bloquant (erreur/timeout/budget épuisé → None,
+        ce lien est ignoré, pas le message entier)."""
+        if self._redirections_restantes <= 0:
+            self.budget_epuise = True
+            return None
+        self._redirections_restantes -= 1
+        try:
+            reponse = requests.head(
+                href, allow_redirects=False, timeout=8,
+                headers={"User-Agent": "Mozilla/5.0 (compatible; VeilleMursCommerciaux/0.1)"},
+            )
+        except Exception:  # noqa: BLE001 — un lien mort n'arrête rien
+            return None
+        if reponse.status_code in (301, 302, 303, 307, 308):
+            return reponse.headers.get("Location")
+        return None
+
     def extraire_message(self, message: email.message.EmailMessage) -> tuple[Portail | None, list[AnnonceBrute]]:
         partie = message.get_body(preferencelist=("html", "plain"))
         if partie is None:
@@ -245,7 +352,7 @@ class SourceImap(Source):
         portail = identifier_portail(str(message.get("From", "")), html)
         if portail is None:
             return None, []
-        return portail, extraire_annonces_html(html, portail)
+        return portail, extraire_annonces_html(html, portail, resoudre_redirection=self._resoudre_redirection)
 
     def collecter(self) -> list[AnnonceBrute]:
         utilisateur = os.environ.get("IMAP_USER")
@@ -292,10 +399,18 @@ class SourceImap(Source):
                 message = email.message_from_bytes(
                     contenu[0][1], policy=email.policy.default
                 )
+                self.budget_epuise = False
                 try:
                     portail, trouvees = self.extraire_message(message)
                     if portail is not None and not trouvees:
                         portails_sans_extraction[portail.nom] = portails_sans_extraction.get(portail.nom, 0) + 1
+                        if self.budget_epuise:
+                            # Le lien existait (un bloc à prix a bien tenté une
+                            # résolution) mais le budget réseau était à sec —
+                            # remettre \Seen à zéro pour retenter au run
+                            # suivant, sinon cette annonce est perdue pour
+                            # toujours (fetch RFC822 l'a déjà marqué lu).
+                            boite.store(numero, "-FLAGS", "\\Seen")
                     for annonce in trouvees:
                         annonces.setdefault(f"{annonce.source}:{annonce.id_source}", annonce)
                 except Exception as exc:  # noqa: BLE001 — un email illisible n'arrête rien
