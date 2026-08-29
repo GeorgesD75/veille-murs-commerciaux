@@ -271,7 +271,7 @@ class SourceImap(Source):
 
     def __init__(
         self, hote: str = "imap.gmail.com", dossier: str = "INBOX",
-        jours_max: int = 14, max_redirections: int = 20,
+        jours_max: int = 14, max_redirections: int = 60,
     ) -> None:
         super().__init__()
         self.hote = hote
@@ -287,7 +287,11 @@ class SourceImap(Source):
         # opaques (portails via_redirection) — chaque appel coûte un aller-
         # retour réseau réel, contrairement au reste de cette source (pure
         # lecture IMAP). Décompté au fil des messages, jamais réinitialisé
-        # en cours de run : voir _resoudre_redirection.
+        # en cours de run : voir _resoudre_redirection. Relevé de 20 à 60 le
+        # 2026-08-29 : le tout premier run réel a épuisé les 20 sur logic_immo
+        # seul (7 échecs signalés) alors que chaque résolution ne prend que
+        # ~200-400 ms (curl -I mesuré) — 60 reste large marge dans le budget
+        # de temps CI (20 min) même si tous échouent en timeout (8 s pièce).
         self._redirections_restantes = max_redirections
         # Vrai si _resoudre_redirection a dû renoncer FAUTE de budget (pas
         # parce que le lien ne menait nulle part) pendant le message en
@@ -369,7 +373,13 @@ class SourceImap(Source):
         # motif_lien qui ne correspond plus à la vraie structure des liens du
         # portail (plusieurs sont encore non vérifiés sur un message réel).
         # Sans ce compteur, "0 annonce" est indiscernable de "aucun mail reçu".
+        # Distingué du cas "budget de redirection à sec" (portails_budget_epuise) :
+        # ce dernier n'a rien à voir avec un motif_lien caduc, le message est
+        # simplement reporté au run suivant — un vrai "0 annonce" mérite une
+        # alerte, un budget à sec non (constaté le 2026-08-29 : logic_immo a
+        # signalé 7 échecs le jour même où il fonctionnait déjà par ailleurs).
         portails_sans_extraction: dict[str, int] = {}
+        portails_budget_epuise: dict[str, int] = {}
         with imaplib.IMAP4_SSL(self.hote) as boite:
             boite.login(utilisateur, mot_de_passe)
             dossier = self._dossier_a_chercher(boite)
@@ -403,14 +413,16 @@ class SourceImap(Source):
                 try:
                     portail, trouvees = self.extraire_message(message)
                     if portail is not None and not trouvees:
-                        portails_sans_extraction[portail.nom] = portails_sans_extraction.get(portail.nom, 0) + 1
                         if self.budget_epuise:
+                            portails_budget_epuise[portail.nom] = portails_budget_epuise.get(portail.nom, 0) + 1
                             # Le lien existait (un bloc à prix a bien tenté une
                             # résolution) mais le budget réseau était à sec —
                             # remettre \Seen à zéro pour retenter au run
                             # suivant, sinon cette annonce est perdue pour
                             # toujours (fetch RFC822 l'a déjà marqué lu).
                             boite.store(numero, "-FLAGS", "\\Seen")
+                        else:
+                            portails_sans_extraction[portail.nom] = portails_sans_extraction.get(portail.nom, 0) + 1
                     for annonce in trouvees:
                         annonces.setdefault(f"{annonce.source}:{annonce.id_source}", annonce)
                 except Exception as exc:  # noqa: BLE001 — un email illisible n'arrête rien
@@ -419,5 +431,10 @@ class SourceImap(Source):
             self.avertissements.append(
                 f"{nom_portail} : {total} email(s) lu(s) mais aucune annonce reconnue "
                 "(motif de lien probablement à revoir sur un vrai message)"
+            )
+        for nom_portail, total in portails_budget_epuise.items():
+            self.avertissements.append(
+                f"{nom_portail} : {total} email(s) reportés au run suivant "
+                "(budget de redirection épuisé ce run-ci, rien à corriger)"
             )
         return list(annonces.values())

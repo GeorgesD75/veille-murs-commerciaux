@@ -291,7 +291,75 @@ def test_collecter_remet_non_lu_si_le_budget_de_redirection_est_a_sec(monkeypatc
 
     assert resultat == []
     assert boite.flags_retires == [(b"1", "-FLAGS", "\\Seen")]
+    # Distingué du "motif de lien à revoir" (cf. test suivant) : un budget à
+    # sec n'a rien à voir avec un motif_lien caduc, ne doit jamais s'afficher
+    # comme tel (constaté le 2026-08-29 sur le tout premier run réel — un
+    # faux positif aurait fait chercher un bug inexistant dans la regex).
+    assert not any("motif de lien" in a for a in source.avertissements)
+    assert any("budget de redirection épuisé" in a for a in source.avertissements)
+
+
+def test_collecter_signale_motif_a_revoir_seulement_hors_budget_epuise(monkeypatch):
+    # Un lien réellement non reconnu (motif_lien caduc), budget dispo par
+    # ailleurs : doit rester signalé comme "à revoir", pas comme un problème
+    # de budget.
+    monkeypatch.setenv("IMAP_USER", "test@exemple.fr")
+    monkeypatch.setenv("IMAP_PASSWORD", "x")
+
+    message = EmailMessage()
+    message["From"] = "LogicImmo <annonces@alertes.logic-immo.com>"
+    message["Subject"] = "1 nouvelle annonce : 75018"
+    message.set_content(
+        '<html><body><div><a href="https://click.by.logic-immo.com/?qs=TOKEN1">Voir</a>'
+        "<p>250 000 €</p></div></body></html>",
+        subtype="html",
+    )
+
+    class _BoiteFactice:
+        def __init__(self) -> None:
+            self.flags_retires: list[tuple] = []
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def login(self, *a, **kw):
+            pass
+
+        def list(self):
+            return "OK", [b'(\\HasNoChildren \\All) "/" "[Gmail]/Tous les messages"']
+
+        def select(self, *a, **kw):
+            pass
+
+        def search(self, charset, criteres):
+            if "logic-immo.com" in criteres:
+                return "OK", [b"1"]
+            return "OK", [b""]
+
+        def fetch(self, numero, quoi):
+            return "OK", [(b"1 (RFC822 {...})", message.as_bytes())]
+
+        def store(self, numero, drapeau, valeur):
+            self.flags_retires.append((numero, drapeau, valeur))
+            return "OK", [b""]
+
+    boite = _BoiteFactice()
+    monkeypatch.setattr("sources.imap_alertes.imaplib.IMAP4_SSL", lambda hote: boite)
+    # Budget largement dispo, mais la redirection ne mène nulle part de
+    # reconnaissable : un vrai échec de motif, pas un problème de budget.
+    monkeypatch.setattr("sources.imap_alertes.requests.head",
+                         lambda url, **kw: type("R", (), {"status_code": 200, "headers": {}})())
+
+    source = SourceImap(max_redirections=20)
+    resultat = source.collecter()
+
+    assert resultat == []
+    assert boite.flags_retires == []  # pas un souci de budget : rien à retenter
     assert any("motif de lien" in a for a in source.avertissements)
+    assert not any("budget de redirection épuisé" in a for a in source.avertissements)
 
 
 class _BoiteImapFactice:
