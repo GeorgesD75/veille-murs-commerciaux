@@ -547,7 +547,7 @@
   {
    "jour": "2026-08-29",
    "statut": "ok",
-   "annonces": 12,
+   "annonces": 11,
    "message": null
   }
  ],
@@ -639,7 +639,7 @@
   {
    "jour": "2026-08-29",
    "statut": "ok",
-   "annonces": 25,
+   "annonces": 26,
    "message": null
   }
  ],
@@ -823,7 +823,7 @@
   {
    "jour": "2026-08-29",
    "statut": "ok",
-   "annonces": 665,
+   "annonces": 657,
    "message": null
   }
  ],
@@ -1315,7 +1315,7 @@
   {
    "jour": "2026-08-29",
    "statut": "ok",
-   "annonces": 118,
+   "annonces": 95,
    "message": null
   }
  ],
