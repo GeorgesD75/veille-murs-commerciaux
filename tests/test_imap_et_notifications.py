@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from email.message import EmailMessage
 from pathlib import Path
 
 from pipeline.modeles import TypeMurs
@@ -134,6 +135,25 @@ def test_extraction_alerte_leboncoin():
     libre = next(a for a in annonces if a.id_source == "2809876543")
     assert libre.type_murs is TypeMurs.MURS_LIBRES
     assert libre.code_postal == "92700"
+
+
+def test_extraire_message_portail_identifie_mais_aucun_lien_reconnu():
+    # Cas suspecté sur logic_immo (motif_lien jamais vérifié sur un vrai
+    # message, cf. imap-alertes-diagnostic) : si les liens passent par une
+    # plateforme d'emailing avec des URLs de tracking opaques (aucune trace du
+    # domaine du portail dedans), motif_lien ne matche rien. Ce cas doit rester
+    # distinguable d'un message qui n'appartient à aucun portail connu — c'est
+    # ce que `collecter()` utilise pour signaler un motif à corriger plutôt que
+    # de rendre "0 annonce" indiscernable de "aucun mail reçu".
+    message = EmailMessage()
+    message["From"] = "LogicImmo <annonces@alertes.logic-immo.com>"
+    message.set_content(
+        "<html><body><a href='https://click.some-esp.example/t/abc123'>Voir l'annonce</a></body></html>",
+        subtype="html",
+    )
+    portail, annonces = SourceImap().extraire_message(message)
+    assert portail is not None and portail.nom == "logic_immo"
+    assert annonces == []
 
 
 # --- Notifications ---

@@ -120,6 +120,7 @@ def test_html_autonome_et_non_reference(config):
     assert "fonds de commerce »</" not in html
     assert 'id="hud-veille"' in html
     assert 'Lancer la veille' in html
+    assert 'Run workflow' in html
 
 
 def test_generation_fichiers(config, tmp_path):

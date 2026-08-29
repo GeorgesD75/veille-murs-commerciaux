@@ -237,15 +237,15 @@ class SourceImap(Source):
                 return noms[-1]
         return self.dossier
 
-    def extraire_message(self, message: email.message.EmailMessage) -> list[AnnonceBrute]:
+    def extraire_message(self, message: email.message.EmailMessage) -> tuple[Portail | None, list[AnnonceBrute]]:
         partie = message.get_body(preferencelist=("html", "plain"))
         if partie is None:
-            return []
+            return None, []
         html = partie.get_content()
         portail = identifier_portail(str(message.get("From", "")), html)
         if portail is None:
-            return []
-        return extraire_annonces_html(html, portail)
+            return None, []
+        return portail, extraire_annonces_html(html, portail)
 
     def collecter(self) -> list[AnnonceBrute]:
         utilisateur = os.environ.get("IMAP_USER")
@@ -258,6 +258,11 @@ class SourceImap(Source):
             return []
 
         annonces: dict[str, AnnonceBrute] = {}
+        # Un message lu mais qui n'en tire aucune annonce est un signal muet :
+        # motif_lien qui ne correspond plus à la vraie structure des liens du
+        # portail (plusieurs sont encore non vérifiés sur un message réel).
+        # Sans ce compteur, "0 annonce" est indiscernable de "aucun mail reçu".
+        portails_sans_extraction: dict[str, int] = {}
         with imaplib.IMAP4_SSL(self.hote) as boite:
             boite.login(utilisateur, mot_de_passe)
             dossier = self._dossier_a_chercher(boite)
@@ -288,8 +293,16 @@ class SourceImap(Source):
                     contenu[0][1], policy=email.policy.default
                 )
                 try:
-                    for annonce in self.extraire_message(message):
+                    portail, trouvees = self.extraire_message(message)
+                    if portail is not None and not trouvees:
+                        portails_sans_extraction[portail.nom] = portails_sans_extraction.get(portail.nom, 0) + 1
+                    for annonce in trouvees:
                         annonces.setdefault(f"{annonce.source}:{annonce.id_source}", annonce)
                 except Exception as exc:  # noqa: BLE001 — un email illisible n'arrête rien
                     self.avertissements.append(f"email illisible ({message.get('Subject')}) : {exc}")
+        for nom_portail, total in portails_sans_extraction.items():
+            self.avertissements.append(
+                f"{nom_portail} : {total} email(s) lu(s) mais aucune annonce reconnue "
+                "(motif de lien probablement à revoir sur un vrai message)"
+            )
         return list(annonces.values())
