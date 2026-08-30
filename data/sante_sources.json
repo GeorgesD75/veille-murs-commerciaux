@@ -93,8 +93,8 @@
   {
    "jour": "2026-08-30",
    "statut": "ok",
-   "annonces": 11,
-   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/1/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 23,
+   "message": null
   }
  ],
  "murscommerciaux": [
@@ -1073,8 +1073,8 @@
   {
    "jour": "2026-08-30",
    "statut": "ok",
-   "annonces": 6,
-   "message": "leboncoin : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); logic_immo : 9 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+   "annonces": 8,
+   "message": "leboncoin : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); logic_immo : 11 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1405,7 +1405,7 @@
   {
    "jour": "2026-08-30",
    "statut": "ok",
-   "annonces": 105,
+   "annonces": 111,
    "message": null
   }
  ],
