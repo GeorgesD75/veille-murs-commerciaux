@@ -681,7 +681,7 @@
   {
    "jour": "2026-08-30",
    "statut": "ok",
-   "annonces": 25,
+   "annonces": 26,
    "message": null
   }
  ],
@@ -1074,7 +1074,7 @@
    "jour": "2026-08-30",
    "statut": "ok",
    "annonces": 8,
-   "message": "leboncoin : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); logic_immo : 11 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); logic_immo : 15 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1405,7 +1405,7 @@
   {
    "jour": "2026-08-30",
    "statut": "ok",
-   "annonces": 111,
+   "annonces": 131,
    "message": null
   }
  ],
