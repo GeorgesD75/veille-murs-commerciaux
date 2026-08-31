@@ -99,7 +99,7 @@
   {
    "jour": "2026-08-31",
    "statut": "ok",
-   "annonces": 23,
+   "annonces": 22,
    "message": null
   }
  ],
@@ -827,7 +827,7 @@
   {
    "jour": "2026-08-31",
    "statut": "ok",
-   "annonces": 196,
+   "annonces": 199,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
@@ -931,7 +931,7 @@
   {
    "jour": "2026-08-31",
    "statut": "ok",
-   "annonces": 657,
+   "annonces": 656,
    "message": null
   }
  ],
@@ -1139,8 +1139,8 @@
   {
    "jour": "2026-08-31",
    "statut": "ok",
-   "annonces": 7,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); logic_immo : 15 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+   "annonces": 12,
+   "message": "seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); logic_immo : 18 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1495,7 +1495,7 @@
   {
    "jour": "2026-08-31",
    "statut": "ok",
-   "annonces": 109,
+   "annonces": 96,
    "message": null
   }
  ],
