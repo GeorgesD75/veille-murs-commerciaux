@@ -619,7 +619,7 @@
   {
    "jour": "2026-08-31",
    "statut": "ok",
-   "annonces": 10,
+   "annonces": 9,
    "message": null
   }
  ],
@@ -931,7 +931,7 @@
   {
    "jour": "2026-08-31",
    "statut": "ok",
-   "annonces": 656,
+   "annonces": 655,
    "message": null
   }
  ],
@@ -1139,8 +1139,8 @@
   {
    "jour": "2026-08-31",
    "statut": "ok",
-   "annonces": 12,
-   "message": "seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); logic_immo : 18 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+   "annonces": 9,
+   "message": "seloger_bureaux : 6 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); logic_immo : 15 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1341,8 +1341,8 @@
   {
    "jour": "2026-08-31",
    "statut": "ok",
-   "annonces": 100,
-   "message": null
+   "annonces": 80,
+   "message": "/annonces/page/3/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "latourimmo": [
@@ -1495,7 +1495,7 @@
   {
    "jour": "2026-08-31",
    "statut": "ok",
-   "annonces": 96,
+   "annonces": 116,
    "message": null
   }
  ],
