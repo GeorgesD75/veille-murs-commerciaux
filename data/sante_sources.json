@@ -105,8 +105,8 @@
   {
    "jour": "2026-09-01",
    "statut": "ok",
-   "annonces": 12,
-   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/1/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 21,
+   "message": null
   }
  ],
  "murscommerciaux": [
@@ -435,7 +435,7 @@
   {
    "jour": "2026-09-01",
    "statut": "ok",
-   "annonces": 1,
+   "annonces": 0,
    "message": null
   }
  ],
@@ -655,7 +655,7 @@
   {
    "jour": "2026-09-01",
    "statut": "ok",
-   "annonces": 9,
+   "annonces": 13,
    "message": null
   }
  ],
@@ -765,7 +765,7 @@
   {
    "jour": "2026-09-01",
    "statut": "ok",
-   "annonces": 25,
+   "annonces": 18,
    "message": null
   }
  ],
@@ -876,7 +876,7 @@
    "jour": "2026-09-01",
    "statut": "ok",
    "annonces": 199,
-   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+   "message": "/vente/local-commercial/puteaux-92800/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/puteaux-92800/; garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -985,7 +985,7 @@
   {
    "jour": "2026-09-01",
    "statut": "ok",
-   "annonces": 671,
+   "annonces": 679,
    "message": null
   }
  ],
@@ -1205,8 +1205,8 @@
   {
    "jour": "2026-09-01",
    "statut": "ok",
-   "annonces": 8,
-   "message": "logic_immo : 15 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+   "annonces": 12,
+   "message": "leboncoin : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); seloger_bureaux : 3 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); logic_immo : 17 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1585,7 +1585,7 @@
   {
    "jour": "2026-09-01",
    "statut": "ok",
-   "annonces": 112,
+   "annonces": 134,
    "message": null
   }
  ],
