@@ -804,8 +804,12 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
       <div class="filtre"><label for="f-nouv">Fraîcheur</label>
         <label style="font-size:14px;color:var(--encre-1);padding:6px 0"><input id="f-nouv" type="checkbox"> Nouveautés seulement</label></div>
       <div class="profil-groupe" title="Votre profil de financement : il recalcule tous les cash-flows du site.">
-        <div class="filtre"><label for="p-apport">Mon apport (%)</label>
-          <input id="p-apport" type="number" min="0" max="90" step="5"></div>
+        <div class="filtre"><label for="p-apport">Mon apport
+          <select id="p-apport-mode" title="En % : l'apport suit le prix de chaque bien (comparable d'une annonce à l'autre). En € : une somme fixe, la même partout — plus concret quand on raisonne à partir de son épargne disponible.">
+            <option value="pct">en %</option>
+            <option value="euros">en €</option>
+          </select></label>
+          <input id="p-apport" type="number" min="0" step="5"></div>
         <div class="filtre"><label for="p-taux">Mon taux (%)</label>
           <input id="p-taux" type="number" min="0.1" max="10" step="0.1"></div>
         <div class="filtre"><label for="p-duree">Durée crédit (ans)
@@ -942,7 +946,12 @@ const CLE_MASQUEES = "veille-murs-masquees";
 // (config scoring.financement.apport_reference_pct) — sans ça, le cash-flow
 // affiché à 0 % d'apport contredisait au premier coup d'œil un score qui,
 // lui, jugeait déjà le bien finançable à 20 %.
-const PROFIL_DEFAUT = {apport: 20, taux: D.analyse.financement.taux_pct,
+// apportMode : "pct" (part du coût acte en main) ou "euros" (somme fixe). Le %
+// reste le défaut — il se compare d'un bien à l'autre — mais raisonner « j'ai
+// 80 000 € à mettre, que donne chaque annonce ? » est souvent plus concret :
+// l'épargne disponible, elle, ne varie pas avec le prix du bien.
+const PROFIL_DEFAUT = {apport: 20, apportMode: "pct", apportEuros: 50000,
+                       taux: D.analyse.financement.taux_pct,
                        duree: D.analyse.financement.duree_ans};
 let profil = {...PROFIL_DEFAUT};
 try { profil = {...PROFIL_DEFAUT, ...JSON.parse(localStorage.getItem(CLE_PROFIL) || "{}")}; }
@@ -976,8 +985,11 @@ function rendementNetImpot(a) {
 }
 
 function finTxt() {  // description du financement courant, pour textes et infobulles
-  return (profil.apport > 0 ? `avec ${profil.apport} % d'apport` : "en crédit 100 %")
-    + `, sur ${profil.duree} ans à ${String(profil.taux).replace(".", ",")} %`;
+  const apportTxt = apportEstNul() ? "en crédit 100 %"
+    : (profil.apportMode === "euros"
+        ? `avec ${fmtEuros(profil.apportEuros)} d'apport`
+        : `avec ${profil.apport} % d'apport`);
+  return apportTxt + `, sur ${profil.duree} ans à ${String(profil.taux).replace(".", ",")} %`;
 }
 const LIBELLES_SCORE = {
   rendement: "Rendement", emplacement: "Emplacement",
@@ -1181,13 +1193,31 @@ function taxeFonciereMensuelle(a) {
   return (a.taxe_fonciere_annuelle ?? 0) / 12;
 }
 
+// --- Apport : pourcentage du coût, ou somme fixe en € (cf. PROFIL_DEFAUT) ---
+// Une somme fixe est plafonnée au coût du bien : on ne peut pas apporter plus
+// que ce qu'il coûte (sinon l'emprunt deviendrait négatif et la mensualité
+// absurde sur les biens les moins chers).
+function apportEurosPour(cout) {
+  if (profil.apportMode === "euros")
+    return Math.max(0, Math.min(profil.apportEuros, cout));
+  return cout * profil.apport / 100;
+}
+function apportEstNul() {
+  return profil.apportMode === "euros" ? !(profil.apportEuros > 0) : !(profil.apport > 0);
+}
+function apportLibelle() {  // « 20 % apport » / « 80 000 € apport »
+  return profil.apportMode === "euros"
+    ? `${fmtEuros(profil.apportEuros)} apport` : `${profil.apport} % apport`;
+}
+
 function cashflowMensuel(a) {
   // Coût acte en main (prix × 1,08) financé selon le PROFIL de l'utilisateur
   // (apport, taux, durée) — hors assurance et gestion dans tous les cas ;
   // hors taxe foncière SEULEMENT si l'annonce ne la précise pas.
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   if (loyer == null || a.prix == null) return null;
-  const emprunt = (a.prix * 1.08) * (1 - profil.apport / 100);
+  const cout = a.prix * 1.08;
+  const emprunt = cout - apportEurosPour(cout);
   if (emprunt <= 0) return Math.round(loyer - taxeFonciereMensuelle(a));
   const t = profil.taux / 100 / 12, n = profil.duree * 12;
   const m = emprunt * t / (1 - Math.pow(1 + t, -n));
@@ -1202,10 +1232,13 @@ function apportMinimalCashflowPositif(a) {
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   if (loyer == null || a.prix == null) return null;
   const taxe = taxeFonciereMensuelle(a);
+  const cout = a.prix * 1.08;
   for (const apport of [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]) {
-    const emprunt = (a.prix * 1.08) * (1 - apport / 100);
+    const emprunt = cout * (1 - apport / 100);
     const m = emprunt > 0 ? mensualite(emprunt, profil.taux, profil.duree) : 0;
-    if (loyer - m - taxe >= 0) return apport;
+    // Le seuil est cherché en %, mais rendu AUSSI en € : c'est la somme que
+    // l'acheteur doit réellement sortir, la seule qui se compare à son épargne.
+    if (loyer - m - taxe >= 0) return {pct: apport, euros: Math.round(cout * apport / 100)};
   }
   return null;  // jamais positif, même à 90 % d'apport
 }
@@ -1221,9 +1254,9 @@ function faitsClesHtml(a) {
 
   const apportMin = apportMinimalCashflowPositif(a);
   if (apportMin != null)
-    faits.push(["plus", apportMin === 0
+    faits.push(["plus", apportMin.pct === 0
       ? `Cash-flow positif même en crédit 100 % (${finTxt()}).`
-      : `Cash-flow positif dès un apport de ${apportMin} % (${finTxt()}).`]);
+      : `Cash-flow positif dès un apport de ${apportMin.pct} % — ${fmtEuros(apportMin.euros)} (${finTxt()}).`]);
 
   if (a.rue_categorie === "tres_commercante")
     faits.push(["plus", `Local situé dans une rue mesurée à forte fréquentation (${a.rue_nb_commerces} commerces actifs à 150 m).`]);
@@ -1323,7 +1356,7 @@ function enClairHtml(a) {
   } else if (cf >= 0) {
     phrases.push(`Financé ${finTxt()}, le loyer en place paie le crédit et laisse ≈ ${fmtEuros(cf)}/mois, avant taxe foncière et impôts.`);
   } else {
-    phrases.push(`Financé ${finTxt()}, le loyer en place ne couvre pas tout : ≈ ${fmtEuros(-cf)}/mois à sortir de votre poche${profil.apport > 0 ? "" : " — un apport ou une négociation réduit cet effort"}.`);
+    phrases.push(`Financé ${finTxt()}, le loyer en place ne couvre pas tout : ≈ ${fmtEuros(-cf)}/mois à sortir de votre poche${apportEstNul() ? " — un apport ou une négociation réduit cet effort" : ""}.`);
   }
   // La rue MESURÉE (quand connue) prime sur le classement administratif : plus
   // précise, elle répond directement à « est-ce un coin sûr ou pas net ? ».
@@ -1697,7 +1730,7 @@ function carteHtml(a, options) {
     ["Loyer/mois", loyer == null ? "—" : fmtEuros(loyer) + est + loyerInfo],
     ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "") + rdtBrutInfo],
     ["Rdt acte en main", fmtPct(a.rendement_acte_en_main_pct) + rdtActeInfo],
-    [profil.apport > 0 ? `Cash-flow (${profil.apport} % apport)` : "Cash-flow crédit 100 %", cfHtml],
+    [apportEstNul() ? "Cash-flow crédit 100 %" : `Cash-flow (${apportLibelle()})`, cfHtml],
     ["Trajet", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min"],
   ].concat(fiscal ? [[fiscal.libelle, fiscalHtml]] : []).map(([l, v]) =>
     `<div class="metrique"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
@@ -2050,13 +2083,15 @@ function mensualite(capital, tauxPct, ans) {
 // Le simulateur s'ouvre sur EXACTEMENT le même calcul que la métrique
 // cash-flow de la carte : le PROFIL de l'utilisateur (apport, taux, durée).
 let simId = null;
-let simEtat = {prix: 0, apport: profil.apport, taux: profil.taux, duree: profil.duree};
+let simEtat = {prix: 0, apport: profil.apport, apportMode: profil.apportMode,
+               apportEuros: profil.apportEuros, taux: profil.taux, duree: profil.duree};
 
 function ouvrirSimulateur(id) {
   const a = D.retenues.find(x => x.id === id);
   if (!a || a.prix == null) return;
   simId = id;
   simEtat = {prix: Math.round(a.prix), apport: profil.apport,
+             apportMode: profil.apportMode, apportEuros: profil.apportEuros,
              taux: profil.taux, duree: profil.duree};
   rendreSimulateur();
   document.getElementById("outil-fond").style.display = "block";
@@ -2067,7 +2102,9 @@ function rendreSimulateur() {
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   const taxe = taxeFonciereMensuelle(a);
   const cout = simEtat.prix * 1.08;
-  const apportEuros = Math.round(cout * simEtat.apport / 100);
+  const apportEuros = simEtat.apportMode === "euros"
+    ? Math.round(Math.max(0, Math.min(simEtat.apportEuros, cout)))  // jamais plus que le bien
+    : Math.round(cout * simEtat.apport / 100);
   const emprunt = Math.max(0, cout - apportEuros);
   const m = emprunt > 0 ? mensualite(emprunt, simEtat.taux, simEtat.duree) : 0;
   const cf = loyer != null ? Math.round(loyer - m - taxe) : null;
@@ -2100,7 +2137,9 @@ function rendreSimulateur() {
     <h3>${IC.calc} Financer — ${ech(a.titre)}</h3>
     <div class="sim-champs">
       <label>Prix négocié (€)<input type="number" step="5000" min="0" value="${simEtat.prix}" data-sim-champ="prix"></label>
-      <label>Apport (%) — 0 = crédit 100 %<input type="number" step="5" min="0" max="100" value="${simEtat.apport}" data-sim-champ="apport"></label>
+      ${simEtat.apportMode === "euros"
+        ? `<label>Apport (€) — 0 = crédit 100 %<input type="number" step="1000" min="0" value="${simEtat.apportEuros}" data-sim-champ="apportEuros"></label>`
+        : `<label>Apport (%) — 0 = crédit 100 %<input type="number" step="5" min="0" max="100" value="${simEtat.apport}" data-sim-champ="apport"></label>`}
       <label>Taux (%)<input type="number" step="0.1" min="0.5" max="8" value="${simEtat.taux}" data-sim-champ="taux"></label>
       <label>Durée (ans)<input type="number" step="1" min="5" max="27" value="${simEtat.duree}" data-sim-champ="duree"></label>
     </div>
@@ -2204,7 +2243,12 @@ function rendreChecklist() {
 document.addEventListener("change", ev => {
   const champ = ev.target.closest("[data-sim-champ]");
   if (champ) {
-    simEtat[champ.dataset.simChamp] = parseFloat(champ.value) || simEtat[champ.dataset.simChamp];
+    // `|| ancienneValeur` serait un piège ici : 0 est falsy, or « 0 » est une
+    // saisie LÉGITIME et explicitement proposée (« 0 = crédit 100 % ») — elle
+    // revenait silencieusement à l'ancienne valeur. Seul un champ vide ou
+    // illisible (NaN) doit être ignoré.
+    const v = parseFloat(champ.value);
+    if (!isNaN(v)) simEtat[champ.dataset.simChamp] = v;
     rendreSimulateur();
     return;
   }
@@ -2776,8 +2820,35 @@ function initialiser() {
   listeDep.addEventListener("input", rendre);
 
   // Profil de financement : chaque changement recalcule tout le site.
-  const BORNES = {apport: [0, 90], taux: [0.1, 10], duree: [5, 30]};
-  for (const [id, cle] of [["p-apport", "apport"], ["p-taux", "taux"], ["p-duree", "duree"]]) {
+  // L'apport a deux unités : le champ #p-apport pilote `apport` (%) ou
+  // `apportEuros` (€) selon le mode — bornes et pas de saisie s'adaptent.
+  const BORNES = {apport: [0, 90], apportEuros: [0, 100000000], taux: [0.1, 10], duree: [5, 30]};
+  const champApport = document.getElementById("p-apport");
+  const champApportMode = document.getElementById("p-apport-mode");
+  const cleApport = () => (profil.apportMode === "euros" ? "apportEuros" : "apport");
+  function rafraichirChampApport() {
+    const euros = profil.apportMode === "euros";
+    champApportMode.value = profil.apportMode;
+    champApport.step = euros ? 1000 : 5;
+    champApport.max = euros ? "" : 90;
+    champApport.value = profil[cleApport()];
+  }
+  rafraichirChampApport();
+  champApportMode.addEventListener("change", () => {
+    profil.apportMode = champApportMode.value === "euros" ? "euros" : "pct";
+    rafraichirChampApport();
+    localStorage.setItem(CLE_PROFIL, JSON.stringify(profil));
+    rendre();
+  });
+  champApport.addEventListener("input", () => {
+    const v = parseFloat(champApport.value);
+    if (isNaN(v)) return;                       // champ vidé : on garde l'ancien
+    const [min, max] = BORNES[cleApport()];
+    profil[cleApport()] = Math.max(min, Math.min(max, v));
+    localStorage.setItem(CLE_PROFIL, JSON.stringify(profil));
+    rendre();
+  });
+  for (const [id, cle] of [["p-taux", "taux"], ["p-duree", "duree"]]) {
     const champ = document.getElementById(id);
     champ.value = profil[cle];
     champ.addEventListener("input", () => {
@@ -2792,7 +2863,8 @@ function initialiser() {
   document.getElementById("p-reset").addEventListener("click", () => {
     profil = {...PROFIL_DEFAUT};
     localStorage.removeItem(CLE_PROFIL);
-    for (const [id, cle] of [["p-apport", "apport"], ["p-taux", "taux"], ["p-duree", "duree"]])
+    rafraichirChampApport();
+    for (const [id, cle] of [["p-taux", "taux"], ["p-duree", "duree"]])
       document.getElementById(id).value = profil[cle];
     rendre();
   });
