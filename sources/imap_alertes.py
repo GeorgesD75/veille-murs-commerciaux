@@ -34,7 +34,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Callable
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -310,6 +310,9 @@ class SourceImap(Source):
         # cours — remis à zéro par collecter() avant chaque message, lu juste
         # après pour décider s'il faut annuler le \Seen (cf. collecter()).
         self.budget_epuise = False
+        # Hôtes des liens du dernier message dont rien n'a pu être extrait :
+        # renseigné par extraire_message, lu par collecter pour l'avertissement.
+        self.liens_non_reconnus: list[str] = []
 
     def _depuis(self) -> str:
         quand = datetime.now() - timedelta(days=self.jours_max)
@@ -369,6 +372,35 @@ class SourceImap(Source):
             return reponse.headers.get("Location")
         return None
 
+    def diagnostiquer_liens(self, html: str, maximum: int = 3) -> list[str]:
+        """Hôtes des liens situés dans un bloc à prix — donc les liens qui
+        MÈNENT probablement à une annonce.
+
+        Sert à diagnostiquer un motif_lien caduc sans devoir se faire
+        transférer un vrai message : la tournée suivante dit d'elle-même à
+        quoi ressemblent les liens. Deviner un motif sans preuve a déjà coûté
+        cher (domaine IAD inventé le 2026-08-29, faux jusqu'au premier vrai
+        message reçu) — ici la preuve vient toute seule. Un hôte de tracking
+        (click.…, mail.…, redirect.…) au lieu du domaine du portail signe un
+        lien opaque : c'est via_redirection=True qu'il faut activer.
+        """
+        soup = BeautifulSoup(html, "html.parser")
+        hotes: dict[str, int] = {}
+        for lien in soup.find_all("a", href=True):
+            bloc = _bloc_annonce(lien)
+            # Un lien SANS prix à proximité (désabonnement, mentions légales…)
+            # fait remonter _bloc_annonce jusqu'à <body>, qui contient les prix
+            # des AUTRES annonces : le test « € dans le bloc » y répond vrai à
+            # tort. On écarte donc ce cas — pour un diagnostic, une piste fausse
+            # coûte plus cher qu'une piste manquante.
+            if bloc.name in ("body", "html") or "€" not in bloc.get_text():
+                continue
+            hote = urlparse(str(lien["href"])).netloc.lower()
+            if hote:
+                hotes[hote] = hotes.get(hote, 0) + 1
+        classes = sorted(hotes.items(), key=lambda kv: (-kv[1], kv[0]))
+        return [f"{hote} ×{n}" for hote, n in classes[:maximum]]
+
     def extraire_message(self, message: email.message.EmailMessage) -> tuple[Portail | None, list[AnnonceBrute]]:
         partie = message.get_body(preferencelist=("html", "plain"))
         if partie is None:
@@ -377,7 +409,13 @@ class SourceImap(Source):
         portail = identifier_portail(str(message.get("From", "")), html)
         if portail is None:
             return None, []
-        return portail, extraire_annonces_html(html, portail, resoudre_redirection=self._resoudre_redirection)
+        trouvees = extraire_annonces_html(
+            html, portail, resoudre_redirection=self._resoudre_redirection
+        )
+        # Rien extrait : on garde à quoi ressemblaient les liens, pour que
+        # l'avertissement de la tournée dise QUOI corriger (cf. diagnostiquer_liens).
+        self.liens_non_reconnus = self.diagnostiquer_liens(html) if not trouvees else []
+        return portail, trouvees
 
     def collecter(self) -> list[AnnonceBrute]:
         utilisateur = os.environ.get("IMAP_USER")
@@ -401,6 +439,9 @@ class SourceImap(Source):
         # signalé 7 échecs le jour même où il fonctionnait déjà par ailleurs).
         portails_sans_extraction: dict[str, int] = {}
         portails_budget_epuise: dict[str, int] = {}
+        # Portail -> hôtes des liens vus dans ses messages illisibles : c'est
+        # la PREUVE de ce qu'il faut corriger, remontée dans l'avertissement.
+        portails_liens_vus: dict[str, dict[str, None]] = {}
         with imaplib.IMAP4_SSL(self.hote) as boite:
             boite.login(utilisateur, mot_de_passe)
             dossier = self._dossier_a_chercher(boite)
@@ -458,14 +499,22 @@ class SourceImap(Source):
                             # d'accumulation sans fin : cette fenêtre les fait
                             # sortir naturellement au bout de jours_max.
                             boite.store(numero, "-FLAGS", "\\Seen")
+                            vus = portails_liens_vus.setdefault(portail.nom, {})
+                            for hote in self.liens_non_reconnus:
+                                vus.setdefault(hote, None)
                     for annonce in trouvees:
                         annonces.setdefault(f"{annonce.source}:{annonce.id_source}", annonce)
                 except Exception as exc:  # noqa: BLE001 — un email illisible n'arrête rien
                     self.avertissements.append(f"email illisible ({message.get('Subject')}) : {exc}")
         for nom_portail, total in portails_sans_extraction.items():
+            # Les hôtes réellement rencontrés valent mieux qu'un « à revoir »
+            # sans piste : un hôte de tracking (click.…, mail.…) au lieu du
+            # domaine du portail = liens opaques, il faut via_redirection=True.
+            liens = list(portails_liens_vus.get(nom_portail, {}))
+            piste = f" — liens vus : {', '.join(liens)}" if liens else ""
             self.avertissements.append(
                 f"{nom_portail} : {total} email(s) lu(s) mais aucune annonce reconnue "
-                "(motif de lien probablement à revoir sur un vrai message)"
+                f"(motif de lien à revoir){piste}"
             )
         for nom_portail, total in portails_budget_epuise.items():
             self.avertissements.append(

@@ -59,6 +59,30 @@ def test_bienici_alerte_matche_le_domaine_reel():
     assert identifier_portail("Bien'ici <no_reply@bienici.com>", "").nom == "bienici_alerte"
 
 
+def test_tous_les_expediteurs_reellement_recus_sont_reconnus():
+    """Les 6 expéditeurs RÉELS relevés dans la boîte de l'utilisateur
+    (2026-09-01). Deviner un domaine a déjà coûté cher (iadfrance.fr inventé,
+    faux) : cette liste est une vérité constatée, pas une hypothèse — elle
+    garde la reconnaissance d'expéditeur à l'abri d'une régression.
+
+    Elle prouve aussi où N'EST PAS le problème : SeLoger Bureaux est bien
+    identifié, donc ses alertes sont lues — si rien n'en sort, c'est le motif
+    de LIEN qui est en cause, jamais l'expéditeur.
+    """
+    attendus = {
+        "SeLoger Bureaux & Commerces <alertes@annonces.seloger-bureaux-commerces.com>": "seloger_bureaux",
+        "SeLoger <annonces@alertes.seloger.com>": "seloger_bureaux",
+        "Bien'ici <no_reply@bienici.com>": "bienici_alerte",
+        "LogicImmo <annonces@alertes.logic-immo.com>": "logic_immo",
+        "iad France <no-reply@notif.iadinternational.com>": "iad",
+        "leboncoin <no.reply@leboncoin.fr>": "leboncoin",
+    }
+    for expediteur, portail_attendu in attendus.items():
+        portail = identifier_portail(expediteur, "")
+        assert portail is not None, f"expéditeur réel non reconnu : {expediteur}"
+        assert portail.nom == portail_attendu, expediteur
+
+
 def test_motif_lien_bienici_alerte_structure_reelle():
     portail = next(p for p in PORTAILS if p.nom == "bienici_alerte")
     href = "https://www.bienici.com/annonce/abc123def456"
@@ -252,6 +276,27 @@ def test_budget_de_temps_demarre_a_la_premiere_resolution(monkeypatch):
     monkeypatch.setattr("sources.imap_alertes.time.monotonic", lambda: 1000.0)
     assert source._temps_redirection_ecoule() is False  # démarre le chrono, ne coupe pas
     assert source._debut_redirections == 1000.0
+
+
+def test_diagnostiquer_liens_revele_un_routeur_de_tracking():
+    """Sans preuve, on ne peut pas savoir POURQUOI un motif ne matche pas.
+    Ce diagnostic remonte les hôtes des liens situés dans un bloc à prix :
+    un hôte de tracking au lieu du domaine du portail = liens opaques, donc
+    via_redirection=True à activer. La preuve arrive ainsi toute seule, sans
+    devoir se faire transférer un vrai message."""
+    html = """<html><body>
+      <div><a href="https://click.email.seloger.com/?qs=OPAQUE1">Voir</a><p>250 000 €</p></div>
+      <div><a href="https://click.email.seloger.com/?qs=OPAQUE2">Voir</a><p>310 000 €</p></div>
+      <div><a href="https://www.seloger.com/mentions-legales">Mentions</a></div>
+    </body></html>"""
+    hotes = SourceImap().diagnostiquer_liens(html)
+    # Le lien hors bloc à prix (mentions légales) est ignoré : on ne veut que
+    # les liens qui mènent PROBABLEMENT à une annonce.
+    assert hotes == ["click.email.seloger.com ×2"]
+
+
+def test_diagnostiquer_liens_vide_si_aucun_lien_a_prix():
+    assert SourceImap().diagnostiquer_liens("<html><body>rien</body></html>") == []
 
 
 def test_resoudre_redirection_renvoie_none_hors_redirection(monkeypatch):
