@@ -73,11 +73,11 @@ PORTAILS: list[Portail] = [
     ),
     Portail(
         "seloger_bureaux", ("seloger", "bureauxlocaux.com"),
-        re.compile(r"https?://(?:www\.)?(?:seloger[a-z-]*\.com|bureauxlocaux\.com)/[^\s\"'<>]*?(\d{5,})"),
+        re.compile(r"https?://(?:www\.)?(?:seloger[a-z-]*\.com|bureauxlocaux\.com)/[^\s\"'<>]*(?<!\d)(\d{5,})(?!\d)"),
     ),
     Portail(
         "geolocaux", ("geolocaux.com",),
-        re.compile(r"https?://(?:www\.)?geolocaux\.com/[^\s\"'<>]*?(\d{4,})"),
+        re.compile(r"https?://(?:www\.)?geolocaux\.com/[^\s\"'<>]*(?<!\d)(\d{4,})(?!\d)"),
     ),
     # Les deux ci-dessous restent NON VÉRIFIÉS (motifs de lien devinés faute
     # d'avoir reçu un vrai message) — recommandés le 2026-08-22 : gros volume
@@ -103,7 +103,7 @@ PORTAILS: list[Portail] = [
     ),
     Portail(
         "avendrealouer", ("avendrealouer.fr",),
-        re.compile(r"https?://(?:www\.)?avendrealouer\.fr/[^\s\"'<>]*?(\d{5,})"),
+        re.compile(r"https?://(?:www\.)?avendrealouer\.fr/[^\s\"'<>]*(?<!\d)(\d{5,})(?!\d)"),
     ),
     # Idem non vérifiés — alertes créées par l'utilisateur le 2026-08-22.
     Portail(
@@ -119,13 +119,13 @@ PORTAILS: list[Portail] = [
         # iadfrance.fr/redirect/property?propertyListingRef=<id numérique>,
         # que le motif ci-dessous reconnaît déjà une fois résolu).
         "iad", ("iadfrance.fr", "iadinternational.com"),
-        re.compile(r"https?://(?:www\.)?(?:iadfrance\.fr|[a-z0-9.-]*iadinternational\.com)/[^\s\"'<>]*?(\d{5,})"),
+        re.compile(r"https?://(?:www\.)?(?:iadfrance\.fr|[a-z0-9.-]*iadinternational\.com)/[^\s\"'<>]*(?<!\d)(\d{5,})(?!\d)"),
     ),
     Portail(
         # Distinct de papcommerces.fr (déjà scrapé directement, source séparée) :
         # pap.fr est le site généraliste PAP, alertes propres.
         "pap", ("pap.fr",),
-        re.compile(r"https?://(?:www\.)?pap\.fr/[^\s\"'<>]*?(\d{5,})"),
+        re.compile(r"https?://(?:www\.)?pap\.fr/[^\s\"'<>]*(?<!\d)(\d{5,})(?!\d)"),
     ),
     Portail(
         # Expéditeur réel (2026-08-23) : no_reply@bienici.com. Probablement

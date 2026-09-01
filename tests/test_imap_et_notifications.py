@@ -206,6 +206,47 @@ def test_extraction_via_redirection_logic_immo_uniquement_dans_un_bloc_a_prix():
     assert annonces_logo == []
 
 
+def test_identifiant_extrait_n_est_jamais_le_code_postal():
+    """Un code postal français fait EXACTEMENT 5 chiffres, et les URLs immo le
+    portent presque toujours dans leur slug, AVANT l'identifiant. Les motifs
+    non gourmands `[^…]*?(\\d{5,})` retenaient donc le premier groupe trouvé —
+    le code postal — au lieu de l'annonce.
+
+    Conséquence, silencieuse et grave : id_source devenait le code postal, donc
+    toutes les annonces d'un même secteur s'écrasaient les unes les autres
+    (l'extraction déduplique par id_source). Un quartier entier se serait
+    réduit à une seule annonce, sans erreur ni avertissement.
+    """
+    attendus = [
+        ("seloger_bureaux",
+         "https://www.seloger-bureaux-commerces.com/annonce/local-75018-987654321", "987654321"),
+        ("pap",
+         "https://www.pap.fr/annonce/locaux-commerciaux-paris-18e-75018-r123456789", "123456789"),
+        ("avendrealouer",
+         "https://www.avendrealouer.fr/local/paris-18-75018/vente-654321987.html", "654321987"),
+    ]
+    for nom, url, identifiant in attendus:
+        portail = next(p for p in PORTAILS if p.nom == nom)
+        trouve = portail.motif_lien.search(url)
+        assert trouve is not None, f"{nom} ne reconnaît plus une URL valide"
+        assert trouve.group(1) == identifiant, f"{nom} : code postal pris pour l'identifiant"
+
+
+def test_deux_annonces_du_meme_code_postal_ne_s_ecrasent_pas():
+    """Conséquence concrète du test précédent, bout en bout."""
+    portail = next(p for p in PORTAILS if p.nom == "seloger_bureaux")
+    html = (
+        "<html><body>"
+        '<div><a href="https://www.seloger.com/annonce/local-75018-111111111">A</a>'
+        "<p>Local Paris 75018 - 250 000 €</p></div>"
+        '<div><a href="https://www.seloger.com/annonce/local-75018-222222222">B</a>'
+        "<p>Local Paris 75018 - 310 000 €</p></div>"
+        "</body></html>"
+    )
+    annonces = extraire_annonces_html(html, portail)
+    assert {a.id_source for a in annonces} == {"111111111", "222222222"}
+
+
 def test_liens_opaques_resolus_pour_un_portail_non_marque_d_avance():
     """LE correctif du 2026-09-02. Auparavant la résolution n'était tentée que
     pour les portails cochés `via_redirection=True` — un drapeau qu'il fallait
