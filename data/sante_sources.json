@@ -107,6 +107,12 @@
    "statut": "ok",
    "annonces": 21,
    "message": null
+  },
+  {
+   "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 12,
+   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/2/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -214,6 +220,12 @@
   },
   {
    "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
+  },
+  {
+   "jour": "2026-09-02",
    "statut": "ok",
    "annonces": 16,
    "message": null
@@ -327,6 +339,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "flagship": [
@@ -434,6 +452,12 @@
   },
   {
    "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
+  },
+  {
+   "jour": "2026-09-02",
    "statut": "ok",
    "annonces": 0,
    "message": null
@@ -547,6 +571,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "bienici": [
@@ -657,6 +687,12 @@
    "statut": "ok",
    "annonces": 15,
    "message": null
+  },
+  {
+   "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 20,
+   "message": null
   }
  ],
  "cessionpme": [
@@ -764,6 +800,12 @@
   },
   {
    "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 26,
+   "message": null
+  },
+  {
+   "jour": "2026-09-02",
    "statut": "ok",
    "annonces": 26,
    "message": null
@@ -877,6 +919,12 @@
    "statut": "ok",
    "annonces": 199,
    "message": "/vente/local-commercial/puteaux-92800/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/puteaux-92800/; garde-fou de 90 requêtes atteint : collecte partielle"
+  },
+  {
+   "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 199,
+   "message": "/vente/local-commercial/puteaux-92800/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/puteaux-92800/; garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -987,6 +1035,12 @@
    "statut": "ok",
    "annonces": 683,
    "message": null
+  },
+  {
+   "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 682,
+   "message": null
   }
  ],
  "notaires": [
@@ -1094,6 +1148,12 @@
   },
   {
    "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 2,
+   "message": null
+  },
+  {
+   "jour": "2026-09-02",
    "statut": "ok",
    "annonces": 2,
    "message": null
@@ -1207,6 +1267,12 @@
    "statut": "ok",
    "annonces": 11,
    "message": "seloger_bureaux : 3 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); logic_immo : 35 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 2 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+  },
+  {
+   "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 10,
+   "message": "logic_immo : 9 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1317,6 +1383,12 @@
    "statut": "ok",
    "annonces": 0,
    "message": null
+  },
+  {
+   "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
   }
  ],
  "iccinvest": [
@@ -1421,6 +1493,12 @@
    "statut": "ok",
    "annonces": 100,
    "message": null
+  },
+  {
+   "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 60,
+   "message": "/annonces/page/3/ : HTTPSConnectionPool(host='www.iccinvest.com', port=443): Read timed out. (read timeout=30); /annonces/page/4/ : HTTPSConnectionPool(host='www.iccinvest.com', port=443): Read timed out. (read timeout=30)"
   }
  ],
  "latourimmo": [
@@ -1525,6 +1603,12 @@
    "statut": "ok",
    "annonces": 11,
    "message": null
+  },
+  {
+   "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 11,
+   "message": null
   }
  ],
  "orpi": [
@@ -1587,6 +1671,12 @@
    "statut": "ok",
    "annonces": 133,
    "message": null
+  },
+  {
+   "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 95,
+   "message": null
   }
  ],
  "arthurloyd": [
@@ -1646,6 +1736,12 @@
   },
   {
    "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 18,
+   "message": null
+  },
+  {
+   "jour": "2026-09-02",
    "statut": "ok",
    "annonces": 18,
    "message": null
