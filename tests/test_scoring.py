@@ -449,6 +449,65 @@ def test_rendement_inconnu_plafonne_aussi(config):
     assert "rendement_sous_objectif" in a.flags
 
 
+# --- Garde-fou de la pépite : l'urgence exige un loyer fiable ---
+
+
+def _annonce_calibre_pepite():
+    """Dossier excellent partout : sans garde-fou il dépasse le seuil pépite."""
+    a = faire_annonce(ville="Paris 18e", code_postal="75018", departement="75")
+    a.rendement_brut_pct = 9.0
+    a.position_benchmark = "decote_forte"
+    a.temps_trajet_min = 10
+    return a
+
+
+def test_pepite_refusee_sur_un_loyer_estime_au_benchmark(config):
+    # Moyenne de zone : assez pour classer, pas pour un email « tout de suite ».
+    a = _annonce_calibre_pepite()
+    a.loyer_estime = True
+    a.loyer_confiance = "benchmark"
+    scorer(a, config)
+    assert "pepite_sur_loyer_estime" in a.flags
+    assert a.score == config.scoring["seuils"]["pepite"] - 1
+
+
+def test_pepite_refusee_sur_une_promesse_de_vendeur(config):
+    # Murs libres, loyer annoncé par le vendeur : aucune confiance renseignée.
+    a = _annonce_calibre_pepite()
+    a.loyer_estime = True
+    a.loyer_confiance = None
+    scorer(a, config)
+    assert "pepite_sur_loyer_estime" in a.flags
+
+
+def test_pepite_autorisee_sur_des_baux_reels_voisins(config):
+    # « comparables » = ≥ 2 baux RÉELS voisins : signal assez solide pour l'urgence.
+    a = _annonce_calibre_pepite()
+    a.loyer_estime = True
+    a.loyer_confiance = "comparables"
+    scorer(a, config)
+    assert "pepite_sur_loyer_estime" not in a.flags
+
+
+def test_pepite_autorisee_sur_un_bail_en_place(config):
+    a = _annonce_calibre_pepite()
+    a.loyer_estime = False
+    scorer(a, config)
+    assert "pepite_sur_loyer_estime" not in a.flags
+
+
+def test_loyer_estime_sous_le_seuil_pepite_non_plafonne(config):
+    """Le garde-fou ne doit RIEN changer aux annonces déjà sous le seuil :
+    elles restent visibles et classées exactement comme avant."""
+    a = faire_annonce()
+    a.rendement_brut_pct = 7.2
+    a.loyer_estime = True
+    a.loyer_confiance = "benchmark"
+    scorer(a, config)
+    assert a.score < config.scoring["seuils"]["pepite"]
+    assert "pepite_sur_loyer_estime" not in a.flags
+
+
 def test_ville_banlieue_avec_cp_parisien_jugee_par_la_ville(config):
     """CP parisien + ville de banlieue = souvent le CP de l'agence : le bien est
     scoré comme sa VILLE (emplacement et échelle de rendement), et signalé."""

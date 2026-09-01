@@ -211,6 +211,24 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
         plafond = int(cfg["seuils"].get("affichage", cfg["seuils"]["orange"])) - 1
         annonce.score = min(annonce.score, plafond)
 
+    # Le rendement pèse 37 pts — le plus gros poste — mais il est calculé sur un
+    # loyer ESTIMÉ pour 80 % des annonces (mesuré sur le stock réel le
+    # 2026-09-01). Tant que cette estimation vaut une moyenne de zone (ou une
+    # promesse de vendeur sur des murs libres), elle suffit à CLASSER, pas à
+    # déclencher une alerte « tout de suite » : 6 des 7 pépites reposaient
+    # dessus. La pénalité de points (penalite_loyer_estime) ne suffisait pas —
+    # elle se laisse compenser par l'emplacement et la décote. Même logique que
+    # rendement_sous_objectif ci-dessous : plafonné, jamais masqué.
+    if (
+        cfg["seuils"].get("pepite_exige_loyer_fiable")
+        and annonce.loyer_estime
+        and annonce.loyer_confiance != "comparables"
+    ):
+        plafond_pepite = int(cfg["seuils"]["pepite"]) - 1
+        if annonce.score > plafond_pepite:
+            annonce.flags.append("pepite_sur_loyer_estime")
+            annonce.score = plafond_pepite
+
     rendement_min_vert = cfg["seuils"].get("rendement_minimum_vert")
     if rendement_min_vert is not None and (
         annonce.rendement_brut_pct is None

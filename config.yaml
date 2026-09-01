@@ -195,6 +195,18 @@ scoring:
                               # rendement brut ne peut PAS entrer au haut du panier, quel que
                               # soit son score — le projet vit du cash-flow, pas des points
                               # d'emplacement. Plafonné juste sous « vert », badge explicatif.
+    pepite_exige_loyer_fiable: true
+                              # Garde-fou ajouté le 2026-09-01 après mesure sur 514 annonces
+                              # réelles : 6 des 7 pépites (85 %) reposaient sur un loyer
+                              # ESTIMÉ au signal le plus faible (moyenne de zone, ou simple
+                              # promesse du vendeur sur murs libres) — jamais un bail. Or la
+                              # pépite déclenche un email « tout de suite » : l'urgence doit
+                              # être adossée à un loyer réel (bail en place) ou, à défaut, à
+                              # ≥ 2 baux RÉELS voisins (confiance « comparables »). Une simple
+                              # moyenne de zone reste un bon signal de tri, pas un signal
+                              # d'urgence. Le bien reste visible et bien classé — seulement
+                              # plafonné juste sous « pépite ». Mettre à false pour revenir
+                              # au comportement précédent.
     orange: 60
     affichage: 65             # sous ce score, l'annonce est repliée dans « le reste du marché »
                               # (65 : « à étudier de près » ne montre pas de dossiers médiocres)

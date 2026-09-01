@@ -1632,6 +1632,8 @@ function carteHtml(a, options) {
     badges.push(`<span class="badge badge-alerte" title="Le nom de ville (banlieue) et le code postal (parisien) se contredisent — c'est souvent le code postal de l'AGENCE, pas du bien. L'emplacement a été noté d'après la ville, plus fiable ; vérifiez l'adresse réelle avant toute démarche.">${IC.alerte} localisation à vérifier</span>`);
   if ((a.flags || []).includes("rendement_sous_objectif"))
     badges.push(`<span class="badge badge-type" title="Rendement brut sous votre objectif de ${D.analyse.rendement_cible_pct} % : quel que soit le reste du dossier, ce bien ne peut pas entrer au haut du panier — les points d'emplacement ne paient pas un crédit. Il reste visible ici, et une négociation du prix peut changer la donne.">rendement sous objectif</span>`);
+  if ((a.flags || []).includes("pepite_sur_loyer_estime"))
+    badges.push(`<span class="badge badge-type" title="Le score de ce bien reposait sur un loyer ESTIMÉ à partir d'une moyenne de zone (ou d'un loyer annoncé par le vendeur sur des murs libres) — jamais un bail signé. C'est assez solide pour bien le classer, pas pour déclencher une alerte « pépite » : son score est donc plafonné juste sous ce seuil. Faites confirmer le loyer réellement praticable, et ce bien peut redevenir un dossier de tête.">score plafonné · loyer à confirmer</span>`);
   if (cf != null && cf >= 0 && !suspect) {
     const reel = a.loyer_mensuel != null && !a.loyer_estime;
     const taxeTxt = a.taxe_fonciere_annuelle != null
