@@ -206,9 +206,60 @@ def test_extraction_via_redirection_logic_immo_uniquement_dans_un_bloc_a_prix():
     assert annonces_logo == []
 
 
+def test_liens_opaques_resolus_pour_un_portail_non_marque_d_avance():
+    """LE correctif du 2026-09-02. Auparavant la résolution n'était tentée que
+    pour les portails cochés `via_redirection=True` — un drapeau qu'il fallait
+    renseigner À L'AVANCE, donc après avoir disséqué un vrai message. Impasse
+    exacte de seloger_bureaux : 10 alertes lues, 0 annonce, et aucun moyen de
+    savoir pourquoi sans échantillon. Désormais l'essai est fait dès que le
+    motif direct échoue : la question se tranche à l'exécution.
+
+    Ce test reproduit le cas SeLoger : lien de tracking opaque, portail jamais
+    marqué comme redirigé. Avant le correctif il rendait 0 annonce.
+    """
+    portail = next(p for p in PORTAILS if p.nom == "seloger_bureaux")
+    appels: list[str] = []
+
+    def resoudre_factice(href: str) -> str | None:
+        appels.append(href)
+        return "https://www.seloger.com/annonces/locaux-commerciaux/vente/paris-18/123456789.htm"
+
+    html = (
+        "<html><body><div>"
+        '<a href="https://click.email.seloger.com/?qs=JETON_OPAQUE">Voir l\'annonce</a>'
+        "<p>Local commercial Paris 75018 - 250 000 €</p>"
+        "</div></body></html>"
+    )
+    annonces = extraire_annonces_html(html, portail, resoudre_redirection=resoudre_factice)
+    assert appels == ["https://click.email.seloger.com/?qs=JETON_OPAQUE"]
+    assert len(annonces) == 1
+    assert annonces[0].id_source == "123456789"
+    assert annonces[0].source == "alerte_seloger_bureaux"
+
+
+def test_lien_direct_ne_declenche_aucune_resolution():
+    """Contrepartie du test précédent : rendre la résolution universelle ne
+    doit RIEN coûter aux portails à liens directs — leur motif matche, on
+    n'atteint jamais l'appel réseau."""
+    portail = next(p for p in PORTAILS if p.nom == "leboncoin")
+    appels: list[str] = []
+
+    html = (
+        "<html><body><div>"
+        '<a href="https://www.leboncoin.fr/ventes_immobilieres/2894561230.htm">Voir</a>'
+        "<p>Local commercial Paris 75018 - 250 000 €</p>"
+        "</div></body></html>"
+    )
+    annonces = extraire_annonces_html(
+        html, portail, resoudre_redirection=lambda h: appels.append(h) or None
+    )
+    assert appels == []               # aucun aller-retour réseau gaspillé
+    assert len(annonces) == 1
+
+
 def test_extraction_sans_resoudre_redirection_ne_plante_pas():
-    # Portail via_redirection mais appelant qui ne fournit rien (ex. anciens
-    # tests, ou futur appelant) : dégrade proprement à 0 annonce, pas d'erreur.
+    # Portail à liens opaques mais appelant qui ne fournit pas de résolveur
+    # (ex. anciens tests, ou futur appelant) : dégrade proprement à 0 annonce.
     portail = next(p for p in PORTAILS if p.nom == "logic_immo")
     html = (
         "<html><body><div>"

@@ -58,12 +58,12 @@ class Portail:
     nom: str
     domaines: tuple[str, ...]           # reconnus dans l'expéditeur ou les liens
     motif_lien: re.Pattern              # groupe 1 = identifiant de l'annonce
-    # True si les liens de CE portail passent par un redirecteur opaque
-    # (Selligent/Adobe Campaign...) où seul un vrai aller-retour HTTP révèle
-    # la destination — confirmé le 2026-08-29 par curl -I sur logic_immo et
-    # iad (302 avec Location:, pas de trace de l'URL réelle dans le lien
-    # lui-même). Voir SourceImap._resoudre_redirection.
-    via_redirection: bool = False
+    # Note : il n'y a plus de drapeau « ce portail passe par un redirecteur ».
+    # Il fallait le renseigner d'avance, donc avoir déjà disséqué un vrai
+    # message — impossible pour un portail qui ne remonte justement rien.
+    # La résolution est désormais tentée dès que le motif direct échoue sur un
+    # lien à prix (voir extraire_annonces_html) : la question se tranche à
+    # l'exécution, pas par hypothèse.
 
 
 PORTAILS: list[Portail] = [
@@ -91,11 +91,11 @@ PORTAILS: list[Portail] = [
         # click.by.logic-immo.com/?qs=<jeton opaque>, AUCUNE trace de l'URL
         # réelle dedans (contrairement à Bien'ici, cf. bienici_alerte) — un
         # curl -I confirme un 302 vers www.logic-immo.com/detail-annonce/.../
-        # <ID alphanumérique majuscule>, d'où via_redirection=True. L'ancien
-        # motif (\d{5,}) ne collait de toute façon pas à cet ID réel.
+        # <ID alphanumérique majuscule>. L'ancien motif (\d{5,}) ne collait de
+        # toute façon pas à cet ID réel. Les liens sont donc opaques : la
+        # résolution automatique s'en charge.
         "logic_immo", ("logic-immo.com",),
         re.compile(r"https?://(?:www\.)?logic-immo\.com/[^\s\"'<>]*?([A-Z0-9]{8,})\b"),
-        via_redirection=True,
     ),
     Portail(
         "bourse_des_locaux", ("reprise-entreprise.bpifrance.fr",),
@@ -120,7 +120,6 @@ PORTAILS: list[Portail] = [
         # que le motif ci-dessous reconnaît déjà une fois résolu).
         "iad", ("iadfrance.fr", "iadinternational.com"),
         re.compile(r"https?://(?:www\.)?(?:iadfrance\.fr|[a-z0-9.-]*iadinternational\.com)/[^\s\"'<>]*?(\d{5,})"),
-        via_redirection=True,
     ),
     Portail(
         # Distinct de papcommerces.fr (déjà scrapé directement, source séparée) :
@@ -170,7 +169,7 @@ def _decoder_segment_base64(href: str) -> str | None:
     """Certains redirecteurs (Selligent/Actito — ex. Bien'ici, cf. bienici_alerte)
     encodent la VRAIE destination en base64 dans le dernier segment du chemin :
     décodable localement, sans requête réseau, contrairement aux jetons
-    opaques de logic_immo/iad (Portail.via_redirection). None si le segment
+    opaques de logic_immo/iad. None si le segment
     n'est pas du base64 valide ou ne décode pas vers une URL http(s)."""
     segment = href.split("?", 1)[0].rstrip("/").rsplit("/", 1)[-1]
     if len(segment) < 8:
@@ -195,7 +194,7 @@ def extraire_annonces_html(
     2. décodage base64 de son dernier segment (cf. _decoder_segment_base64) ;
     3. une vraie redirection HTTP via `resoudre_redirection`, fourni par
        l'appelant et budgété — seul recours pour un jeton opaque
-       (portail.via_redirection ; voir SourceImap._resoudre_redirection).
+       (tentée dès que le motif direct échoue ; voir SourceImap._resoudre_redirection).
     """
     soup = BeautifulSoup(html, "html.parser")
     annonces: dict[str, AnnonceBrute] = {}
@@ -209,12 +208,19 @@ def extraire_annonces_html(
             if decode:
                 trouve = portail.motif_lien.search(decode)
 
-        if not trouve and portail.via_redirection and resoudre_redirection is not None:
-            # Ces redirecteurs emballent TOUS les liens d'un email (logo,
-            # réseaux sociaux, désabonnement...) dans le même format opaque,
-            # indiscernables sans un vrai aller-retour HTTP — on ne le tente
-            # donc que sur les liens dans un bloc à prix, pour ne pas cramer
-            # le budget réseau plafonné (SourceImap.max_redirections) en pure perte.
+        if not trouve and resoudre_redirection is not None:
+            # Tenté pour TOUT portail, plus seulement ceux marqués d'avance
+            # (ancien via_redirection). Savoir à l'avance qu'un portail emballe
+            # ses liens supposait d'avoir déjà disséqué un vrai message : c'est
+            # exactement ce qui manquait pour seloger_bureaux (10 alertes lues,
+            # 0 annonce, motif direct incapable de matcher un jeton opaque).
+            # Ici la question se tranche à l'exécution : si le motif direct a
+            # échoué, le lien est peut-être opaque — on regarde, au lieu de
+            # supposer. Deux garde-fous rendent l'essai sûr : seulement les
+            # liens d'un bloc à PRIX (les redirecteurs emballent aussi logo,
+            # désabonnement, réseaux sociaux — indiscernables autrement), et le
+            # budget temps de _resoudre_redirection. Coût nul pour un portail à
+            # liens directs : son motif matche, on n'arrive jamais ici.
             if "€" in _bloc_annonce(lien).get_text():
                 reelle = resoudre_redirection(href_brut)
                 if reelle:
@@ -285,7 +291,7 @@ class SourceImap(Source):
         # invisible pour le robot à cause de cette fenêtre trop courte —
         # certains portails alertent par lots espacés, pas au quotidien.
         self.jours_max = jours_max
-        # Budget de résolution des jetons opaques (portails via_redirection) :
+        # Budget de résolution des jetons opaques :
         # chaque lien coûte un vrai aller-retour réseau, contrairement au reste
         # de cette source (pure lecture IMAP).
         #
@@ -353,7 +359,7 @@ class SourceImap(Source):
     def _resoudre_redirection(self, href: str) -> str | None:
         """Suit UNE redirection HTTP (302 Selligent/Adobe Campaign) pour
         révéler la vraie destination d'un jeton opaque — cf. curl -I sur un
-        vrai lien logic_immo/iad le 2026-08-29, Portail.via_redirection.
+        vrai lien logic_immo/iad le 2026-08-29.
         Plafonné (self._redirections_restantes) : jamais réinitialisé en
         cours de run, jamais bloquant (erreur/timeout/budget épuisé → None,
         ce lien est ignoré, pas le message entier)."""
@@ -382,7 +388,8 @@ class SourceImap(Source):
         cher (domaine IAD inventé le 2026-08-29, faux jusqu'au premier vrai
         message reçu) — ici la preuve vient toute seule. Un hôte de tracking
         (click.…, mail.…, redirect.…) au lieu du domaine du portail signe un
-        lien opaque : c'est via_redirection=True qu'il faut activer.
+        lien opaque — désormais résolu automatiquement ; si le compte reste
+        à 0, c'est le motif_lien lui-même qui ne colle pas à l'URL résolue.
         """
         soup = BeautifulSoup(html, "html.parser")
         hotes: dict[str, int] = {}
@@ -509,7 +516,7 @@ class SourceImap(Source):
         for nom_portail, total in portails_sans_extraction.items():
             # Les hôtes réellement rencontrés valent mieux qu'un « à revoir »
             # sans piste : un hôte de tracking (click.…, mail.…) au lieu du
-            # domaine du portail = liens opaques, il faut via_redirection=True.
+            # domaine du portail = liens opaques (résolus automatiquement).
             liens = list(portails_liens_vus.get(nom_portail, {}))
             piste = f" — liens vus : {', '.join(liens)}" if liens else ""
             self.avertissements.append(

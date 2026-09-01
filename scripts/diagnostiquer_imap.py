@@ -145,8 +145,8 @@ def main() -> None:
                     marque = "[OK, mais pas extrait ?!]"
                 elif _decoder_segment_base64(href):
                     marque = "[base64 décodable, motif_lien à vérifier]"
-                elif portail.via_redirection:
-                    marque = "[via_redirection : résolu ci-dessus, motif_lien à revoir si toujours 0]"
+                else:
+                    marque = "[lien opaque : résolu automatiquement ci-dessus, motif_lien à revoir si toujours 0]"
                 print(f"    {marque} {href}")
                 affiches += 1
             print()
