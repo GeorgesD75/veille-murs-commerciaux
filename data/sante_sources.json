@@ -101,6 +101,12 @@
    "statut": "ok",
    "annonces": 22,
    "message": null
+  },
+  {
+   "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 12,
+   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/1/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -202,6 +208,12 @@
   },
   {
    "jour": "2026-08-31",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
+  },
+  {
+   "jour": "2026-09-01",
    "statut": "ok",
    "annonces": 16,
    "message": null
@@ -309,6 +321,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "flagship": [
@@ -410,6 +428,12 @@
   },
   {
    "jour": "2026-08-31",
+   "statut": "ok",
+   "annonces": 1,
+   "message": null
+  },
+  {
+   "jour": "2026-09-01",
    "statut": "ok",
    "annonces": 1,
    "message": null
@@ -517,6 +541,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "bienici": [
@@ -618,6 +648,12 @@
   },
   {
    "jour": "2026-08-31",
+   "statut": "ok",
+   "annonces": 9,
+   "message": null
+  },
+  {
+   "jour": "2026-09-01",
    "statut": "ok",
    "annonces": 9,
    "message": null
@@ -725,6 +761,12 @@
    "statut": "ok",
    "annonces": 26,
    "message": null
+  },
+  {
+   "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 25,
+   "message": null
   }
  ],
  "geolocaux": [
@@ -826,6 +868,12 @@
   },
   {
    "jour": "2026-08-31",
+   "statut": "ok",
+   "annonces": 199,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+  },
+  {
+   "jour": "2026-09-01",
    "statut": "ok",
    "annonces": 199,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
@@ -933,6 +981,12 @@
    "statut": "ok",
    "annonces": 655,
    "message": null
+  },
+  {
+   "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 671,
+   "message": null
   }
  ],
  "notaires": [
@@ -1034,6 +1088,12 @@
   },
   {
    "jour": "2026-08-31",
+   "statut": "ok",
+   "annonces": 2,
+   "message": null
+  },
+  {
+   "jour": "2026-09-01",
    "statut": "ok",
    "annonces": 2,
    "message": null
@@ -1141,6 +1201,12 @@
    "statut": "ok",
    "annonces": 9,
    "message": "seloger_bureaux : 6 email(s) lu(s) mais aucune annonce reconnue (motif de lien probablement à revoir sur un vrai message); logic_immo : 15 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+  },
+  {
+   "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 8,
+   "message": "logic_immo : 15 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1245,6 +1311,12 @@
    "statut": "ok",
    "annonces": 0,
    "message": null
+  },
+  {
+   "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
   }
  ],
  "iccinvest": [
@@ -1343,6 +1415,12 @@
    "statut": "ok",
    "annonces": 80,
    "message": "/annonces/page/3/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+  },
+  {
+   "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 100,
+   "message": null
   }
  ],
  "latourimmo": [
@@ -1441,6 +1519,12 @@
    "statut": "ok",
    "annonces": 11,
    "message": null
+  },
+  {
+   "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 11,
+   "message": null
   }
  ],
  "orpi": [
@@ -1497,6 +1581,12 @@
    "statut": "ok",
    "annonces": 116,
    "message": null
+  },
+  {
+   "jour": "2026-09-01",
+   "statut": "ok",
+   "annonces": 112,
+   "message": null
   }
  ],
  "arthurloyd": [
@@ -1550,6 +1640,12 @@
   },
   {
    "jour": "2026-08-31",
+   "statut": "ok",
+   "annonces": 18,
+   "message": null
+  },
+  {
+   "jour": "2026-09-01",
    "statut": "ok",
    "annonces": 18,
    "message": null
