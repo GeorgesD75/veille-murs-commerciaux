@@ -219,6 +219,41 @@ def test_resoudre_redirection_suit_le_302_et_respecte_le_budget(monkeypatch):
     assert len(appels) == 2
 
 
+def test_resoudre_redirection_s_arrete_sur_le_budget_de_TEMPS(monkeypatch):
+    """Le compteur seul devait être calibré sur le pire cas (tout en timeout),
+    donc rester bas — d'où un retard qui s'accumulait (15 -> 37 emails reportés
+    en 3 jours). Le budget en secondes borne le pire cas sans brider le cas
+    normal : ici le compteur est large, c'est le chrono qui coupe."""
+    appels: list[str] = []
+
+    class _ReponseFactice:
+        status_code = 302
+        headers = {"Location": "https://www.logic-immo.com/detail-annonce/x/AB"}
+
+    monkeypatch.setattr("sources.imap_alertes.requests.head",
+                        lambda url, **kw: (appels.append(url), _ReponseFactice())[1])
+
+    # 1re lecture = démarrage du chrono (0 s) ; 2e = 10 s écoulées > budget 5 s
+    horloge = iter([0.0, 10.0])
+    monkeypatch.setattr("sources.imap_alertes.time.monotonic", lambda: next(horloge))
+
+    source = SourceImap(max_redirections=1000, budget_redirection_s=5.0)
+    assert source._resoudre_redirection("https://click.by.logic-immo.com/?qs=A") is not None
+    assert source._resoudre_redirection("https://click.by.logic-immo.com/?qs=B") is None
+    assert len(appels) == 1              # le 2e n'a fait aucune requête réseau
+    assert source.budget_epuise is True  # -> le message sera retenté au run suivant
+
+
+def test_budget_de_temps_demarre_a_la_premiere_resolution(monkeypatch):
+    """Le temps passé en lecture IMAP pure ne doit pas grignoter le budget
+    réseau : le chrono ne démarre qu'au premier lien réellement résolu."""
+    source = SourceImap(budget_redirection_s=5.0)
+    assert source._debut_redirections is None
+    monkeypatch.setattr("sources.imap_alertes.time.monotonic", lambda: 1000.0)
+    assert source._temps_redirection_ecoule() is False  # démarre le chrono, ne coupe pas
+    assert source._debut_redirections == 1000.0
+
+
 def test_resoudre_redirection_renvoie_none_hors_redirection(monkeypatch):
     class _ReponseFactice:
         status_code = 200
@@ -357,9 +392,12 @@ def test_collecter_signale_motif_a_revoir_seulement_hors_budget_epuise(monkeypat
     resultat = source.collecter()
 
     assert resultat == []
-    assert boite.flags_retires == []  # pas un souci de budget : rien à retenter
     assert any("motif de lien" in a for a in source.avertissements)
     assert not any("budget de redirection épuisé" in a for a in source.avertissements)
+    # Le message reste NON LU : un motif_lien caduc ne doit pas consommer
+    # définitivement l'alerte qu'il n'a pas su lire (seloger_bureaux en perdait
+    # 3 à 6 par jour). Une fois le motif corrigé, elle repasse toute seule.
+    assert boite.flags_retires == [(b"1", "-FLAGS", "\\Seen")]
 
 
 class _BoiteImapFactice:

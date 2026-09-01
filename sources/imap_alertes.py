@@ -30,6 +30,7 @@ import email.policy
 import imaplib
 import os
 import re
+import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Callable
@@ -271,7 +272,8 @@ class SourceImap(Source):
 
     def __init__(
         self, hote: str = "imap.gmail.com", dossier: str = "INBOX",
-        jours_max: int = 14, max_redirections: int = 60,
+        jours_max: int = 14, max_redirections: int = 400,
+        budget_redirection_s: float = 240.0, timeout_redirection_s: float = 5.0,
     ) -> None:
         super().__init__()
         self.hote = hote
@@ -283,16 +285,26 @@ class SourceImap(Source):
         # invisible pour le robot à cause de cette fenêtre trop courte —
         # certains portails alertent par lots espacés, pas au quotidien.
         self.jours_max = jours_max
-        # Plafond de vraies requêtes HTTP par tournée pour résoudre les jetons
-        # opaques (portails via_redirection) — chaque appel coûte un aller-
-        # retour réseau réel, contrairement au reste de cette source (pure
-        # lecture IMAP). Décompté au fil des messages, jamais réinitialisé
-        # en cours de run : voir _resoudre_redirection. Relevé de 20 à 60 le
-        # 2026-08-29 : le tout premier run réel a épuisé les 20 sur logic_immo
-        # seul (7 échecs signalés) alors que chaque résolution ne prend que
-        # ~200-400 ms (curl -I mesuré) — 60 reste large marge dans le budget
-        # de temps CI (20 min) même si tous échouent en timeout (8 s pièce).
+        # Budget de résolution des jetons opaques (portails via_redirection) :
+        # chaque lien coûte un vrai aller-retour réseau, contrairement au reste
+        # de cette source (pure lecture IMAP).
+        #
+        # Un simple COMPTEUR ne suffisait pas. Il doit être calibré sur le pire
+        # cas (tout part en timeout), donc rester bas — 60 auparavant — alors
+        # qu'en régime normal une résolution prend ~200-400 ms. Résultat mesuré
+        # les 2026-08-30 → 09-01 : le budget partait à sec chaque tournée et le
+        # retard s'accumulait au lieu de se résorber (15 → 16 → 37 emails
+        # reportés en trois jours, sur logic_immo surtout).
+        #
+        # Le vrai plafond à respecter est le TEMPS (tournée CI ~20 min), pas le
+        # nombre de liens. Un budget en secondes s'adapte tout seul : liens
+        # rapides -> des centaines résolus et le retard se résorbe ; liens
+        # lents -> on s'arrête tôt, borné. Le compteur ne sert plus que de
+        # garde-fou absolu. Pire cas ≈ budget + un appel en vol ≈ 4 min.
         self._redirections_restantes = max_redirections
+        self._budget_redirection_s = budget_redirection_s
+        self._timeout_redirection_s = timeout_redirection_s
+        self._debut_redirections: float | None = None
         # Vrai si _resoudre_redirection a dû renoncer FAUTE de budget (pas
         # parce que le lien ne menait nulle part) pendant le message en
         # cours — remis à zéro par collecter() avant chaque message, lu juste
@@ -326,6 +338,15 @@ class SourceImap(Source):
                 return noms[-1]
         return self.dossier
 
+    def _temps_redirection_ecoule(self) -> bool:
+        """Le chrono démarre à la PREMIÈRE résolution, pas au début du run :
+        le temps passé en lecture IMAP pure ne doit pas grignoter le budget
+        réseau. Jamais réinitialisé ensuite (comme le compteur)."""
+        if self._debut_redirections is None:
+            self._debut_redirections = time.monotonic()
+            return False
+        return (time.monotonic() - self._debut_redirections) >= self._budget_redirection_s
+
     def _resoudre_redirection(self, href: str) -> str | None:
         """Suit UNE redirection HTTP (302 Selligent/Adobe Campaign) pour
         révéler la vraie destination d'un jeton opaque — cf. curl -I sur un
@@ -333,13 +354,13 @@ class SourceImap(Source):
         Plafonné (self._redirections_restantes) : jamais réinitialisé en
         cours de run, jamais bloquant (erreur/timeout/budget épuisé → None,
         ce lien est ignoré, pas le message entier)."""
-        if self._redirections_restantes <= 0:
+        if self._redirections_restantes <= 0 or self._temps_redirection_ecoule():
             self.budget_epuise = True
             return None
         self._redirections_restantes -= 1
         try:
             reponse = requests.head(
-                href, allow_redirects=False, timeout=8,
+                href, allow_redirects=False, timeout=self._timeout_redirection_s,
                 headers={"User-Agent": "Mozilla/5.0 (compatible; VeilleMursCommerciaux/0.1)"},
             )
         except Exception:  # noqa: BLE001 — un lien mort n'arrête rien
@@ -423,6 +444,20 @@ class SourceImap(Source):
                             boite.store(numero, "-FLAGS", "\\Seen")
                         else:
                             portails_sans_extraction[portail.nom] = portails_sans_extraction.get(portail.nom, 0) + 1
+                            # Message d'un portail CONNU dont aucun lien n'a été
+                            # reconnu : motif_lien à corriger, pas un message
+                            # vide. Le laisser marqué lu le perdrait POUR
+                            # TOUJOURS — alors que c'est précisément le message
+                            # qui contient l'annonce ratée, et celui qui
+                            # permettra de corriger le motif. Constaté le
+                            # 2026-09-01 : seloger_bureaux consommait ainsi 3 à
+                            # 6 alertes par jour, définitivement perdues. On
+                            # remet donc \Seen à zéro : le jour où le motif est
+                            # corrigé, toutes les alertes encore dans la
+                            # fenêtre (jours_max) repassent d'elles-mêmes. Pas
+                            # d'accumulation sans fin : cette fenêtre les fait
+                            # sortir naturellement au bout de jours_max.
+                            boite.store(numero, "-FLAGS", "\\Seen")
                     for annonce in trouvees:
                         annonces.setdefault(f"{annonce.source}:{annonce.id_source}", annonce)
                 except Exception as exc:  # noqa: BLE001 — un email illisible n'arrête rien
