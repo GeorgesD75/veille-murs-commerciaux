@@ -113,6 +113,12 @@
    "statut": "ok",
    "annonces": 21,
    "message": null
+  },
+  {
+   "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 21,
+   "message": null
   }
  ],
  "murscommerciaux": [
@@ -226,6 +232,12 @@
   },
   {
    "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
+  },
+  {
+   "jour": "2026-09-03",
    "statut": "ok",
    "annonces": 16,
    "message": null
@@ -345,6 +357,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "flagship": [
@@ -458,6 +476,12 @@
   },
   {
    "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
+  },
+  {
+   "jour": "2026-09-03",
    "statut": "ok",
    "annonces": 0,
    "message": null
@@ -577,6 +601,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "bienici": [
@@ -693,6 +723,12 @@
    "statut": "ok",
    "annonces": 20,
    "message": null
+  },
+  {
+   "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 22,
+   "message": null
   }
  ],
  "cessionpme": [
@@ -806,6 +842,12 @@
   },
   {
    "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 26,
+   "message": null
+  },
+  {
+   "jour": "2026-09-03",
    "statut": "ok",
    "annonces": 26,
    "message": null
@@ -925,6 +967,12 @@
    "statut": "ok",
    "annonces": 200,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+  },
+  {
+   "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 200,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -1041,6 +1089,12 @@
    "statut": "ok",
    "annonces": 677,
    "message": null
+  },
+  {
+   "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 679,
+   "message": null
   }
  ],
  "notaires": [
@@ -1154,6 +1208,12 @@
   },
   {
    "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 2,
+   "message": null
+  },
+  {
+   "jour": "2026-09-03",
    "statut": "ok",
    "annonces": 2,
    "message": null
@@ -1273,6 +1333,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 23 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 3 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+  },
+  {
+   "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 7,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 22 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1389,6 +1455,12 @@
    "statut": "ok",
    "annonces": 0,
    "message": null
+  },
+  {
+   "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
   }
  ],
  "iccinvest": [
@@ -1496,6 +1568,12 @@
   },
   {
    "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 100,
+   "message": null
+  },
+  {
+   "jour": "2026-09-03",
    "statut": "ok",
    "annonces": 100,
    "message": null
@@ -1609,6 +1687,12 @@
    "statut": "ok",
    "annonces": 11,
    "message": null
+  },
+  {
+   "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 11,
+   "message": null
   }
  ],
  "orpi": [
@@ -1677,6 +1761,12 @@
    "statut": "ok",
    "annonces": 106,
    "message": null
+  },
+  {
+   "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 133,
+   "message": null
   }
  ],
  "arthurloyd": [
@@ -1742,6 +1832,12 @@
   },
   {
    "jour": "2026-09-02",
+   "statut": "ok",
+   "annonces": 18,
+   "message": null
+  },
+  {
+   "jour": "2026-09-03",
    "statut": "ok",
    "annonces": 18,
    "message": null
