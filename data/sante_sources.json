@@ -111,8 +111,8 @@
   {
    "jour": "2026-09-02",
    "statut": "ok",
-   "annonces": 12,
-   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/2/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 22,
+   "message": null
   }
  ],
  "murscommerciaux": [
@@ -807,7 +807,7 @@
   {
    "jour": "2026-09-02",
    "statut": "ok",
-   "annonces": 26,
+   "annonces": 20,
    "message": null
   }
  ],
@@ -923,8 +923,8 @@
   {
    "jour": "2026-09-02",
    "statut": "ok",
-   "annonces": 199,
-   "message": "/vente/local-commercial/puteaux-92800/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/puteaux-92800/; garde-fou de 90 requêtes atteint : collecte partielle"
+   "annonces": 200,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -1039,7 +1039,7 @@
   {
    "jour": "2026-09-02",
    "statut": "ok",
-   "annonces": 682,
+   "annonces": 676,
    "message": null
   }
  ],
@@ -1271,8 +1271,8 @@
   {
    "jour": "2026-09-02",
    "statut": "ok",
-   "annonces": 10,
-   "message": "logic_immo : 9 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+   "annonces": 15,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 9 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1497,8 +1497,8 @@
   {
    "jour": "2026-09-02",
    "statut": "ok",
-   "annonces": 60,
-   "message": "/annonces/page/3/ : HTTPSConnectionPool(host='www.iccinvest.com', port=443): Read timed out. (read timeout=30); /annonces/page/4/ : HTTPSConnectionPool(host='www.iccinvest.com', port=443): Read timed out. (read timeout=30)"
+   "annonces": 100,
+   "message": null
   }
  ],
  "latourimmo": [
@@ -1675,7 +1675,7 @@
   {
    "jour": "2026-09-02",
    "statut": "ok",
-   "annonces": 95,
+   "annonces": 99,
    "message": null
   }
  ],
