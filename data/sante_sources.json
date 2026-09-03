@@ -119,6 +119,12 @@
    "statut": "ok",
    "annonces": 24,
    "message": null
+  },
+  {
+   "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 24,
+   "message": null
   }
  ],
  "murscommerciaux": [
@@ -238,6 +244,12 @@
   },
   {
    "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
+  },
+  {
+   "jour": "2026-09-04",
    "statut": "ok",
    "annonces": 16,
    "message": null
@@ -363,6 +375,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "flagship": [
@@ -482,6 +500,12 @@
   },
   {
    "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
+  },
+  {
+   "jour": "2026-09-04",
    "statut": "ok",
    "annonces": 0,
    "message": null
@@ -607,6 +631,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "bienici": [
@@ -729,6 +759,12 @@
    "statut": "ok",
    "annonces": 0,
    "message": null
+  },
+  {
+   "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 1,
+   "message": null
   }
  ],
  "cessionpme": [
@@ -848,6 +884,12 @@
   },
   {
    "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 25,
+   "message": null
+  },
+  {
+   "jour": "2026-09-04",
    "statut": "ok",
    "annonces": 25,
    "message": null
@@ -973,6 +1015,12 @@
    "statut": "ok",
    "annonces": 201,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+  },
+  {
+   "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 201,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -1092,6 +1140,12 @@
   },
   {
    "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 674,
+   "message": null
+  },
+  {
+   "jour": "2026-09-04",
    "statut": "ok",
    "annonces": 674,
    "message": null
@@ -1217,6 +1271,12 @@
    "statut": "ok",
    "annonces": 2,
    "message": null
+  },
+  {
+   "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 2,
+   "message": null
   }
  ],
  "imap": [
@@ -1339,6 +1399,12 @@
    "statut": "ok",
    "annonces": 15,
    "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 41 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 6 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+  },
+  {
+   "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 11,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 39 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 6 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1461,6 +1527,12 @@
    "statut": "erreur",
    "annonces": 0,
    "message": "HTTP 403 sur https://www.encheres-publiques.com/ventes/immobilier/locaux-commerciaux/ile-de-france — arrêt propre"
+  },
+  {
+   "jour": "2026-09-04",
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "HTTP 403 sur https://www.encheres-publiques.com/ventes/immobilier/locaux-commerciaux/ile-de-france — arrêt propre"
   }
  ],
  "iccinvest": [
@@ -1574,6 +1646,12 @@
   },
   {
    "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 100,
+   "message": null
+  },
+  {
+   "jour": "2026-09-04",
    "statut": "ok",
    "annonces": 100,
    "message": null
@@ -1693,6 +1771,12 @@
    "statut": "ok",
    "annonces": 11,
    "message": null
+  },
+  {
+   "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 11,
+   "message": null
   }
  ],
  "orpi": [
@@ -1767,6 +1851,12 @@
    "statut": "ok",
    "annonces": 117,
    "message": null
+  },
+  {
+   "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 125,
+   "message": null
   }
  ],
  "arthurloyd": [
@@ -1838,6 +1928,12 @@
   },
   {
    "jour": "2026-09-03",
+   "statut": "ok",
+   "annonces": 18,
+   "message": null
+  },
+  {
+   "jour": "2026-09-04",
    "statut": "ok",
    "annonces": 18,
    "message": null
