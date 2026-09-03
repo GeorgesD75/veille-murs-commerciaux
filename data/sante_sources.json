@@ -727,7 +727,7 @@
   {
    "jour": "2026-09-03",
    "statut": "ok",
-   "annonces": 22,
+   "annonces": 23,
    "message": null
   }
  ],
@@ -849,7 +849,7 @@
   {
    "jour": "2026-09-03",
    "statut": "ok",
-   "annonces": 26,
+   "annonces": 18,
    "message": null
   }
  ],
@@ -971,7 +971,7 @@
   {
    "jour": "2026-09-03",
    "statut": "ok",
-   "annonces": 200,
+   "annonces": 201,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
@@ -1093,7 +1093,7 @@
   {
    "jour": "2026-09-03",
    "statut": "ok",
-   "annonces": 679,
+   "annonces": 674,
    "message": null
   }
  ],
@@ -1337,8 +1337,8 @@
   {
    "jour": "2026-09-03",
    "statut": "ok",
-   "annonces": 7,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 22 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+   "annonces": 11,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 30 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1458,9 +1458,9 @@
   },
   {
    "jour": "2026-09-03",
-   "statut": "ok",
+   "statut": "erreur",
    "annonces": 0,
-   "message": null
+   "message": "HTTP 403 sur https://www.encheres-publiques.com/ventes/immobilier/locaux-commerciaux/ile-de-france — arrêt propre"
   }
  ],
  "iccinvest": [
@@ -1765,7 +1765,7 @@
   {
    "jour": "2026-09-03",
    "statut": "ok",
-   "annonces": 133,
+   "annonces": 115,
    "message": null
   }
  ],
