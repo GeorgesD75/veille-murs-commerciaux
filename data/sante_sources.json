@@ -125,6 +125,12 @@
    "statut": "ok",
    "annonces": 18,
    "message": null
+  },
+  {
+   "jour": "2026-09-05",
+   "statut": "ok",
+   "annonces": 17,
+   "message": null
   }
  ],
  "murscommerciaux": [
@@ -250,6 +256,12 @@
   },
   {
    "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
+  },
+  {
+   "jour": "2026-09-05",
    "statut": "ok",
    "annonces": 16,
    "message": null
@@ -381,6 +393,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-09-05",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "flagship": [
@@ -506,6 +524,12 @@
   },
   {
    "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
+  },
+  {
+   "jour": "2026-09-05",
    "statut": "ok",
    "annonces": 0,
    "message": null
@@ -637,6 +661,12 @@
    "statut": "ok",
    "annonces": 10,
    "message": null
+  },
+  {
+   "jour": "2026-09-05",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
   }
  ],
  "bienici": [
@@ -762,6 +792,12 @@
   },
   {
    "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 5,
+   "message": null
+  },
+  {
+   "jour": "2026-09-05",
    "statut": "ok",
    "annonces": 5,
    "message": null
@@ -893,6 +929,12 @@
    "statut": "ok",
    "annonces": 26,
    "message": null
+  },
+  {
+   "jour": "2026-09-05",
+   "statut": "ok",
+   "annonces": 26,
+   "message": null
   }
  ],
  "geolocaux": [
@@ -1018,6 +1060,12 @@
   },
   {
    "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 201,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+  },
+  {
+   "jour": "2026-09-05",
    "statut": "ok",
    "annonces": 201,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
@@ -1149,6 +1197,12 @@
    "statut": "ok",
    "annonces": 520,
    "message": "/immobilier-d-entreprise/annonces/paris-75/vente-commerces : 503 Server Error: Service Unavailable for url: https://www.bureauxlocaux.com/immobilier-d-entreprise/annonces/paris-75/vente-commerces"
+  },
+  {
+   "jour": "2026-09-05",
+   "statut": "ok",
+   "annonces": 671,
+   "message": null
   }
  ],
  "notaires": [
@@ -1274,6 +1328,12 @@
   },
   {
    "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 2,
+   "message": null
+  },
+  {
+   "jour": "2026-09-05",
    "statut": "ok",
    "annonces": 2,
    "message": null
@@ -1405,6 +1465,12 @@
    "statut": "ok",
    "annonces": 7,
    "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); seloger_bureaux : 10 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); logic_immo : 63 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 7 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+  },
+  {
+   "jour": "2026-09-05",
+   "statut": "ok",
+   "annonces": 6,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); seloger_bureaux : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); logic_immo : 71 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 7 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1533,6 +1599,12 @@
    "statut": "erreur",
    "annonces": 0,
    "message": "HTTP 403 sur https://www.encheres-publiques.com/ventes/immobilier/locaux-commerciaux/ile-de-france — arrêt propre"
+  },
+  {
+   "jour": "2026-09-05",
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "HTTP 403 sur https://www.encheres-publiques.com/ventes/immobilier/locaux-commerciaux/ile-de-france — arrêt propre"
   }
  ],
  "iccinvest": [
@@ -1652,6 +1724,12 @@
   },
   {
    "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 100,
+   "message": null
+  },
+  {
+   "jour": "2026-09-05",
    "statut": "ok",
    "annonces": 100,
    "message": null
@@ -1777,6 +1855,12 @@
    "statut": "ok",
    "annonces": 11,
    "message": null
+  },
+  {
+   "jour": "2026-09-05",
+   "statut": "ok",
+   "annonces": 11,
+   "message": null
   }
  ],
  "orpi": [
@@ -1857,6 +1941,12 @@
    "statut": "ok",
    "annonces": 96,
    "message": null
+  },
+  {
+   "jour": "2026-09-05",
+   "statut": "ok",
+   "annonces": 121,
+   "message": null
   }
  ],
  "arthurloyd": [
@@ -1934,6 +2024,12 @@
   },
   {
    "jour": "2026-09-04",
+   "statut": "ok",
+   "annonces": 18,
+   "message": null
+  },
+  {
+   "jour": "2026-09-05",
    "statut": "ok",
    "annonces": 18,
    "message": null
