@@ -123,8 +123,8 @@
   {
    "jour": "2026-09-04",
    "statut": "ok",
-   "annonces": 24,
-   "message": null
+   "annonces": 8,
+   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/2/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -763,7 +763,7 @@
   {
    "jour": "2026-09-04",
    "statut": "ok",
-   "annonces": 1,
+   "annonces": 3,
    "message": null
   }
  ],
@@ -891,7 +891,7 @@
   {
    "jour": "2026-09-04",
    "statut": "ok",
-   "annonces": 25,
+   "annonces": 16,
    "message": null
   }
  ],
@@ -1147,7 +1147,7 @@
   {
    "jour": "2026-09-04",
    "statut": "ok",
-   "annonces": 674,
+   "annonces": 670,
    "message": null
   }
  ],
@@ -1403,8 +1403,8 @@
   {
    "jour": "2026-09-04",
    "statut": "ok",
-   "annonces": 11,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 39 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 6 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+   "annonces": 10,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); seloger_bureaux : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); logic_immo : 52 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 7 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1855,7 +1855,7 @@
   {
    "jour": "2026-09-04",
    "statut": "ok",
-   "annonces": 125,
+   "annonces": 100,
    "message": null
   }
  ],
