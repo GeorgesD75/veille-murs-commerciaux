@@ -123,8 +123,8 @@
   {
    "jour": "2026-09-04",
    "statut": "ok",
-   "annonces": 8,
-   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/2/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 18,
+   "message": null
   }
  ],
  "murscommerciaux": [
@@ -763,7 +763,7 @@
   {
    "jour": "2026-09-04",
    "statut": "ok",
-   "annonces": 3,
+   "annonces": 5,
    "message": null
   }
  ],
@@ -891,7 +891,7 @@
   {
    "jour": "2026-09-04",
    "statut": "ok",
-   "annonces": 16,
+   "annonces": 26,
    "message": null
   }
  ],
@@ -1147,8 +1147,8 @@
   {
    "jour": "2026-09-04",
    "statut": "ok",
-   "annonces": 670,
-   "message": null
+   "annonces": 520,
+   "message": "/immobilier-d-entreprise/annonces/paris-75/vente-commerces : 503 Server Error: Service Unavailable for url: https://www.bureauxlocaux.com/immobilier-d-entreprise/annonces/paris-75/vente-commerces"
   }
  ],
  "notaires": [
@@ -1403,8 +1403,8 @@
   {
    "jour": "2026-09-04",
    "statut": "ok",
-   "annonces": 10,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); seloger_bureaux : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); logic_immo : 52 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 7 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+   "annonces": 7,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); seloger_bureaux : 10 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); logic_immo : 63 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 7 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1855,7 +1855,7 @@
   {
    "jour": "2026-09-04",
    "statut": "ok",
-   "annonces": 100,
+   "annonces": 96,
    "message": null
   }
  ],
