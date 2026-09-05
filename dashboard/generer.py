@@ -845,6 +845,9 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
         <input id="f-score" type="number" min="0" max="100" step="5" placeholder="ex. 60"></div>
       <div class="filtre"><label for="f-nouv">Fraîcheur</label>
         <label style="font-size:14px;color:var(--encre-1);padding:6px 0"><input id="f-nouv" type="checkbox"> Nouveautés seulement</label></div>
+      <div class="filtre"><label for="f-cf">Cash-flow</label>
+        <label style="font-size:14px;color:var(--encre-1);padding:6px 0"
+          title="Masque les biens qui vous coûteraient de l'argent chaque mois AVEC VOTRE profil de financement. Le score, lui, est calculé à un financement de référence fixe pour rester comparable d'une annonce à l'autre : un bien bien noté peut donc afficher un cash-flow négatif si votre profil est plus prudent que cette référence."><input id="f-cf" type="checkbox"> Positif seulement</label></div>
       <div class="profil-groupe" data-titre="Mon profil de financement" title="Votre profil de financement : il recalcule tous les cash-flows du site.">
         <div class="filtre"><label for="p-apport">Mon apport
           <select id="p-apport-mode" title="En % : l'apport suit le prix de chaque bien (comparable d'une annonce à l'autre). En € : une somme fixe, la même partout — plus concret quand on raisonne à partir de son épargne disponible.">
@@ -1684,6 +1687,14 @@ function carteHtml(a, options) {
       ? `Le loyer du bail en place couvre la mensualité (financement ${finTxt()}${taxeTxt}, hors gestion) : le bien se paie tout seul.`
       : `Au loyer ESTIMÉ, le bien couvrirait son crédit (${finTxt()}) — à prouver par un bail.`}">${IC.etincelle} ${reel ? "s'autofinance" : "s'autofinancerait"}</span>`);
   }
+  // Contrepartie honnête du badge ci-dessus. Le score juge le BIEN (rendement
+  // 37 pts, emplacement 25, prix vs marché 18 — le financement n'en pèse que
+  // 5, à un profil de RÉFÉRENCE fixe pour rester comparable d'une annonce à
+  // l'autre). Le cash-flow, lui, dépend de VOTRE profil. Un bien peut donc
+  // être excellent et vous coûter quand même de l'argent chaque mois : c'était
+  // affiché sans être expliqué, et ça se lisait comme une contradiction.
+  else if (cf != null && cf < 0)
+    badges.push(`<span class="badge badge-alerte" title="Le score note le BIEN — ce qu'il rapporte (37 pts), où il est (25 pts), son prix face au marché (18 pts). Le financement n'y pèse que 5 points, calculé à un profil de RÉFÉRENCE identique pour toutes les annonces, sans quoi le score ne serait plus comparable de l'une à l'autre. Ce montant-ci, lui, est calculé avec VOTRE profil (${finTxt()}) : un bien très bien noté peut donc vous coûter de l'argent chaque mois. Plus d'apport, une durée plus longue ou un prix négocié le ramènent à l'équilibre.">${fmtEuros(Math.abs(cf))}/mois à sortir</span>`);
   // Emplacement mesuré RUE PAR RUE (Base Adresse Nationale + densité de
   // commerces OpenStreetMap à 150 m) — un signal au-delà du simple classement
   // administratif, pour repérer une rue vraiment isolée dans un bon secteur.
@@ -1967,6 +1978,7 @@ function filtres() {
     rdt: document.getElementById("f-rdt").value,
     score: document.getElementById("f-score").value,
     nouv: document.getElementById("f-nouv").checked,
+    cf: document.getElementById("f-cf").checked,
   };
 }
 
@@ -1978,6 +1990,9 @@ function appliquer(a, f) {
   if (f.rdt !== "" && (a.rendement_brut_pct == null || a.rendement_brut_pct < parseFloat(f.rdt))) return false;
   if (f.score !== "" && (a.score == null || a.score < parseFloat(f.score))) return false;
   if (f.nouv && !a.est_nouvelle) return false;
+  // Cash-flow : filtré à VOTRE profil, pas au financement de référence du
+  // score — c'est le seul chiffre qui décrit ce que le bien coûte VOUS.
+  if (f.cf) { const c = cashflowMensuel(a); if (c == null || c < 0) return false; }
   return true;
 }
 
@@ -2856,12 +2871,15 @@ function initialiser() {
       : (memo.dep && memo.dep !== "tous" ? [memo.dep] : []);
     for (const case_ of listeDep.querySelectorAll("input"))
       case_.checked = depMemo.includes(case_.value);
-    if (memo.rdt) document.getElementById("f-rdt").value = memo.rdt;
-    if (memo.score) document.getElementById("f-score").value = memo.score;
-    if (memo.nouv) document.getElementById("f-nouv").checked = true;
+    // `if (memo.rdt)` ignorait la valeur « 0 », falsy en JS : un filtre réglé
+    // à 0 ne revenait jamais. On teste la PRÉSENCE, pas la vérité.
+    if (memo.rdt != null && memo.rdt !== "") document.getElementById("f-rdt").value = memo.rdt;
+    if (memo.score != null && memo.score !== "") document.getElementById("f-score").value = memo.score;
+    document.getElementById("f-nouv").checked = !!memo.nouv;
+    document.getElementById("f-cf").checked = !!memo.cf;
   } catch (e) { /* filtres mémorisés illisibles : on repart à zéro */ }
 
-  for (const id of ["f-type", "f-rdt", "f-score", "f-nouv"])
+  for (const id of ["f-type", "f-rdt", "f-score", "f-nouv", "f-cf"])
     document.getElementById(id).addEventListener("input", rendre);
   listeDep.addEventListener("input", rendre);
 
