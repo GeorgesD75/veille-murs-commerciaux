@@ -206,6 +206,37 @@ def test_extraction_via_redirection_logic_immo_uniquement_dans_un_bloc_a_prix():
     assert annonces_logo == []
 
 
+def test_garde_fou_budget_ecarte_les_liens_de_service():
+    """Le garde-fou « ce lien est-il dans un bloc à PRIX ? » était inopérant.
+
+    Un lien SANS prix voisin (logo, désabonnement, réseaux sociaux) fait
+    remonter _bloc_annonce jusqu'à <body> — qui contient les prix des AUTRES
+    annonces, et répondait donc vrai pour tout le monde. Mesuré le 2026-09-05
+    sur un email type : 5 liens sur 5 passaient, alors que 2 seulement étaient
+    des annonces. Le budget de redirection partait aux deux tiers en pure
+    perte, d'où un retard qui grimpait au lieu de se résorber (35 -> 73
+    messages reportés en cinq jours).
+    """
+    from bs4 import BeautifulSoup
+
+    from sources.imap_alertes import _mene_a_une_annonce
+
+    html = (
+        "<html><body>"
+        '<div><a href="https://click.tracker/?qs=LOGO">logo</a></div>'
+        '<div><a href="https://click.tracker/?qs=A1">Annonce A</a><p>250 000 €</p></div>'
+        '<div><a href="https://click.tracker/?qs=A2">Annonce B</a><p>310 000 €</p></div>'
+        '<div><a href="https://click.tracker/?qs=DESABO">Se désabonner</a></div>'
+        "</body></html>"
+    )
+    liens = BeautifulSoup(html, "html.parser").find_all("a", href=True)
+    retenus = [str(a["href"]) for a in liens if _mene_a_une_annonce(a)]
+    assert retenus == [
+        "https://click.tracker/?qs=A1",
+        "https://click.tracker/?qs=A2",
+    ], "seuls les liens d'un VRAI bloc à prix doivent consommer du budget"
+
+
 def test_identifiant_extrait_n_est_jamais_le_code_postal():
     """Un code postal français fait EXACTEMENT 5 chiffres, et les URLs immo le
     portent presque toujours dans leur slug, AVANT l'identifiant. Les motifs
