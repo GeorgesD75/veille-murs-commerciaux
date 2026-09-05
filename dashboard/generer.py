@@ -630,7 +630,17 @@ a.btn-outil:hover { text-decoration: none; border-color: var(--marque); }
 .marche .mauvais { color: var(--alerte-texte); font-weight: 600; }
 .lecture { font-style: italic; color: var(--encre-2); margin-top: 5px;
   border-left: 3px solid var(--or); padding-left: 8px; }
-.lecture.nego { border-left-color: var(--marque); font-style: normal; }
+/* La négociation est le SEUL conseil de la carte qui se traduit en geste :
+   un prix à annoncer au vendeur. Noyé au même poids que les paragraphes de
+   lecture, il se lisait comme un commentaire de plus. Il devient l'action,
+   annoncée comme telle — sans crier, la carte en compte déjà assez. */
+.lecture.nego { border-left-color: var(--marque); border-left-width: 4px;
+  font-style: normal; color: var(--encre-1); background: var(--vert-fond);
+  padding: 8px 10px; border-radius: 0 7px 7px 0; margin-top: 8px; }
+.lecture.nego::before { content: "Votre offre"; display: block;
+  font-size: 9.5px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase;
+  color: var(--marque); margin-bottom: 2px; }
+@media (prefers-color-scheme: dark) { .lecture.nego::before { color: #8fbfa9; } }
 
 /* Méthode d'expert */
 .methode { columns: 2; column-gap: 28px; font-size: 13.5px; color: var(--encre-2); margin-top: 10px; }
