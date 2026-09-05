@@ -337,6 +337,17 @@ class SourceImap(Source):
         # Hôtes des liens du dernier message dont rien n'a pu être extrait :
         # renseigné par extraire_message, lu par collecter pour l'avertissement.
         self.liens_non_reconnus: list[str] = []
+        # Mesure du budget réellement consommé. Sans elle, « budget épuisé »
+        # ne dit pas LEQUEL des deux plafonds a mordu — or la réponse change
+        # le remède : le plafond de TEMPS signale des serveurs lents (il faut
+        # baisser le timeout), celui du NOMBRE signale des liens rapides mais
+        # trop nombreux (il faut relever le compteur). Question posée par
+        # l'utilisateur le 2026-09-05, sans réponse possible jusqu'ici.
+        self.redirections_tentees = 0
+        self.redirections_reussies = 0
+        self.redirections_echouees = 0
+        self.secondes_redirections = 0.0
+        self.limite_atteinte: str | None = None
 
     def _depuis(self) -> str:
         quand = datetime.now() - timedelta(days=self.jours_max)
@@ -381,18 +392,31 @@ class SourceImap(Source):
         Plafonné (self._redirections_restantes) : jamais réinitialisé en
         cours de run, jamais bloquant (erreur/timeout/budget épuisé → None,
         ce lien est ignoré, pas le message entier)."""
-        if self._redirections_restantes <= 0 or self._temps_redirection_ecoule():
+        if self._redirections_restantes <= 0:
             self.budget_epuise = True
+            self.limite_atteinte = "nombre de liens"
+            return None
+        if self._temps_redirection_ecoule():
+            self.budget_epuise = True
+            self.limite_atteinte = "temps"
             return None
         self._redirections_restantes -= 1
+        self.redirections_tentees += 1
+        debut = time.monotonic()
         try:
             reponse = requests.head(
                 href, allow_redirects=False, timeout=self._timeout_redirection_s,
                 headers={"User-Agent": "Mozilla/5.0 (compatible; VeilleMursCommerciaux/0.1)"},
             )
+            self.secondes_redirections += time.monotonic() - debut
         except Exception:  # noqa: BLE001 — un lien mort n'arrête rien
+            # Un échec coûte le TIMEOUT ENTIER : c'est le cas le plus cher, et
+            # celui qu'il faut pouvoir distinguer dans le bilan.
+            self.secondes_redirections += time.monotonic() - debut
+            self.redirections_echouees += 1
             return None
         if reponse.status_code in (301, 302, 303, 307, 308):
+            self.redirections_reussies += 1
             return reponse.headers.get("Location")
         return None
 
@@ -543,4 +567,24 @@ class SourceImap(Source):
                 f"{nom_portail} : {total} email(s) reportés au run suivant "
                 "(budget de redirection épuisé ce run-ci, rien à corriger)"
             )
+        if self.redirections_tentees:
+            self.avertissements.append(self.bilan_budget())
         return list(annonces.values())
+
+    def bilan_budget(self) -> str:
+        """Ce que le budget a réellement coûté — chiffré, pas « épuisé » tout court.
+
+        Se lit comme un diagnostic : une part d'échecs élevée signifie des
+        serveurs qui ne répondent pas, chacun coûtant le TIMEOUT ENTIER ; la
+        limite atteinte dit quel plafond desserrer (temps ou nombre).
+        """
+        moyenne = self.secondes_redirections / self.redirections_tentees
+        detail = (
+            f"{self.redirections_tentees} liens résolus en "
+            f"{self.secondes_redirections:.0f} s sur {self._budget_redirection_s:.0f} s "
+            f"({self.redirections_reussies} aboutis, {self.redirections_echouees} en échec, "
+            f"{moyenne:.1f} s/lien)"
+        )
+        if self.limite_atteinte:
+            detail += f" — plafond atteint : {self.limite_atteinte}"
+        return f"budget de redirection : {detail}"

@@ -206,6 +206,58 @@ def test_extraction_via_redirection_logic_immo_uniquement_dans_un_bloc_a_prix():
     assert annonces_logo == []
 
 
+def test_bilan_budget_distingue_les_deux_plafonds():
+    """« Budget épuisé » ne disait pas LEQUEL des deux plafonds avait mordu —
+    or le remède diffère : plafond de TEMPS = serveurs lents (baisser le
+    timeout), plafond de NOMBRE = liens rapides mais trop nombreux (relever le
+    compteur). Question posée le 2026-09-05, sans réponse possible jusqu'ici."""
+    lent = SourceImap(budget_redirection_s=240.0)
+    lent.redirections_tentees, lent.redirections_reussies = 48, 31
+    lent.redirections_echouees, lent.secondes_redirections = 17, 238.4
+    lent.limite_atteinte = "temps"
+    bilan = lent.bilan_budget()
+    assert "48 liens" in bilan and "238 s sur 240 s" in bilan
+    assert "5.0 s/lien" in bilan            # révèle des timeouts
+    assert "plafond atteint : temps" in bilan
+
+    rapide = SourceImap(budget_redirection_s=240.0)
+    rapide.redirections_tentees, rapide.redirections_reussies = 400, 388
+    rapide.redirections_echouees, rapide.secondes_redirections = 12, 121.7
+    rapide.limite_atteinte = "nombre de liens"
+    bilan = rapide.bilan_budget()
+    assert "0.3 s/lien" in bilan            # serveurs rapides
+    assert "plafond atteint : nombre de liens" in bilan
+
+
+def test_limite_atteinte_nomme_le_plafond_du_nombre(monkeypatch):
+    source = SourceImap(max_redirections=0)          # compteur à sec d'emblée
+    assert source._resoudre_redirection("https://x") is None
+    assert source.limite_atteinte == "nombre de liens"
+
+
+def test_limite_atteinte_nomme_le_plafond_du_temps(monkeypatch):
+    source = SourceImap(max_redirections=1000, budget_redirection_s=5.0)
+    source._debut_redirections = 0.0                  # chrono déjà démarré
+    monkeypatch.setattr("sources.imap_alertes.time.monotonic", lambda: 10.0)  # 10 s > 5 s
+    assert source._resoudre_redirection("https://x") is None
+    assert source.limite_atteinte == "temps"
+
+
+def test_un_echec_compte_son_temps_car_c_est_le_cas_le_plus_cher(monkeypatch):
+    """Un lien qui expire coûte le timeout ENTIER : l'ignorer dans le bilan
+    ferait croire à un budget bien plus rapide qu'il ne l'est."""
+    def leve(url, **kw):
+        raise OSError("timeout")
+
+    monkeypatch.setattr("sources.imap_alertes.requests.head", leve)
+    horloge = iter([0.0, 100.0, 105.0])   # démarrage chrono, début appel, fin appel
+    monkeypatch.setattr("sources.imap_alertes.time.monotonic", lambda: next(horloge))
+    source = SourceImap()
+    assert source._resoudre_redirection("https://x") is None
+    assert source.redirections_echouees == 1
+    assert source.secondes_redirections == 5.0
+
+
 def test_garde_fou_budget_ecarte_les_liens_de_service():
     """Le garde-fou « ce lien est-il dans un bloc à PRIX ? » était inopérant.
 
@@ -380,12 +432,15 @@ def test_resoudre_redirection_s_arrete_sur_le_budget_de_TEMPS(monkeypatch):
     monkeypatch.setattr("sources.imap_alertes.requests.head",
                         lambda url, **kw: (appels.append(url), _ReponseFactice())[1])
 
-    # 1re lecture = démarrage du chrono (0 s) ; 2e = 10 s écoulées > budget 5 s
-    horloge = iter([0.0, 10.0])
-    monkeypatch.setattr("sources.imap_alertes.time.monotonic", lambda: next(horloge))
+    # Horloge pilotée à la main plutôt qu'une liste de valeurs : le code lit
+    # monotonic() plusieurs fois par résolution (chrono + mesure), et compter
+    # ces appels rendrait le test cassant au moindre ajout de mesure.
+    horloge = {"t": 0.0}
+    monkeypatch.setattr("sources.imap_alertes.time.monotonic", lambda: horloge["t"])
 
     source = SourceImap(max_redirections=1000, budget_redirection_s=5.0)
     assert source._resoudre_redirection("https://click.by.logic-immo.com/?qs=A") is not None
+    horloge["t"] = 10.0                       # 10 s écoulées > budget de 5 s
     assert source._resoudre_redirection("https://click.by.logic-immo.com/?qs=B") is None
     assert len(appels) == 1              # le 2e n'a fait aucune requête réseau
     assert source.budget_epuise is True  # -> le message sera retenté au run suivant
