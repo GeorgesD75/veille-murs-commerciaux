@@ -411,9 +411,23 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
   display: flex; flex-direction: column; gap: 6px; }
 .multi-liste label { display: flex; gap: 8px; align-items: center; font-size: 13.5px;
   color: var(--encre-1); cursor: pointer; white-space: nowrap; }
-.profil-groupe { display: flex; align-items: end; gap: 14px;
-  border-left: 3px solid var(--or); padding-left: 16px; margin-left: 4px; }
+/* Le profil n'est pas un filtre : il ne trie rien, il RECALCULE tout le site.
+   Un simple liseré doré ne le disait pas assez — le fond teinté et le titre
+   posé au-dessus séparent enfin les deux natures de réglage. */
+.profil-groupe { display: flex; align-items: end; gap: 14px; position: relative;
+  border-left: 3px solid var(--or); padding: 20px 14px 10px; margin-left: 4px;
+  background: color-mix(in srgb, var(--or) 7%, transparent);
+  border-radius: 0 8px 8px 0; }
+.profil-groupe::before { content: attr(data-titre); position: absolute; top: 5px; left: 14px;
+  font-size: 9.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--or); opacity: .85; }
 .profil-groupe .filtre label { color: var(--or); font-weight: 700; }
+/* L'unité de l'apport (€ / %) est un réglage du champ, pas un champ de plus :
+   discrète, collée à son libellé. */
+#p-apport-mode { font-size: 10px; padding: 1px 3px; margin-left: 4px;
+  border: 1px solid var(--filet); border-radius: 4px;
+  background: var(--surface); color: var(--encre-2); text-transform: none;
+  letter-spacing: 0; font-weight: 600; vertical-align: 1px; }
 .profil-note { font-size: 12.5px; color: var(--encre-3); margin: -4px 0 10px; }
 .filtres button { background: none; border: none; color: var(--marque); cursor: pointer;
   font: inherit; font-size: 13px; padding: 6px 0; text-decoration: underline; }
@@ -573,6 +587,20 @@ a.btn-outil:hover { text-decoration: none; border-color: var(--marque); }
 .metrique .libelle { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--encre-3); }
 .metrique .valeur { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .metrique .valeur small { font-weight: 400; color: var(--encre-2); }
+/* Hiérarchie de lecture. Ce projet vit du CASH-FLOW et du rendement : ces deux
+   chiffres décident d'acheter ou pas, les autres ne font que situer le bien.
+   Affichés au même poids, les huit obligeaient à tout relire pour retrouver
+   les deux qui comptent. « Clé » domine, « détail » s'efface sans disparaître. */
+.metrique--cle .libelle { color: var(--encre-1); font-weight: 700; }
+.metrique--cle .valeur { font-size: 22px; line-height: 1.15; }
+.metrique--detail .valeur { font-size: 13px; font-weight: 500; color: var(--encre-2); }
+.metrique--detail .libelle { opacity: .7; }
+/* Sépare le groupe « détail » d'un simple filet, posé sur le PREMIER d'entre
+   eux. CSS ne sait pas viser « le premier de cette classe » (:first-of-type
+   compte les types d'éléments, pas les classes) : on le met donc sur tous,
+   puis on le retire dès qu'un détail en suit un autre. */
+.metrique--detail { border-left: 1px solid var(--filet); padding-left: 18px; }
+.metrique--detail + .metrique--detail { border-left: none; padding-left: 0; }
 
 /* Jauge marché + lecture du prix */
 .marche { font-size: 12.5px; color: var(--encre-2); max-width: 480px; }
@@ -733,6 +761,11 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
   .carte-img { grid-column: 1 / -1; height: 150px; }
   .carte-enchere { grid-template-columns: 1fr; }
   .metriques { gap: 12px 18px; }
+  /* Sur mobile la hiérarchie reste, en plus sobre : 22 px tiendraient mal sur
+     une ligne étroite, et le filet vertical du groupe « détail » couperait
+     mal une fois les métriques passées à la ligne. */
+  .metrique--cle .valeur { font-size: 18px; }
+  .metrique--detail { border-left: none; padding-left: 0; }
   .score { width: 54px; height: 54px; font-size: 23px; }
   .comparateur-fond { display: none !important; }
   .sticker { top: -9px; right: 8px; min-width: 36px; height: 36px; }
@@ -802,7 +835,7 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
         <input id="f-score" type="number" min="0" max="100" step="5" placeholder="ex. 60"></div>
       <div class="filtre"><label for="f-nouv">Fraîcheur</label>
         <label style="font-size:14px;color:var(--encre-1);padding:6px 0"><input id="f-nouv" type="checkbox"> Nouveautés seulement</label></div>
-      <div class="profil-groupe" title="Votre profil de financement : il recalcule tous les cash-flows du site.">
+      <div class="profil-groupe" data-titre="Mon profil de financement" title="Votre profil de financement : il recalcule tous les cash-flows du site.">
         <div class="filtre"><label for="p-apport">Mon apport
           <select id="p-apport-mode" title="En % : l'apport suit le prix de chaque bien (comparable d'une annonce à l'autre). En € : une somme fixe, la même partout — plus concret quand on raisonne à partir de son épargne disponible.">
             <option value="pct">en %</option>
@@ -816,7 +849,7 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
           <input id="p-duree" type="number" min="5" max="30" step="1"></div>
         <button id="p-reset" type="button" title="Revenir aux hypothèses par défaut">↺</button>
       </div>
-      <div class="profil-groupe" title="Votre profil fiscal : estimation grossière pour comparer deux régimes, pas un calcul officiel.">
+      <div class="profil-groupe" data-titre="Ma fiscalité (estimation)" title="Votre profil fiscal : estimation grossière pour comparer deux régimes, pas un calcul officiel.">
         <div class="filtre"><label for="p-regime">Ma fiscalité</label>
           <select id="p-regime">
             <option value="non_renseigne">Non renseigné</option>
@@ -1725,16 +1758,19 @@ function carteHtml(a, options) {
     ` <span class="info-i" title="Estimation grossière pour COMPARER deux régimes, pas un calcul fiscal officiel — ` +
     `${profilFiscal.regime === "ir" ? "ignore les charges déductibles réelles (travaux, intérêts d'emprunt…)" : "ignore l'amortissement comptable"}. ` +
     `À confirmer avec votre expert-comptable. Réglable dans « Filtres & réglages ».">i</span>`;
+  // Trois niveaux de lecture : les deux chiffres qui DÉCIDENT (rendement,
+  // cash-flow), ceux qui situent le bien (prix, surface, loyer), puis le
+  // détail qu'on ne consulte qu'une fois intéressé.
   const metriques = [
-    ["Prix", fmtEuros(a.prix)],
-    ["Surface", a.surface_m2 == null ? "—" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²"],
-    ["Loyer/mois", loyer == null ? "—" : fmtEuros(loyer) + est + loyerInfo],
-    ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "") + rdtBrutInfo],
-    ["Rdt acte en main", fmtPct(a.rendement_acte_en_main_pct) + rdtActeInfo],
-    [apportEstNul() ? "Cash-flow crédit 100 %" : `Cash-flow (${apportLibelle()})`, cfHtml],
-    ["Trajet", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min"],
-  ].concat(fiscal ? [[fiscal.libelle, fiscalHtml]] : []).map(([l, v]) =>
-    `<div class="metrique"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
+    ["Prix", fmtEuros(a.prix), ""],
+    ["Surface", a.surface_m2 == null ? "—" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²", ""],
+    ["Loyer/mois", loyer == null ? "—" : fmtEuros(loyer) + est + loyerInfo, ""],
+    ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "") + rdtBrutInfo, "cle"],
+    [apportEstNul() ? "Cash-flow crédit 100 %" : `Cash-flow (${apportLibelle()})`, cfHtml, "cle"],
+    ["Rdt acte en main", fmtPct(a.rendement_acte_en_main_pct) + rdtActeInfo, "detail"],
+    ["Trajet", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min", "detail"],
+  ].concat(fiscal ? [[fiscal.libelle, fiscalHtml, "detail"]] : []).map(([l, v, rang]) =>
+    `<div class="metrique${rang ? " metrique--" + rang : ""}"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
 
   const tampon = options.medaille != null
     ? `<div><span class="tampon">${TAMPONS[options.medaille]}</span></div>` : "";
