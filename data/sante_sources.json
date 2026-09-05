@@ -799,7 +799,7 @@
   {
    "jour": "2026-09-05",
    "statut": "ok",
-   "annonces": 5,
+   "annonces": 9,
    "message": null
   }
  ],
@@ -933,7 +933,7 @@
   {
    "jour": "2026-09-05",
    "statut": "ok",
-   "annonces": 26,
+   "annonces": 18,
    "message": null
   }
  ],
@@ -1067,8 +1067,8 @@
   {
    "jour": "2026-09-05",
    "statut": "ok",
-   "annonces": 201,
-   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+   "annonces": 200,
+   "message": "/vente/local-commercial/noisy-le-grand-93160/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/noisy-le-grand-93160/; /vente/local-commercial/marolles-en-brie-94440/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/marolles-en-brie-94440/; garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -1201,7 +1201,7 @@
   {
    "jour": "2026-09-05",
    "statut": "ok",
-   "annonces": 671,
+   "annonces": 678,
    "message": null
   }
  ],
@@ -1469,8 +1469,8 @@
   {
    "jour": "2026-09-05",
    "statut": "ok",
-   "annonces": 6,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); seloger_bureaux : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); logic_immo : 71 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 7 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
+   "annonces": 13,
+   "message": "leboncoin : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2; seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 73 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 7 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger)"
   }
  ],
  "encheres_publiques": [
@@ -1945,7 +1945,7 @@
   {
    "jour": "2026-09-05",
    "statut": "ok",
-   "annonces": 121,
+   "annonces": 118,
    "message": null
   }
  ],
