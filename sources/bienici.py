@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 
 from pipeline.modeles import AnnonceBrute
 from sources.base import SourceHtml
-from sources.extraction import deviner_type_murs, loyer_mensuel_depuis_texte
+from sources.extraction import LIMITE_DESCRIPTION, deviner_type_murs, loyer_mensuel_depuis_texte
 
 
 def _texte_description(description_html: str) -> str:
@@ -96,7 +96,7 @@ class SourceBienici(SourceHtml):
                     loyer_mensuel=loyer_mensuel_depuis_texte(description, prix),
                     image_url=photos[0] if photos else None,
                     images=photos,
-                    description=description[:600],
+                    description=description[:LIMITE_DESCRIPTION],
                 )
             )
         return annonces

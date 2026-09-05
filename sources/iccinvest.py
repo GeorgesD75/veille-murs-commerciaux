@@ -28,7 +28,7 @@ from bs4.element import Tag
 
 from pipeline.modeles import AnnonceBrute
 from sources.base import SourceHtml
-from sources.extraction import deviner_type_murs, extraire_nombre, extraire_surface
+from sources.extraction import LIMITE_DESCRIPTION, deviner_type_murs, extraire_nombre, extraire_surface
 
 _CP = re.compile(r"\b(\d{5})\b")
 _ID_POST = re.compile(r"post-(\d+)")
@@ -116,5 +116,5 @@ class SourceIccInvest(SourceHtml):
             surface_m2=extraire_surface(f"{titre} {description}"),
             loyer_mensuel=loyer_mensuel,
             image_url=image,
-            description=description[:600],
+            description=description[:LIMITE_DESCRIPTION],
         )

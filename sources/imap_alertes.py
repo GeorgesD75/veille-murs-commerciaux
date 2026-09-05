@@ -165,6 +165,24 @@ def _bloc_annonce(lien: Tag) -> Tag:
     return bloc
 
 
+def _mene_a_une_annonce(lien: Tag) -> bool:
+    """Ce lien est-il DANS un bloc à prix, donc probablement une annonce ?
+
+    Le test naïf « € dans _bloc_annonce(lien) » ne marche pas : un lien SANS
+    prix voisin (logo, désabonnement, réseaux sociaux) fait remonter jusqu'à
+    <body>, qui contient les prix des AUTRES annonces — et répond donc vrai
+    pour tout le monde. Mesuré le 2026-09-05 sur un email type : 5 liens sur 5
+    passaient le garde-fou alors que 2 seulement étaient des annonces, d'où un
+    budget de redirection brûlé aux deux tiers en pure perte (le retard
+    grimpait : 35 -> 73 messages reportés en cinq jours).
+
+    Exiger un ancêtre PLUS ÉTROIT que <body> suffit à trancher : un vrai bloc
+    d'annonce est toujours un conteneur local (div, td, table...).
+    """
+    bloc = _bloc_annonce(lien)
+    return bloc.name not in ("body", "html") and "€" in bloc.get_text()
+
+
 def _decoder_segment_base64(href: str) -> str | None:
     """Certains redirecteurs (Selligent/Actito — ex. Bien'ici, cf. bienici_alerte)
     encodent la VRAIE destination en base64 dans le dernier segment du chemin :
@@ -221,7 +239,7 @@ def extraire_annonces_html(
             # désabonnement, réseaux sociaux — indiscernables autrement), et le
             # budget temps de _resoudre_redirection. Coût nul pour un portail à
             # liens directs : son motif matche, on n'arrive jamais ici.
-            if "€" in _bloc_annonce(lien).get_text():
+            if _mene_a_une_annonce(lien):
                 reelle = resoudre_redirection(href_brut)
                 if reelle:
                     trouve = portail.motif_lien.search(reelle)
@@ -394,13 +412,10 @@ class SourceImap(Source):
         soup = BeautifulSoup(html, "html.parser")
         hotes: dict[str, int] = {}
         for lien in soup.find_all("a", href=True):
-            bloc = _bloc_annonce(lien)
-            # Un lien SANS prix à proximité (désabonnement, mentions légales…)
-            # fait remonter _bloc_annonce jusqu'à <body>, qui contient les prix
-            # des AUTRES annonces : le test « € dans le bloc » y répond vrai à
-            # tort. On écarte donc ce cas — pour un diagnostic, une piste fausse
-            # coûte plus cher qu'une piste manquante.
-            if bloc.name in ("body", "html") or "€" not in bloc.get_text():
+            # Même règle que l'extraction (_mene_a_une_annonce) : le diagnostic
+            # doit décrire EXACTEMENT les liens sur lesquels le budget part,
+            # sinon il envoie chercher au mauvais endroit.
+            if not _mene_a_une_annonce(lien):
                 continue
             hote = urlparse(str(lien["href"])).netloc.lower()
             if hote:

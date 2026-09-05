@@ -22,6 +22,19 @@ filtres:
     - "cession du fonds"
     - "cession du fond"
     - "droit au bail"
+    # Ajoutés le 2026-09-05 : synonymes et tournures qui passaient au travers
+    # (vérifié sur les 2483 annonces en stock — 0 retenue légitime touchée,
+    # donc aucun faux positif introduit). Les pluriels n'ont pas besoin d'être
+    # listés : la correspondance se fait en sous-chaîne, « fonds de commerces »
+    # contient déjà « fonds de commerce ».
+    - "fonds commercial"
+    - "fond commercial"
+    - "fonds artisanal"
+    - "vente du fonds"
+    - "vente de fonds"
+    - "reprise de fonds"
+    - "cede son fonds"
+    - "cede le fonds"
   # Éliminatoires SAUF si le mot « murs » apparaît explicitement dans l'annonce.
   mots_eliminatoires_sauf_murs:
     - "pas de porte"

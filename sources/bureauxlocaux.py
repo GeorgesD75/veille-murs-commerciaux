@@ -27,7 +27,7 @@ from urllib.parse import urljoin
 
 from pipeline.modeles import AnnonceBrute, TypeMurs
 from sources.base import SourceHtml
-from sources.extraction import deviner_type_murs, loyer_mensuel_depuis_texte
+from sources.extraction import LIMITE_DESCRIPTION, deviner_type_murs, loyer_mensuel_depuis_texte
 from sources.http import SourceBloqueeErreur
 
 _SLUGS = {
@@ -172,7 +172,7 @@ class SourceBureauxLocaux(SourceHtml):
             loyer_mensuel=loyer_mensuel_depuis_texte(description, prix),
             image_url=images[0] if images else None,
             images=images,
-            description=description[:600],
+            description=description[:LIMITE_DESCRIPTION],
         )
 
 

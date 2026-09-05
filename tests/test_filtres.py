@@ -27,6 +27,41 @@ def test_fond_de_commerce_sans_s_exclu_aussi(config, trajets):
     assert raison_exclusion(a2, config, trajets) is not None
 
 
+def test_synonymes_de_fonds_exclus(config, trajets):
+    """Signalé le 2026-09-05 : une annonce mise en avant était un fonds, dit
+    autrement que « fonds de commerce ». Ces tournures passaient au travers."""
+    for texte in (
+        "Cède fonds commercial de boulangerie, bel emplacement.",
+        "Fond commercial à reprendre, clientèle fidèle.",
+        "Vente du fonds, bail 3/6/9 en cours.",
+        "Reprise de fonds artisanal, matériel inclus.",
+    ):
+        a = faire_annonce(titre="Belle opportunité", description=texte)
+        assert raison_exclusion(a, config, trajets) is not None, texte
+
+
+def test_pluriels_couverts_sans_les_lister(config, trajets):
+    """La correspondance en sous-chaîne absorbe déjà les pluriels : inutile de
+    charger la config de variantes (« fonds de commerces » contient « fonds de
+    commerce »). Ce test fige cette propriété, qui justifie la liste courte."""
+    a = faire_annonce(description="Cession de plusieurs fonds de commerces en centre-ville.")
+    assert raison_exclusion(a, config, trajets) is not None
+
+
+def test_mention_de_fonds_tardive_dans_une_longue_description(config, trajets):
+    """LE cas signalé : titre muet, catégorisation erronée à la source, et la
+    mention n'arrive qu'après des centaines de caractères de blabla. Avec
+    l'ancienne troncature à 600 caractères, le filtre ne la voyait jamais."""
+    blabla = ("Local commercial idéalement placé en plein centre-ville, à deux pas "
+              "des transports et des commerces de proximité. ") * 9   # ~1000 caractères
+    a = faire_annonce(
+        titre="Local commercial 60 m² centre-ville",
+        description=blabla + " Il s'agit d'une cession de fonds de commerce.",
+    )
+    assert len(a.description) > 600, "le cas testé doit dépasser l'ancienne limite"
+    assert raison_exclusion(a, config, trajets) is not None
+
+
 def test_droit_au_bail_exclu(config, trajets):
     a = faire_annonce(titre="Droit au bail boutique", description="Emplacement n°1.")
     raison = raison_exclusion(a, config, trajets)

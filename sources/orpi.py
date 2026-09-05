@@ -31,7 +31,7 @@ from bs4.element import Tag
 
 from pipeline.modeles import AnnonceBrute
 from sources.base import SourceHtml
-from sources.extraction import deviner_type_murs
+from sources.extraction import LIMITE_DESCRIPTION, deviner_type_murs
 
 _HREF = re.compile(r"annonce-vente-local-commercial-(?P<ville>.+)-(?P<cp>\d{5})-(?P<id>[\w-]+)/?$")
 _PETITS_MOTS = {"de", "du", "des", "le", "la", "les", "sur", "sous", "en", "aux", "et"}
@@ -122,5 +122,5 @@ class SourceOrpi(SourceHtml):
             surface_m2=surface,
             loyer_mensuel=None,
             image_url=image,
-            description=description[:600],
+            description=description[:LIMITE_DESCRIPTION],
         )

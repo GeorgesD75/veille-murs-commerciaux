@@ -20,7 +20,7 @@ from bs4.element import Tag
 
 from pipeline.modeles import AnnonceBrute
 from sources.base import SourceHtml
-from sources.extraction import deviner_type_murs, extraire_nombre, extraire_surface
+from sources.extraction import LIMITE_DESCRIPTION, deviner_type_murs, extraire_nombre, extraire_surface
 
 _ID_LIEN = re.compile(r"-(\d+)$")
 _CP_VILLE = re.compile(r"\b(\d{5})\s+([A-ZÀ-Ý][\wÀ-ÿ'’ -]*)$")
@@ -96,5 +96,5 @@ class SourceLaTourImmo(SourceHtml):
             surface_m2=extraire_surface(titre_complet) or extraire_surface(description),
             loyer_mensuel=None,
             image_url=image,
-            description=description[:600],
+            description=description[:LIMITE_DESCRIPTION],
         )

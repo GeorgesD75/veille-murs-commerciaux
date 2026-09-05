@@ -26,6 +26,7 @@ from pipeline.geo import ILE_DE_FRANCE
 from pipeline.modeles import AnnonceBrute
 from sources.base import Source
 from sources.extraction import (
+    LIMITE_DESCRIPTION,
     deviner_type_murs,
     extraire_surface,
     loyer_mensuel_depuis_texte,
@@ -97,5 +98,5 @@ class SourceNotaires(Source):
             prix=float(prix),
             surface_m2=extraire_surface(description),
             loyer_mensuel=loyer_mensuel_depuis_texte(description, float(prix)),
-            description=description[:600],
+            description=description[:LIMITE_DESCRIPTION],
         )

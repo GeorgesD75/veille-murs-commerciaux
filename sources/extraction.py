@@ -27,6 +27,21 @@ _SURFACE = re.compile(
 
 RENDEMENT_MAX_PLAUSIBLE = 0.20  # au-delà de 20 %/an, la donnée est suspecte
 
+# Longueur de description conservée par les sources. Relevée de 600 à 2000 le
+# 2026-09-05 : une annonce mise en avant s'est révélée être un fonds de
+# commerce, mentionné NON PAS dans le titre mais dans la description — au-delà
+# du 600e caractère, donc invisible pour le filtre anti-fonds.
+#
+# La troncature n'aveuglait pas que ce filtre : texte_complet() nourrit AUSSI
+# la détection des caractéristiques, du DPE, de la taxe foncière, de
+# l'échéance de bail et de l'emplacement n°1 — tous amputés de la même façon.
+# Mesuré sur le stock : 32 % des annonces retenues étaient tronquées.
+#
+# 2000 est calibré sur les descriptions réelles (60 annonces bureauxlocaux
+# relevées le 2026-09-05 : médiane 471, maximum 1098) — large marge, pour un
+# surcoût de stockage plafonné à ~1,3 Mo sur un fichier de 7 Mo.
+LIMITE_DESCRIPTION = 2000
+
 _MOTS_OCCUPES = (
     "vendu occupe", "vendus occupes", "vendue occupee", "murs occupes", "vendu loue",
     "vendus loues", "vendue louee", "locataire en place", "occupe par", "occupes par",

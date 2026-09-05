@@ -32,6 +32,7 @@ from bs4.element import Tag
 from pipeline.modeles import AnnonceBrute
 from sources.base import SourceHtml
 from sources.extraction import (
+    LIMITE_DESCRIPTION,
     deviner_type_murs,
     extraire_nombre,
     extraire_surface,
@@ -310,5 +311,5 @@ class SourceGeolocaux(SourceHtml):
             loyer_mensuel=loyer_mensuel_depuis_texte(description, prix),
             image_url=images[0] if images else None,
             images=images,
-            description=description[:600],
+            description=description[:LIMITE_DESCRIPTION],
         )

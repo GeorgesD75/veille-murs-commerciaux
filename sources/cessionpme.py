@@ -28,6 +28,7 @@ from bs4.element import Tag
 from pipeline.modeles import AnnonceBrute
 from sources.base import SourceHtml
 from sources.extraction import (
+    LIMITE_DESCRIPTION,
     deviner_type_murs,
     extraire_nombre,
     extraire_surface,
@@ -127,5 +128,5 @@ class SourceCessionPme(SourceHtml):
             surface_m2=surface,
             loyer_mensuel=loyer_mensuel_depuis_texte(description, prix),
             image_url=image,
-            description=description[:600],
+            description=description[:LIMITE_DESCRIPTION],
         )
