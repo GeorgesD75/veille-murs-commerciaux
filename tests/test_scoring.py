@@ -518,3 +518,52 @@ def test_ville_banlieue_avec_cp_parisien_jugee_par_la_ville(config):
     assert "localisation_incoherente" in a.flags
     # échelle de rendement de la petite couronne (4,5 -> 9), pas celle de Paris
     assert a.detail_score["rendement"] == round((8.0 - 4.5) / 4.5 * 37, 1)
+
+
+# --- Garde-fou : une alerte email ne livre qu'un teaser, pas l'annonce ---
+
+
+def test_annonce_d_alerte_ne_peut_pas_declencher_l_email_pepite(config):
+    """Cas réel du 2026-09-06 : « Vente Boucherie, Charcuterie 70 m² » notée 88
+    était un FONDS DE COMMERCE — la mention figurait sur la page de l'annonce,
+    absente de l'email d'alerte, seul texte dont nous disposions. Le filtre
+    anti-fonds ne pouvait rien voir."""
+    a = faire_annonce(
+        titre="Annonce logic_immo – Paris 18ème arrondissement",
+        description="249 000 € 3 557 €/m² Vente Boucherie, Charcuterie 70 m² Paris 18ème (75018)",
+        ville="Paris 18e", code_postal="75018", departement="75",
+    )
+    a.source = "alerte_logic_immo"
+    a.rendement_brut_pct = 9.0
+    a.position_benchmark = "decote_forte"
+    a.temps_trajet_min = 10
+    scorer(a, config)
+    assert "texte_partiel_alerte" in a.flags
+    assert a.score == config.scoring["seuils"]["pepite"] - 1
+
+
+def test_alerte_qui_dit_murs_reste_eligible(config):
+    """« murs » est justement ce que le filtre cherche : quand l'alerte le dit,
+    le teaser suffit et le bien redevient un dossier de tête possible."""
+    a = faire_annonce(
+        titre="Murs commerciaux loués – Paris 18ème",
+        description="Vente des murs, locataire en place.",
+        ville="Paris 18e", code_postal="75018", departement="75",
+    )
+    a.source = "alerte_logic_immo"
+    a.rendement_brut_pct = 9.0
+    a.position_benchmark = "decote_forte"
+    a.temps_trajet_min = 10
+    scorer(a, config)
+    assert "texte_partiel_alerte" not in a.flags
+
+
+def test_source_scrapee_non_concernee(config):
+    """Une source scrapée fournit le texte complet : rien ne change pour elle."""
+    a = faire_annonce(ville="Paris 18e", code_postal="75018", departement="75")
+    a.source = "bureauxlocaux"
+    a.rendement_brut_pct = 9.0
+    a.position_benchmark = "decote_forte"
+    a.temps_trajet_min = 10
+    scorer(a, config)
+    assert "texte_partiel_alerte" not in a.flags

@@ -229,6 +229,26 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
             annonce.flags.append("pepite_sur_loyer_estime")
             annonce.score = plafond_pepite
 
+    # Une alerte email ne livre qu'un TEASER, pas l'annonce : titre générique
+    # (« Annonce logic_immo – Paris 18e ») et 164 caractères de médiane, contre
+    # 525 pour une source scrapée. Le filtre anti-fonds — le piège n°1 de ce
+    # marché — n'a donc presque rien à lire. Constaté le 2026-09-06 : une
+    # « Vente Boucherie, Charcuterie 70 m² » notée 88 était en réalité un fonds
+    # de commerce, la mention ne figurant que sur la page de l'annonce, jamais
+    # dans l'email. Ces biens restent visibles et classés — mais tant que leur
+    # texte n'a pas été vu en entier, ils ne peuvent pas déclencher l'email
+    # « tout de suite ». Sauf s'ils disent explicitement « murs » : cette
+    # mention, rare (3 sur 44), est justement ce que le filtre cherche.
+    if (
+        cfg["seuils"].get("pepite_exige_texte_complet")
+        and annonce.source.startswith("alerte_")
+        and "murs" not in normaliser_texte(annonce.texte_complet())
+    ):
+        plafond_teaser = int(cfg["seuils"]["pepite"]) - 1
+        if annonce.score > plafond_teaser:
+            annonce.flags.append("texte_partiel_alerte")
+            annonce.score = plafond_teaser
+
     rendement_min_vert = cfg["seuils"].get("rendement_minimum_vert")
     if rendement_min_vert is not None and (
         annonce.rendement_brut_pct is None

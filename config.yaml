@@ -208,6 +208,20 @@ scoring:
                               # rendement brut ne peut PAS entrer au haut du panier, quel que
                               # soit son score — le projet vit du cash-flow, pas des points
                               # d'emplacement. Plafonné juste sous « vert », badge explicatif.
+    pepite_exige_texte_complet: true
+                              # Ajouté le 2026-09-06 après un cas réel : une
+                              # « Vente Boucherie, Charcuterie 70 m² » notée 88
+                              # était un FONDS DE COMMERCE — mention présente
+                              # sur la page de l'annonce, absente de l'email
+                              # d'alerte, seul texte que nous ayons. Une alerte
+                              # ne livre qu'un teaser (164 caractères de
+                              # médiane contre 525 pour une source scrapée, et
+                              # un titre générique) : le filtre anti-fonds, qui
+                              # protège du piège n°1 de ce marché, n'y a
+                              # presque rien à lire. Ces annonces restent
+                              # visibles et classées, mais ne déclenchent plus
+                              # l'email « tout de suite » — sauf si elles
+                              # disent explicitement « murs ».
     pepite_exige_loyer_fiable: true
                               # Garde-fou ajouté le 2026-09-01 après mesure sur 514 annonces
                               # réelles : 6 des 7 pépites (85 %) reposaient sur un loyer
