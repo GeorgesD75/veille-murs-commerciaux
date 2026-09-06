@@ -557,6 +557,16 @@ a.btn-outil:hover { text-decoration: none; border-color: var(--marque); }
 .btn-outil { font: 600 11.5px system-ui, sans-serif; color: var(--marque);
   background: var(--plan); border: 1px solid var(--bord); border-radius: 7px;
   padding: 4px 9px; cursor: pointer; margin-top: 4px; display: inline-flex; gap: 5px; align-items: center; }
+/* Sept boutons au même poids ne disaient pas lequel conclut. Tous les autres
+   servent à ÉTUDIER le bien ; celui-ci est le seul qui engage quelque chose
+   au dehors — écrire au vendeur. Il est donc plein, les autres restent des
+   contours : une seule action colorée par carte, la hiérarchie se lit sans
+   avoir à comparer les libellés. */
+.btn-outil--primaire { background: var(--marque); color: #fff; border-color: var(--marque); }
+.btn-outil--primaire:hover { filter: brightness(1.08); }
+@media (prefers-color-scheme: dark) {
+  .btn-outil--primaire { background: #2f6b52; border-color: #2f6b52; color: #f4f1e8; }
+}
 .info-i { display: inline-flex; width: 15px; height: 15px; border-radius: 50%;
   border: 1.4px solid var(--encre-3); color: var(--encre-3); font: 700 10px Georgia, serif;
   align-items: center; justify-content: center; cursor: pointer; vertical-align: 1px; margin-left: 4px; }
@@ -1827,12 +1837,12 @@ function carteHtml(a, options) {
     <div class="carte-score">
       <div class="score ${classeScore(a.score)}">${a.score ?? "—"}</div>
       <div class="score-libelle">/100</div>
+      <button type="button" class="btn-outil btn-outil--primaire" data-contact="${ech(a.id)}"
+        title="Génère un message personnalisé à copier-coller pour contacter le vendeur : visite, offre, documents manquants.">${IC.enveloppe} Contacter</button>
       <button type="button" class="btn-comp${dansComp ? " actif" : ""}" data-id="${ech(a.id)}">
         ${IC.balance} ${dansComp ? "Comparé" : "Comparer"}</button>
       <button type="button" class="btn-outil" data-sim="${ech(a.id)}">${IC.calc} Financer</button>
       <button type="button" class="btn-outil" data-check="${ech(a.id)}">${IC.coche} ${nbChecklist(a)}</button>
-      <button type="button" class="btn-outil" data-contact="${ech(a.id)}"
-        title="Génère un message personnalisé à copier-coller pour contacter le vendeur : visite, offre, documents manquants.">${IC.enveloppe} Contacter</button>
       <button type="button" class="btn-outil${a.critique_ia ? " a-critique" : ""}" data-critique="${ech(a.id)}"
         title="${a.critique_ia ? "Critique honnête générée par une IA (Claude Haiku) : ce qui pourrait clocher, au-delà du score." : "Critique IA : pas encore générée pour ce bien."}">${IC.esprit} Critique IA</button>
       ${a.dossier ? `<a class="btn-outil" href="${ech(a.dossier)}" download
