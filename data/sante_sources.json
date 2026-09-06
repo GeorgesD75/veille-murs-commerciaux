@@ -975,7 +975,7 @@
   {
    "jour": "2026-09-06",
    "statut": "ok",
-   "annonces": 26,
+   "annonces": 25,
    "message": null
   }
  ],
@@ -1115,8 +1115,8 @@
   {
    "jour": "2026-09-06",
    "statut": "ok",
-   "annonces": 200,
-   "message": "/vente/local-commercial/noisy-le-grand-93160/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/noisy-le-grand-93160/; /vente/local-commercial/marolles-en-brie-94440/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/marolles-en-brie-94440/; garde-fou de 90 requêtes atteint : collecte partielle"
+   "annonces": 202,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -1255,7 +1255,7 @@
   {
    "jour": "2026-09-06",
    "statut": "ok",
-   "annonces": 675,
+   "annonces": 674,
    "message": null
   }
  ],
@@ -1535,8 +1535,8 @@
   {
    "jour": "2026-09-06",
    "statut": "ok",
-   "annonces": 8,
-   "message": "leboncoin : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2; seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 77 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 7 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 60 liens résolus en 23 s sur 240 s (60 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 9,
+   "message": "leboncoin : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2; seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 79 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 7 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 60 liens résolus en 26 s sur 240 s (58 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2035,7 +2035,7 @@
   {
    "jour": "2026-09-06",
    "statut": "ok",
-   "annonces": 103,
+   "annonces": 112,
    "message": null
   }
  ],
