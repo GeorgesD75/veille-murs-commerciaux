@@ -260,13 +260,20 @@ sources:                      # activer/désactiver une source = une ligne
   notaires:        {actif: true, max_pages: 5}  # API JSON publique des études notariales —
                                     # volume IdF faible mais annonces quasi off-market,
                                     # données de confiance (prix du mandat, INSEE, bienVendu)
-  imap:            {actif: true, jours_max: 14, max_redirections: 60}   # alertes email LeBonCoin/
+  imap:            {actif: true, jours_max: 14, max_redirections: 400}   # alertes email LeBonCoin/
                                     # SeLoger/Geolocaux/BureauxLocaux/Logic-immo/Bourse des locaux/IAD/PAP...
                                     # (s'ignore proprement tant que IMAP_USER/IMAP_PASSWORD manquent)
                                     # jours_max relevé à 14 j le 2026-08-23 : certains portails
                                     # alertent par lots espacés, pas au quotidien (cf. sources/imap_alertes.py)
-                                    # max_redirections (2026-08-29, relevé 20 → 60 le jour même : le 1er run
-                                    # réel a épuisé les 20 sur logic_immo seul) : logic_immo/iad emballent
+                                    # max_redirections relevé 60 → 400 le 2026-09-06, sur MESURE et non au
+                                    # jugé : la tournée a résolu 60 liens en 23 s sur un budget de 240 s,
+                                    # 0 échec, 0,4 s/lien — donc 10 % du temps utilisé, et c'est ce
+                                    # compteur (60) qui coupait, pas le temps. Il neutralisait sans le dire
+                                    # le budget de temps ajouté le 2026-09-02, laissant 77 emails en
+                                    # attente. À 0,4 s/lien, 400 tient en ~160 s ; si les serveurs
+                                    # ralentissent, le budget de temps coupe avant — c'est lui le vrai
+                                    # garde-fou, ce compteur n'est plus qu'une sécurité absolue.
+                                    # logic_immo/iad emballent
                                     # leurs liens dans un redirecteur opaque (Selligent/Adobe Campaign), seul
                                     # un aller-retour HTTP (~200-400 ms mesuré) révèle la vraie annonce
   iccinvest:       {actif: true, max_pages: 5}   # cabinet indépendant « murs de commerce », listing
