@@ -1447,17 +1447,17 @@ function explicationPepiteHtml(a) {
     atouts.push(`rendement exceptionnel (${fmtPct(a.rendement_brut_pct)} brut, ${d.rendement}/${D.maxima.rendement} pts)`);
   if (d.emplacement >= 20)
     atouts.push(`emplacement parmi les plus sûrs de la grille (${d.emplacement}/25 pts)`);
-  if (d.prix_m2_vs_benchmark >= 15 && a.decote_pct != null)
-    atouts.push(`prix ${Math.round(a.decote_pct)} % sous la médiane locale`);
+  // La décote n'est PAS reprise ici : le badge près du titre et la jauge de
+  // marché juste au-dessus la donnent déjà, chiffre à l'appui. Idem pour le
+  // cash-flow (métrique en gros caractères + badge « s'autofinance »). Ce bloc
+  // ne vaut que s'il apporte ce qu'on ne voit nulle part ailleurs — sinon il
+  // dit trois fois la même chose et noie ses propres arguments.
   if ((a.bonus_detectes || []).length)
     atouts.push(`dossier propre (${a.bonus_detectes.join(", ")})`);
   if (a.rue_categorie === "tres_commercante" && a.rue_nb_commerces != null)
     atouts.push(`rue mesurée très commerçante (${a.rue_nb_commerces} commerces à 150 m)`);
-  const cf = cashflowMensuel(a);
-  const cfTxt = (cf != null && cf >= 0 && !(a.flags || []).includes("rendement_anormalement_eleve"))
-    ? ` Et ${finTxt()}, le cash-flow resterait positif (+${fmtEuros(cf)}/mois).` : "";
   const liste = atouts.length ? atouts.join(" · ") : "un cumul de tous les critères, sans point faible";
-  return `<div class="pepite-pourquoi">${IC.pepite} <b>Pourquoi une pépite :</b> ${liste}.${cfTxt}
+  return `<div class="pepite-pourquoi">${IC.pepite} <b>Pourquoi une pépite :</b> ${liste}.
     Un score ≥ ${D.seuils.pepite}/100 est rare — vérifiez vite (visite, bail, copropriété) avant qu'elle ne parte.</div>`;
 }
 
