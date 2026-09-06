@@ -775,7 +775,12 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
   .masthead-inner { padding: 16px 16px 12px; }
   .wordmark { font-size: 34px; }
   .enseigne svg.devanture { width: 42px; height: 42px; }
-  .hud, .btn-comp, .plateau, .carte .pourquoi { display: none !important; }
+  /* .carte .pourquoi n'est plus masqué : le détail du score expliquait
+     POURQUOI un bien vaut 84, et le cacher sur mobile laissait la note sans
+     justification — or c'est au téléphone qu'on lit une alerte. Il passe
+     pleine largeur (règle du palier 1100 px), sous les métriques. */
+  .hud, .btn-comp, .plateau { display: none !important; }
+  .carte .pourquoi { border-top: 1px solid var(--filet); margin-top: 10px; padding-top: 10px; }
   .volet-filtres > summary { display: block; }
   .carte { grid-template-columns: 1fr 84px; gap: 12px; padding: 12px; }
   .carte-img { grid-column: 1 / -1; height: 150px; }

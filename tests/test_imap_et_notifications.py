@@ -835,3 +835,37 @@ def test_source_sporadique_configuree_n_alerte_pas_a_zero_annonce(config, monkey
     rapport = notifier_sante_sources(historique, meta, config)
     assert rapport["statut"] == "rien à signaler"
     assert meta["sources_en_alerte"] == []
+
+
+# --- Titre reconstruit depuis le bloc de l'email ---
+
+
+def test_titre_reconstruit_depuis_le_bloc():
+    """146 annonces s'appelaient « Annonce logic_immo – Paris 18ème » : le lien
+    de l'email n'a souvent aucun texte. Or le vrai titre est dans le bloc,
+    entre le prix et la localisation. Cas réel du 2026-09-06."""
+    from sources.imap_alertes import titre_depuis_bloc
+
+    bloc = ("249 000 € 3 557 €/m² Vente Boucherie, Charcuterie 70 m² 70 m² "
+            "Moskowa-Porte Montmartre, Paris 18ème arrondissement (75018) Voir l'annonce")
+    assert titre_depuis_bloc(bloc) == "Vente Boucherie, Charcuterie 70 m²"
+
+
+def test_titre_reconstruit_rend_none_plutot_qu_un_a_peu_pres():
+    """Un mauvais titre vaut moins que le libellé générique, au moins honnête."""
+    from sources.imap_alertes import titre_depuis_bloc
+
+    assert titre_depuis_bloc("250 000 € Paris 18ème arrondissement (75018)") is None
+    assert titre_depuis_bloc("") is None
+
+
+def test_voir_l_annonce_n_est_pas_un_titre():
+    """Le texte du lien vaut souvent « Voir l'annonce » : inutilisable."""
+    portail = next(p for p in PORTAILS if p.nom == "leboncoin")
+    html = ("<html><body><div>"
+            '<a href="https://www.leboncoin.fr/ventes_immobilieres/2894561230.htm">Voir l\'annonce</a>'
+            "<p>250 000 € Vente Local commercial 40 m² Paris 18ème (75018)</p>"
+            "</div></body></html>")
+    annonces = extraire_annonces_html(html, portail)
+    assert len(annonces) == 1
+    assert annonces[0].titre == "Vente Local commercial 40 m²"

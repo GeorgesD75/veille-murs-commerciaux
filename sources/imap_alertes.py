@@ -51,6 +51,30 @@ from sources.extraction import (
 
 _VILLE_CP = re.compile(r"([A-ZÀ-Ý][\wà-ÿ'’ -]{2,40}?)\s*\(?\b(\d{5})\)?")
 _PRIX_EURO = re.compile(r"(\d[\d\s  .,]{2,})\s*€")
+# Le bloc d'une annonce dans un email d'alerte enchaîne : prix, prix/m², TITRE,
+# surface, quartier, « Voir l'annonce ». Le titre y commence par le type de
+# transaction et se termine sur la surface — c'est le seul segment repérable
+# sans deviner. Constaté le 2026-09-06 sur logic_immo : « Vente Boucherie,
+# Charcuterie 70 m² », noyé dans un bloc dont le lien lui-même n'a aucun texte.
+_TITRE_DANS_BLOC = re.compile(
+    r"\b((?:vente|achat|location|cession)\b.{3,70}?\d[\d\s.,]*\s*m\s*(?:²|2))",
+    re.IGNORECASE,
+)
+
+
+def titre_depuis_bloc(texte: str) -> str | None:
+    """Titre lisible reconstruit depuis le texte du bloc, ou None.
+
+    Sans lui, 146 annonces s'appelaient « Annonce logic_immo – Paris 18ème » :
+    illisible pour l'utilisateur, et surtout muet pour le filtre anti-fonds,
+    qui lit le titre en priorité. Rendre None plutôt qu'un à-peu-près : un
+    mauvais titre vaut moins que le libellé générique, au moins honnête.
+    """
+    trouve = _TITRE_DANS_BLOC.search(texte or "")
+    if not trouve:
+        return None
+    titre = re.sub(r"\s+", " ", trouve.group(1)).strip(" ·-–,")
+    return titre[:120] if len(titre) >= 8 else None
 
 
 @dataclass(frozen=True)
@@ -263,9 +287,16 @@ def extraire_annonces_html(
             ville, code_postal = localisation.group(1).strip(), localisation.group(2)
 
         image = bloc.find("img", src=True)
+        # Le texte du lien est souvent un simple « Voir l'annonce », voire vide
+        # (lien posé sur une image) : inutilisable comme titre. On reconstruit
+        # alors depuis le bloc, avant de se rabattre sur le libellé générique.
         titre = lien.get_text(" ", strip=True)
+        if titre.lower() in ("", "voir l'annonce", "voir l’annonce", "voir", "en savoir plus"):
+            titre = ""
         if not titre and image is not None:
             titre = str(image.get("alt", "")).strip()
+        if not titre:
+            titre = titre_depuis_bloc(texte) or ""
         if not titre:
             titre = f"Annonce {portail.nom}" + (f" – {ville}" if ville else "")
 
