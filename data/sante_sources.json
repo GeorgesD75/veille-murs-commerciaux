@@ -1017,7 +1017,7 @@
   {
    "jour": "2026-09-07",
    "statut": "ok",
-   "annonces": 18,
+   "annonces": 25,
    "message": null
   }
  ],
@@ -1309,7 +1309,7 @@
   {
    "jour": "2026-09-07",
    "statut": "ok",
-   "annonces": 675,
+   "annonces": 676,
    "message": null
   }
  ],
@@ -1601,8 +1601,8 @@
   {
    "jour": "2026-09-07",
    "statut": "ok",
-   "annonces": 32,
-   "message": "leboncoin : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2; seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 175 liens résolus en 72 s sur 240 s (166 aboutis, 1 en échec, 0.4 s/lien)"
+   "annonces": 41,
+   "message": "leboncoin : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2; seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 3 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 3 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 151 s sur 240 s (400 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2125,7 +2125,7 @@
   {
    "jour": "2026-09-07",
    "statut": "ok",
-   "annonces": 133,
+   "annonces": 108,
    "message": null
   }
  ],
