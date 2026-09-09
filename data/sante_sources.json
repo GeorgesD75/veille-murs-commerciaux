@@ -943,7 +943,7 @@
   {
    "jour": "2026-09-09",
    "statut": "ok",
-   "annonces": 10,
+   "annonces": 11,
    "message": null
   }
  ],
@@ -1101,7 +1101,7 @@
   {
    "jour": "2026-09-09",
    "statut": "ok",
-   "annonces": 26,
+   "annonces": 19,
    "message": null
   }
  ],
@@ -1733,8 +1733,8 @@
   {
    "jour": "2026-09-09",
    "statut": "ok",
-   "annonces": 6,
-   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 56 liens résolus en 15 s sur 240 s (35 aboutis, 3 en échec, 0.3 s/lien)"
+   "annonces": 10,
+   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 101 liens résolus en 44 s sur 240 s (101 aboutis, 0 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2305,7 +2305,7 @@
   {
    "jour": "2026-09-09",
    "statut": "ok",
-   "annonces": 97,
+   "annonces": 114,
    "message": null
   }
  ],
