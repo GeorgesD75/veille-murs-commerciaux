@@ -153,8 +153,8 @@
   {
    "jour": "2026-09-09",
    "statut": "ok",
-   "annonces": 16,
-   "message": null
+   "annonces": 15,
+   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/1/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -1101,7 +1101,7 @@
   {
    "jour": "2026-09-09",
    "statut": "ok",
-   "annonces": 19,
+   "annonces": 25,
    "message": null
   }
  ],
@@ -1417,7 +1417,7 @@
   {
    "jour": "2026-09-09",
    "statut": "ok",
-   "annonces": 666,
+   "annonces": 665,
    "message": null
   }
  ],
@@ -1733,8 +1733,8 @@
   {
    "jour": "2026-09-09",
    "statut": "ok",
-   "annonces": 10,
-   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 101 liens résolus en 44 s sur 240 s (101 aboutis, 0 en échec, 0.4 s/lien)"
+   "annonces": 15,
+   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 147 liens résolus en 72 s sur 240 s (147 aboutis, 0 en échec, 0.5 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2305,7 +2305,7 @@
   {
    "jour": "2026-09-09",
    "statut": "ok",
-   "annonces": 114,
+   "annonces": 113,
    "message": null
   }
  ],
