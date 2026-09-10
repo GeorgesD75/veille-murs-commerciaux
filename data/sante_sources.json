@@ -979,7 +979,7 @@
   {
    "jour": "2026-09-10",
    "statut": "ok",
-   "annonces": 13,
+   "annonces": 15,
    "message": null
   }
  ],
@@ -1143,7 +1143,7 @@
   {
    "jour": "2026-09-10",
    "statut": "ok",
-   "annonces": 26,
+   "annonces": 17,
    "message": null
   }
  ],
@@ -1307,7 +1307,7 @@
   {
    "jour": "2026-09-10",
    "statut": "ok",
-   "annonces": 203,
+   "annonces": 202,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
@@ -1471,7 +1471,7 @@
   {
    "jour": "2026-09-10",
    "statut": "ok",
-   "annonces": 664,
+   "annonces": 662,
    "message": null
   }
  ],
@@ -1799,8 +1799,8 @@
   {
    "jour": "2026-09-10",
    "statut": "ok",
-   "annonces": 9,
-   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 98 liens résolus en 28 s sur 240 s (84 aboutis, 2 en échec, 0.3 s/lien)"
+   "annonces": 19,
+   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 154 liens résolus en 58 s sur 240 s (152 aboutis, 0 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2395,7 +2395,7 @@
   {
    "jour": "2026-09-10",
    "statut": "ok",
-   "annonces": 115,
+   "annonces": 124,
    "message": null
   }
  ],
