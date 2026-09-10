@@ -159,7 +159,7 @@
   {
    "jour": "2026-09-10",
    "statut": "ok",
-   "annonces": 17,
+   "annonces": 21,
    "message": null
   }
  ],
@@ -979,7 +979,7 @@
   {
    "jour": "2026-09-10",
    "statut": "ok",
-   "annonces": 15,
+   "annonces": 19,
    "message": null
   }
  ],
@@ -1143,7 +1143,7 @@
   {
    "jour": "2026-09-10",
    "statut": "ok",
-   "annonces": 17,
+   "annonces": 26,
    "message": null
   }
  ],
@@ -1634,9 +1634,9 @@
   },
   {
    "jour": "2026-09-10",
-   "statut": "ok",
-   "annonces": 2,
-   "message": null
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "HTTP 403 sur https://www.immobilier.notaires.fr/pub-services/inotr-www-annonces/v1/annonces?typeBiens=COM&page=1&parPage=100 — arrêt propre"
   }
  ],
  "imap": [
@@ -1799,8 +1799,8 @@
   {
    "jour": "2026-09-10",
    "statut": "ok",
-   "annonces": 19,
-   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 154 liens résolus en 58 s sur 240 s (152 aboutis, 0 en échec, 0.4 s/lien)"
+   "annonces": 20,
+   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 181 liens résolus en 51 s sur 240 s (167 aboutis, 2 en échec, 0.3 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2395,7 +2395,7 @@
   {
    "jour": "2026-09-10",
    "statut": "ok",
-   "annonces": 124,
+   "annonces": 120,
    "message": null
   }
  ],
