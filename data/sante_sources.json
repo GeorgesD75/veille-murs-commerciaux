@@ -173,6 +173,12 @@
    "statut": "ok",
    "annonces": 20,
    "message": null
+  },
+  {
+   "jour": "2026-09-13",
+   "statut": "ok",
+   "annonces": 21,
+   "message": null
   }
  ],
  "murscommerciaux": [
@@ -349,6 +355,12 @@
    "statut": "ok",
    "annonces": 16,
    "message": null
+  },
+  {
+   "jour": "2026-09-13",
+   "statut": "ok",
+   "annonces": 8,
+   "message": "/recherche-murs-commerciaux-libres : HTTPSConnectionPool(host='www.murscommerciaux.com', port=443): Read timed out. (read timeout=30)"
   }
  ],
  "iburoshop": [
@@ -522,6 +534,12 @@
   },
   {
    "jour": "2026-09-12",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
+  },
+  {
+   "jour": "2026-09-13",
    "statut": "ok",
    "annonces": 10,
    "message": null
@@ -701,6 +719,12 @@
    "statut": "ok",
    "annonces": 0,
    "message": null
+  },
+  {
+   "jour": "2026-09-13",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
   }
  ],
  "papcommerces": [
@@ -874,6 +898,12 @@
   },
   {
    "jour": "2026-09-12",
+   "statut": "ok",
+   "annonces": 10,
+   "message": null
+  },
+  {
+   "jour": "2026-09-13",
    "statut": "ok",
    "annonces": 10,
    "message": null
@@ -1053,6 +1083,12 @@
    "statut": "ok",
    "annonces": 14,
    "message": null
+  },
+  {
+   "jour": "2026-09-13",
+   "statut": "ok",
+   "annonces": 13,
+   "message": null
   }
  ],
  "cessionpme": [
@@ -1226,6 +1262,12 @@
   },
   {
    "jour": "2026-09-12",
+   "statut": "ok",
+   "annonces": 25,
+   "message": null
+  },
+  {
+   "jour": "2026-09-13",
    "statut": "ok",
    "annonces": 25,
    "message": null
@@ -1405,6 +1447,12 @@
    "statut": "ok",
    "annonces": 202,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+  },
+  {
+   "jour": "2026-09-13",
+   "statut": "ok",
+   "annonces": 202,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -1578,6 +1626,12 @@
   },
   {
    "jour": "2026-09-12",
+   "statut": "ok",
+   "annonces": 666,
+   "message": null
+  },
+  {
+   "jour": "2026-09-13",
    "statut": "ok",
    "annonces": 666,
    "message": null
@@ -1757,6 +1811,12 @@
    "statut": "ok",
    "annonces": 2,
    "message": null
+  },
+  {
+   "jour": "2026-09-13",
+   "statut": "ok",
+   "annonces": 2,
+   "message": null
   }
  ],
  "imap": [
@@ -1933,6 +1993,12 @@
    "statut": "ok",
    "annonces": 14,
    "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 5 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 125 liens résolus en 42 s sur 240 s (111 aboutis, 2 en échec, 0.3 s/lien)"
+  },
+  {
+   "jour": "2026-09-13",
+   "statut": "ok",
+   "annonces": 12,
+   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 5 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 107 liens résolus en 40 s sur 240 s (93 aboutis, 2 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2109,6 +2175,12 @@
    "statut": "erreur",
    "annonces": 0,
    "message": "HTTP 403 sur https://www.encheres-publiques.com/ventes/immobilier/locaux-commerciaux/ile-de-france — arrêt propre"
+  },
+  {
+   "jour": "2026-09-13",
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "HTTP 403 sur https://www.encheres-publiques.com/ventes/immobilier/locaux-commerciaux/ile-de-france — arrêt propre"
   }
  ],
  "iccinvest": [
@@ -2276,6 +2348,12 @@
   },
   {
    "jour": "2026-09-12",
+   "statut": "ok",
+   "annonces": 100,
+   "message": null
+  },
+  {
+   "jour": "2026-09-13",
    "statut": "ok",
    "annonces": 100,
    "message": null
@@ -2449,6 +2527,12 @@
    "statut": "ok",
    "annonces": 11,
    "message": null
+  },
+  {
+   "jour": "2026-09-13",
+   "statut": "ok",
+   "annonces": 11,
+   "message": null
   }
  ],
  "orpi": [
@@ -2577,6 +2661,12 @@
    "statut": "ok",
    "annonces": 95,
    "message": null
+  },
+  {
+   "jour": "2026-09-13",
+   "statut": "ok",
+   "annonces": 100,
+   "message": null
   }
  ],
  "arthurloyd": [
@@ -2702,6 +2792,12 @@
   },
   {
    "jour": "2026-09-12",
+   "statut": "ok",
+   "annonces": 18,
+   "message": null
+  },
+  {
+   "jour": "2026-09-13",
    "statut": "ok",
    "annonces": 18,
    "message": null
