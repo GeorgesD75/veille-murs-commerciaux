@@ -1051,7 +1051,7 @@
   {
    "jour": "2026-09-12",
    "statut": "ok",
-   "annonces": 13,
+   "annonces": 14,
    "message": null
   }
  ],
@@ -1227,7 +1227,7 @@
   {
    "jour": "2026-09-12",
    "statut": "ok",
-   "annonces": 26,
+   "annonces": 17,
    "message": null
   }
  ],
@@ -1579,7 +1579,7 @@
   {
    "jour": "2026-09-12",
    "statut": "ok",
-   "annonces": 663,
+   "annonces": 665,
    "message": null
   }
  ],
@@ -1931,8 +1931,8 @@
   {
    "jour": "2026-09-12",
    "statut": "ok",
-   "annonces": 20,
-   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 5 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 128 liens résolus en 49 s sur 240 s (121 aboutis, 1 en échec, 0.4 s/lien)"
+   "annonces": 7,
+   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 5 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 52 liens résolus en 25 s sur 240 s (50 aboutis, 0 en échec, 0.5 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2277,8 +2277,8 @@
   {
    "jour": "2026-09-12",
    "statut": "ok",
-   "annonces": 100,
-   "message": null
+   "annonces": 80,
+   "message": "/annonces/page/3/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "latourimmo": [
@@ -2575,7 +2575,7 @@
   {
    "jour": "2026-09-12",
    "statut": "ok",
-   "annonces": 103,
+   "annonces": 126,
    "message": null
   }
  ],
