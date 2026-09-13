@@ -359,8 +359,8 @@
   {
    "jour": "2026-09-13",
    "statut": "ok",
-   "annonces": 8,
-   "message": "/recherche-murs-commerciaux-libres : HTTPSConnectionPool(host='www.murscommerciaux.com', port=443): Read timed out. (read timeout=30)"
+   "annonces": 16,
+   "message": null
   }
  ],
  "iburoshop": [
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-09-13",
    "statut": "ok",
-   "annonces": 666,
+   "annonces": 664,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-09-13",
    "statut": "ok",
-   "annonces": 12,
-   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 5 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 107 liens résolus en 40 s sur 240 s (93 aboutis, 2 en échec, 0.4 s/lien)"
+   "annonces": 17,
+   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 5 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 95 liens résolus en 28 s sur 240 s (93 aboutis, 0 en échec, 0.3 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2665,7 +2665,7 @@
   {
    "jour": "2026-09-13",
    "statut": "ok",
-   "annonces": 100,
+   "annonces": 91,
    "message": null
   }
  ],
