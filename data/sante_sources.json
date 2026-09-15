@@ -177,7 +177,7 @@
   {
    "jour": "2026-09-15",
    "statut": "ok",
-   "annonces": 22,
+   "annonces": 23,
    "message": null
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-09-15",
    "statut": "ok",
-   "annonces": 8,
+   "annonces": 9,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-09-15",
    "statut": "ok",
-   "annonces": 25,
+   "annonces": 17,
    "message": null
   }
  ],
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-09-15",
    "statut": "ok",
-   "annonces": 202,
+   "annonces": 204,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-09-15",
    "statut": "ok",
-   "annonces": 656,
+   "annonces": 660,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-09-15",
    "statut": "ok",
-   "annonces": 9,
-   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 5 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 82 liens résolus en 30 s sur 240 s (75 aboutis, 1 en échec, 0.4 s/lien)"
+   "annonces": 17,
+   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 5 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 124 liens résolus en 58 s sur 240 s (108 aboutis, 2 en échec, 0.5 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2362,7 +2362,7 @@
    "jour": "2026-09-15",
    "statut": "ok",
    "annonces": 80,
-   "message": "/annonces/page/2/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "message": "/annonces/page/3/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "latourimmo": [
@@ -2689,7 +2689,7 @@
   {
    "jour": "2026-09-15",
    "statut": "ok",
-   "annonces": 93,
+   "annonces": 96,
    "message": null
   }
  ],
