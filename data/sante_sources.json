@@ -177,7 +177,7 @@
   {
    "jour": "2026-09-17",
    "statut": "ok",
-   "annonces": 37,
+   "annonces": 38,
    "message": null
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-09-17",
    "statut": "ok",
-   "annonces": 9,
+   "annonces": 10,
    "message": null
   }
  ],
@@ -1268,9 +1268,9 @@
   },
   {
    "jour": "2026-09-17",
-   "statut": "erreur",
-   "annonces": 0,
-   "message": "500 Server Error: Internal Server Error for url: https://www.cessionpme.com/annonces,vente-immobilier-entreprise-locaux-commerciaux-boutiques-ile-de-france,54,8,V,10,offres.html"
+   "statut": "ok",
+   "annonces": 23,
+   "message": null
   }
  ],
  "geolocaux": [
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-09-17",
    "statut": "ok",
-   "annonces": 205,
+   "annonces": 206,
    "message": "/vente/local-commercial/colombes-92700/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/colombes-92700/; /vente/local-commercial/maurepas-78310/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/maurepas-78310/; /vente/local-commercial/le-mesnil-saint-denis-78320/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/le-mesnil-saint-denis-78320/; garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-09-17",
    "statut": "ok",
-   "annonces": 16,
-   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 135 liens résolus en 64 s sur 240 s (133 aboutis, 0 en échec, 0.5 s/lien)"
+   "annonces": 23,
+   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 174 liens résolus en 65 s sur 240 s (160 aboutis, 2 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2701,7 +2701,7 @@
   {
    "jour": "2026-09-17",
    "statut": "ok",
-   "annonces": 113,
+   "annonces": 111,
    "message": null
   }
  ],
