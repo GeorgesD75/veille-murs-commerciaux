@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-09-17",
    "statut": "ok",
-   "annonces": 8,
+   "annonces": 9,
    "message": null
   }
  ],
@@ -1268,9 +1268,9 @@
   },
   {
    "jour": "2026-09-17",
-   "statut": "ok",
-   "annonces": 25,
-   "message": null
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "500 Server Error: Internal Server Error for url: https://www.cessionpme.com/annonces,vente-immobilier-entreprise-locaux-commerciaux-boutiques-ile-de-france,54,8,V,10,offres.html"
   }
  ],
  "geolocaux": [
@@ -1451,8 +1451,8 @@
   {
    "jour": "2026-09-17",
    "statut": "ok",
-   "annonces": 173,
-   "message": "/vente/local-commercial/seine-et-marne-77/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 205,
+   "message": "/vente/local-commercial/colombes-92700/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/colombes-92700/; /vente/local-commercial/maurepas-78310/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/maurepas-78310/; /vente/local-commercial/le-mesnil-saint-denis-78320/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/le-mesnil-saint-denis-78320/; garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-09-17",
    "statut": "ok",
-   "annonces": 663,
+   "annonces": 655,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-09-17",
    "statut": "ok",
-   "annonces": 7,
-   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 5 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 85 liens résolus en 32 s sur 240 s (85 aboutis, 0 en échec, 0.4 s/lien)"
+   "annonces": 16,
+   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 135 liens résolus en 64 s sur 240 s (133 aboutis, 0 en échec, 0.5 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2701,7 +2701,7 @@
   {
    "jour": "2026-09-17",
    "statut": "ok",
-   "annonces": 108,
+   "annonces": 113,
    "message": null
   }
  ],
