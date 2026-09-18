@@ -177,7 +177,7 @@
   {
    "jour": "2026-09-18",
    "statut": "ok",
-   "annonces": 38,
+   "annonces": 44,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-09-18",
    "statut": "ok",
-   "annonces": 23,
+   "annonces": 18,
    "message": null
   }
  ],
@@ -1451,8 +1451,8 @@
   {
    "jour": "2026-09-18",
    "statut": "ok",
-   "annonces": 206,
-   "message": "/vente/local-commercial/colombes-92700/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/colombes-92700/; /vente/local-commercial/maurepas-78310/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/maurepas-78310/; /vente/local-commercial/le-mesnil-saint-denis-78320/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/le-mesnil-saint-denis-78320/; garde-fou de 90 requêtes atteint : collecte partielle"
+   "annonces": 210,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-09-18",
    "statut": "ok",
-   "annonces": 656,
+   "annonces": 648,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-09-18",
    "statut": "ok",
-   "annonces": 8,
-   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 63 liens résolus en 19 s sur 240 s (56 aboutis, 1 en échec, 0.3 s/lien)"
+   "annonces": 16,
+   "message": "leboncoin : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×2, t14.news.leboncoin.fr ×5; seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 114 liens résolus en 33 s sur 240 s (105 aboutis, 1 en échec, 0.3 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2707,7 +2707,7 @@
   {
    "jour": "2026-09-18",
    "statut": "ok",
-   "annonces": 114,
+   "annonces": 122,
    "message": null
   }
  ],
