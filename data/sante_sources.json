@@ -177,7 +177,7 @@
   {
    "jour": "2026-09-21",
    "statut": "ok",
-   "annonces": 56,
+   "annonces": 58,
    "message": null
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-09-21",
    "statut": "ok",
-   "annonces": 6,
+   "annonces": 7,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-09-21",
    "statut": "ok",
-   "annonces": 19,
+   "annonces": 20,
    "message": null
   }
  ],
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-09-21",
    "statut": "ok",
-   "annonces": 207,
+   "annonces": 206,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-09-21",
    "statut": "ok",
-   "annonces": 656,
+   "annonces": 655,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-09-21",
    "statut": "ok",
-   "annonces": 5,
-   "message": "leboncoin : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×5; seloger_bureaux : 6 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 83 liens résolus en 30 s sur 240 s (83 aboutis, 0 en échec, 0.4 s/lien)"
+   "annonces": 19,
+   "message": "leboncoin : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : t14.news.leboncoin.fr ×5; seloger_bureaux : 6 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 142 liens résolus en 42 s sur 240 s (133 aboutis, 1 en échec, 0.3 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-09-21",
    "statut": "ok",
-   "annonces": 103,
+   "annonces": 110,
    "message": null
   }
  ],
