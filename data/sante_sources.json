@@ -177,8 +177,8 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 49,
-   "message": null
+   "annonces": 26,
+   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/2/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 15,
+   "annonces": 16,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 13,
+   "annonces": 18,
    "message": null
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 650,
+   "annonces": 648,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 19,
-   "message": "seloger_bureaux : 5 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 157 liens résolus en 72 s sur 240 s (155 aboutis, 0 en échec, 0.5 s/lien)"
+   "annonces": 29,
+   "message": "seloger_bureaux : 5 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 224 liens résolus en 100 s sur 240 s (210 aboutis, 2 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2361,8 +2361,8 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 80,
-   "message": "/annonces/page/3/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 100,
+   "message": null
   }
  ],
  "latourimmo": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 102,
+   "annonces": 110,
    "message": null
   }
  ],
