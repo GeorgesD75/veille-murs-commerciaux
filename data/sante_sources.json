@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 16,
+   "annonces": 15,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 20,
+   "annonces": 13,
    "message": null
   }
  ],
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 202,
+   "annonces": 201,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 649,
+   "annonces": 650,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 22,
-   "message": "seloger_bureaux : 6 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 189 liens résolus en 56 s sur 240 s (168 aboutis, 3 en échec, 0.3 s/lien)"
+   "annonces": 19,
+   "message": "seloger_bureaux : 5 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 157 liens résolus en 72 s sur 240 s (155 aboutis, 0 en échec, 0.5 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2361,8 +2361,8 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 100,
-   "message": null
+   "annonces": 80,
+   "message": "/annonces/page/3/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "latourimmo": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-09-24",
    "statut": "ok",
-   "annonces": 117,
+   "annonces": 102,
    "message": null
   }
  ],
