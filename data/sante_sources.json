@@ -177,7 +177,7 @@
   {
    "jour": "2026-09-27",
    "statut": "ok",
-   "annonces": 34,
+   "annonces": 33,
    "message": null
   }
  ],
@@ -1268,9 +1268,9 @@
   },
   {
    "jour": "2026-09-27",
-   "statut": "ok",
-   "annonces": 20,
-   "message": null
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "500 Server Error: Internal Server Error for url: https://www.cessionpme.com/annonces,vente-immobilier-entreprise-locaux-commerciaux-boutiques-ile-de-france,54,8,V,10,offres.html"
   }
  ],
  "geolocaux": [
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-09-27",
    "statut": "ok",
-   "annonces": 7,
-   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 70 liens résolus en 26 s sur 240 s (63 aboutis, 1 en échec, 0.4 s/lien)"
+   "annonces": 9,
+   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 85 liens résolus en 25 s sur 240 s (83 aboutis, 0 en échec, 0.3 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-09-27",
    "statut": "ok",
-   "annonces": 110,
+   "annonces": 115,
    "message": null
   }
  ],
