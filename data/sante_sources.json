@@ -177,8 +177,8 @@
   {
    "jour": "2026-09-29",
    "statut": "ok",
-   "annonces": 45,
-   "message": null
+   "annonces": 37,
+   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/2/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -359,8 +359,8 @@
   {
    "jour": "2026-09-29",
    "statut": "ok",
-   "annonces": 16,
-   "message": null
+   "annonces": 8,
+   "message": "/recherche-murs-commerciaux-libres : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "iburoshop": [
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-09-29",
    "statut": "ok",
-   "annonces": 16,
+   "annonces": 17,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-09-29",
    "statut": "ok",
-   "annonces": 19,
+   "annonces": 20,
    "message": null
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-09-29",
    "statut": "ok",
-   "annonces": 680,
+   "annonces": 641,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-09-29",
    "statut": "ok",
-   "annonces": 28,
-   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 225 liens résolus en 92 s sur 240 s (223 aboutis, 0 en échec, 0.4 s/lien)"
+   "annonces": 15,
+   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 119 liens résolus en 49 s sur 240 s (114 aboutis, 1 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-09-29",
    "statut": "ok",
-   "annonces": 103,
+   "annonces": 113,
    "message": null
   }
  ],
