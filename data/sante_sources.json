@@ -177,7 +177,7 @@
   {
    "jour": "2026-10-02",
    "statut": "ok",
-   "annonces": 43,
+   "annonces": 36,
    "message": null
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-02",
    "statut": "ok",
-   "annonces": 16,
+   "annonces": 15,
    "message": null
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-10-02",
    "statut": "ok",
-   "annonces": 639,
+   "annonces": 630,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-02",
    "statut": "ok",
-   "annonces": 54,
-   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 6 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 168 s sur 240 s (398 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 46,
+   "message": "seloger_bureaux : 3 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 25 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 187 s sur 240 s (400 aboutis, 0 en échec, 0.5 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2361,8 +2361,8 @@
   {
    "jour": "2026-10-02",
    "statut": "ok",
-   "annonces": 80,
-   "message": "/annonces/page/4/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 100,
+   "message": null
   }
  ],
  "latourimmo": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-02",
    "statut": "ok",
-   "annonces": 126,
+   "annonces": 121,
    "message": null
   }
  ],
