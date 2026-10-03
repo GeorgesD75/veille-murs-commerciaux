@@ -177,7 +177,7 @@
   {
    "jour": "2026-10-03",
    "statut": "ok",
-   "annonces": 35,
+   "annonces": 34,
    "message": null
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-03",
    "statut": "ok",
-   "annonces": 18,
+   "annonces": 7,
    "message": null
   }
  ],
@@ -1268,9 +1268,9 @@
   },
   {
    "jour": "2026-10-03",
-   "statut": "erreur",
-   "annonces": 0,
-   "message": "HTTPSConnectionPool(host='www.cessionpme.com', port=443): Read timed out. (read timeout=30)"
+   "statut": "ok",
+   "annonces": 14,
+   "message": null
   }
  ],
  "geolocaux": [
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-10-03",
    "statut": "ok",
-   "annonces": 644,
+   "annonces": 640,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-03",
    "statut": "ok",
-   "annonces": 44,
-   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 400 liens résolus en 117 s sur 240 s (395 aboutis, 0 en échec, 0.3 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 30,
+   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 302 liens résolus en 90 s sur 240 s (302 aboutis, 0 en échec, 0.3 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-03",
    "statut": "ok",
-   "annonces": 126,
+   "annonces": 127,
    "message": null
   }
  ],
