@@ -177,7 +177,7 @@
   {
    "jour": "2026-10-05",
    "statut": "ok",
-   "annonces": 28,
+   "annonces": 29,
    "message": null
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-05",
    "statut": "ok",
-   "annonces": 7,
+   "annonces": 10,
    "message": null
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-10-05",
    "statut": "ok",
-   "annonces": 640,
+   "annonces": 639,
    "message": null
   }
  ],
@@ -1996,9 +1996,9 @@
   },
   {
    "jour": "2026-10-05",
-   "statut": "ok",
-   "annonces": 10,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 97 liens résolus en 28 s sur 240 s (97 aboutis, 0 en échec, 0.3 s/lien)"
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "command: FETCH => System Error"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-05",
    "statut": "ok",
-   "annonces": 97,
+   "annonces": 102,
    "message": null
   }
  ],
