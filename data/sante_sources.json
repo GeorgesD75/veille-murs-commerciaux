@@ -177,8 +177,8 @@
   {
    "jour": "2026-10-06",
    "statut": "ok",
-   "annonces": 32,
-   "message": null
+   "annonces": 26,
+   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/1/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-06",
    "statut": "ok",
-   "annonces": 9,
+   "annonces": 11,
    "message": null
   }
  ],
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-10-06",
    "statut": "ok",
-   "annonces": 194,
+   "annonces": 201,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-10-06",
    "statut": "ok",
-   "annonces": 644,
+   "annonces": 643,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-06",
    "statut": "ok",
-   "annonces": 40,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 2 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 184 s sur 240 s (400 aboutis, 0 en échec, 0.5 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 41,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; seloger_bureaux : 3 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); logic_immo : 17 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 187 s sur 240 s (398 aboutis, 0 en échec, 0.5 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-06",
    "statut": "ok",
-   "annonces": 91,
+   "annonces": 114,
    "message": null
   }
  ],
