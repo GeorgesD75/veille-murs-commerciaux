@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-07",
    "statut": "ok",
-   "annonces": 15,
+   "annonces": 18,
    "message": null
   }
  ],
@@ -1268,9 +1268,9 @@
   },
   {
    "jour": "2026-10-07",
-   "statut": "erreur",
-   "annonces": 0,
-   "message": "HTTPSConnectionPool(host='www.cessionpme.com', port=443): Read timed out. (read timeout=30)"
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
   }
  ],
  "geolocaux": [
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-10-07",
    "statut": "ok",
-   "annonces": 646,
+   "annonces": 640,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-07",
    "statut": "ok",
-   "annonces": 49,
-   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 7 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 2 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 137 s sur 240 s (398 aboutis, 0 en échec, 0.3 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 46,
+   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 12 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 3 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 147 s sur 240 s (400 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-07",
    "statut": "ok",
-   "annonces": 128,
+   "annonces": 120,
    "message": null
   }
  ],
