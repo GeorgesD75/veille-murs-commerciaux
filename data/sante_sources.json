@@ -177,7 +177,7 @@
   {
    "jour": "2026-10-07",
    "statut": "ok",
-   "annonces": 40,
+   "annonces": 39,
    "message": null
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-07",
    "statut": "ok",
-   "annonces": 14,
+   "annonces": 15,
    "message": null
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-10-07",
    "statut": "ok",
-   "annonces": 639,
+   "annonces": 646,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-07",
    "statut": "ok",
-   "annonces": 45,
-   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 8 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 2 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 186 s sur 240 s (400 aboutis, 0 en échec, 0.5 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 49,
+   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 7 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 2 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 137 s sur 240 s (398 aboutis, 0 en échec, 0.3 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-07",
    "statut": "ok",
-   "annonces": 102,
+   "annonces": 128,
    "message": null
   }
  ],
