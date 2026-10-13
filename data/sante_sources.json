@@ -177,7 +177,7 @@
   {
    "jour": "2026-10-13",
    "statut": "ok",
-   "annonces": 41,
+   "annonces": 39,
    "message": null
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-13",
    "statut": "ok",
-   "annonces": 16,
+   "annonces": 12,
    "message": null
   }
  ],
@@ -1633,8 +1633,8 @@
   {
    "jour": "2026-10-13",
    "statut": "ok",
-   "annonces": 640,
-   "message": null
+   "annonces": 532,
+   "message": "/immobilier-d-entreprise/annonces/yvelines-78/vente-commerces : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); /immobilier-d-entreprise/annonces/essonne-91/vente-commerces : ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))"
   }
  ],
  "notaires": [
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-13",
    "statut": "ok",
-   "annonces": 46,
-   "message": "seloger_bureaux : 3 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 24 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 115 s sur 240 s (398 aboutis, 0 en échec, 0.3 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 61,
+   "message": "seloger_bureaux : 3 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 29 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 2 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 189 s sur 240 s (400 aboutis, 0 en échec, 0.5 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
