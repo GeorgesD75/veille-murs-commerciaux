@@ -177,7 +177,7 @@
   {
    "jour": "2026-10-15",
    "statut": "ok",
-   "annonces": 33,
+   "annonces": 34,
    "message": null
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-15",
    "statut": "ok",
-   "annonces": 23,
+   "annonces": 24,
    "message": null
   }
  ],
@@ -1632,9 +1632,9 @@
   },
   {
    "jour": "2026-10-15",
-   "statut": "ok",
-   "annonces": 648,
-   "message": null
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "500 Server Error: Internal Server Error for url: https://www.bureauxlocaux.com/immobilier-d-entreprise/annonces/paris-75/vente-commerces"
   }
  ],
  "notaires": [
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-15",
    "statut": "ok",
-   "annonces": 43,
-   "message": "seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 363 liens résolus en 134 s sur 240 s (347 aboutis, 2 en échec, 0.4 s/lien)"
+   "annonces": 38,
+   "message": "seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 343 liens résolus en 143 s sur 240 s (336 aboutis, 1 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-15",
    "statut": "ok",
-   "annonces": 104,
+   "annonces": 101,
    "message": null
   }
  ],
