@@ -177,7 +177,7 @@
   {
    "jour": "2026-10-16",
    "statut": "ok",
-   "annonces": 34,
+   "annonces": 30,
    "message": null
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-16",
    "statut": "ok",
-   "annonces": 25,
+   "annonces": 33,
    "message": null
   }
  ],
@@ -1451,8 +1451,8 @@
   {
    "jour": "2026-10-16",
    "statut": "ok",
-   "annonces": 199,
-   "message": "/vente/local-commercial/gonesse-95500/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/gonesse-95500/; garde-fou de 90 requêtes atteint : collecte partielle"
+   "annonces": 201,
+   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -1632,9 +1632,9 @@
   },
   {
    "jour": "2026-10-16",
-   "statut": "erreur",
-   "annonces": 0,
-   "message": "500 Server Error: Internal Server Error for url: https://www.bureauxlocaux.com/immobilier-d-entreprise/annonces/paris-75/vente-commerces"
+   "statut": "ok",
+   "annonces": 650,
+   "message": null
   }
  ],
  "notaires": [
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-16",
    "statut": "ok",
-   "annonces": 15,
-   "message": "seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 177 liens résolus en 66 s sur 240 s (163 aboutis, 2 en échec, 0.4 s/lien)"
+   "annonces": 29,
+   "message": "seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 214 liens résolus en 88 s sur 240 s (206 aboutis, 1 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2362,7 +2362,7 @@
    "jour": "2026-10-16",
    "statut": "ok",
    "annonces": 80,
-   "message": "/annonces/page/4/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "message": "/annonces/page/2/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "latourimmo": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-16",
    "statut": "ok",
-   "annonces": 98,
+   "annonces": 91,
    "message": null
   }
  ],
