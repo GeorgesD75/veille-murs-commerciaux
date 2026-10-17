@@ -177,7 +177,7 @@
   {
    "jour": "2026-10-17",
    "statut": "ok",
-   "annonces": 31,
+   "annonces": 34,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-10-17",
    "statut": "ok",
-   "annonces": 15,
+   "annonces": 16,
    "message": null
   }
  ],
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-10-17",
    "statut": "ok",
-   "annonces": 201,
+   "annonces": 203,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-10-17",
    "statut": "ok",
-   "annonces": 654,
+   "annonces": 657,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-17",
    "statut": "ok",
-   "annonces": 44,
-   "message": "seloger_bureaux : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 10 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 185 s sur 240 s (400 aboutis, 0 en échec, 0.5 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 43,
+   "message": "seloger_bureaux : 3 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 14 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 167 s sur 240 s (398 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-17",
    "statut": "ok",
-   "annonces": 96,
+   "annonces": 119,
    "message": null
   }
  ],
