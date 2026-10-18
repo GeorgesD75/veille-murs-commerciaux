@@ -177,7 +177,7 @@
   {
    "jour": "2026-10-18",
    "statut": "ok",
-   "annonces": 34,
+   "annonces": 36,
    "message": null
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-18",
    "statut": "ok",
-   "annonces": 23,
+   "annonces": 22,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-18",
    "statut": "ok",
-   "annonces": 26,
-   "message": "seloger_bureaux : 3 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 268 liens résolus en 77 s sur 240 s (260 aboutis, 1 en échec, 0.3 s/lien)"
+   "annonces": 27,
+   "message": "seloger_bureaux : 3 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 278 liens résolus en 104 s sur 240 s (278 aboutis, 0 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-18",
    "statut": "ok",
-   "annonces": 102,
+   "annonces": 119,
    "message": null
   }
  ],
