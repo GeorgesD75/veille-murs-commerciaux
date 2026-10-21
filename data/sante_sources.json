@@ -177,8 +177,8 @@
   {
    "jour": "2026-10-21",
    "statut": "ok",
-   "annonces": 66,
-   "message": null
+   "annonces": 35,
+   "message": "/fr/acheter-murs-commerciaux-paris/lf393/50/1/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-21",
    "statut": "ok",
-   "annonces": 31,
+   "annonces": 23,
    "message": null
   }
  ],
@@ -1268,9 +1268,9 @@
   },
   {
    "jour": "2026-10-21",
-   "statut": "ok",
-   "annonces": 13,
-   "message": null
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "503 Server Error: Service Unavailable for url: https://www.cessionpme.com/annonces,vente-immobilier-entreprise-locaux-commerciaux-boutiques-ile-de-france,54,8,V,10,offres.html"
   }
  ],
  "geolocaux": [
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-10-21",
    "statut": "ok",
-   "annonces": 656,
+   "annonces": 655,
    "message": null
   }
  ],
@@ -1814,9 +1814,9 @@
   },
   {
    "jour": "2026-10-21",
-   "statut": "ok",
-   "annonces": 2,
-   "message": null
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "503 Server Error: Service Temporarily Unavailable for url: https://www.immobilier.notaires.fr/pub-services/inotr-www-annonces/v1/annonces?typeBiens=COM&page=1&parPage=100"
   }
  ],
  "imap": [
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-21",
    "statut": "ok",
-   "annonces": 40,
-   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 331 liens résolus en 144 s sur 240 s (323 aboutis, 1 en échec, 0.4 s/lien)"
+   "annonces": 53,
+   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; iad : 2 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 170 s sur 240 s (400 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-21",
    "statut": "ok",
-   "annonces": 106,
+   "annonces": 118,
    "message": null
   }
  ],
