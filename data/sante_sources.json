@@ -177,7 +177,7 @@
   {
    "jour": "2026-10-22",
    "statut": "ok",
-   "annonces": 67,
+   "annonces": 68,
    "message": null
   }
  ],
@@ -359,8 +359,8 @@
   {
    "jour": "2026-10-22",
    "statut": "ok",
-   "annonces": 16,
-   "message": null
+   "annonces": 8,
+   "message": "/recherche-murs-commerciaux-libres : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "iburoshop": [
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-22",
    "statut": "ok",
-   "annonces": 21,
+   "annonces": 20,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-10-22",
    "statut": "ok",
-   "annonces": 11,
+   "annonces": 13,
    "message": null
   }
  ],
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-10-22",
    "statut": "ok",
-   "annonces": 204,
+   "annonces": 206,
    "message": "garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-22",
    "statut": "ok",
-   "annonces": 15,
-   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 138 liens résolus en 54 s sur 240 s (132 aboutis, 1 en échec, 0.4 s/lien)"
+   "annonces": 40,
+   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 338 liens résolus en 145 s sur 240 s (336 aboutis, 0 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-22",
    "statut": "ok",
-   "annonces": 133,
+   "annonces": 131,
    "message": null
   }
  ],
