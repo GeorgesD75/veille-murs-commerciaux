@@ -177,7 +177,7 @@
   {
    "jour": "2026-10-23",
    "statut": "ok",
-   "annonces": 69,
+   "annonces": 68,
    "message": null
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-23",
    "statut": "ok",
-   "annonces": 16,
+   "annonces": 15,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-10-23",
    "statut": "ok",
-   "annonces": 16,
+   "annonces": 15,
    "message": null
   }
  ],
@@ -1451,8 +1451,8 @@
   {
    "jour": "2026-10-23",
    "statut": "ok",
-   "annonces": 206,
-   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
+   "annonces": 198,
+   "message": "/vente/local-commercial/le-raincy-93340/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); /vente/local-commercial/vitry-sur-seine-94400/ : Response ended prematurely; /vente/local-commercial/choisy-le-roi-94600/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); /vente/local-commercial/ezanville-95460/ : 410 Client Error: Gone for url: https://www.geolocaux.com/vente/local-commercial/ezanville-95460/; /vente/local-commercial/les-clayes-sous-bois-78340/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); /vente/local-commercial/louveciennes-78430/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); garde-fou de 90 requêtes atteint : collecte partielle"
   }
  ],
  "bureauxlocaux": [
@@ -1633,8 +1633,8 @@
   {
    "jour": "2026-10-23",
    "statut": "ok",
-   "annonces": 657,
-   "message": null
+   "annonces": 584,
+   "message": "/immobilier-d-entreprise/annonces/hauts-de-seine-92/vente-commerces/page/2 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "notaires": [
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-23",
    "statut": "ok",
-   "annonces": 43,
-   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 370 liens résolus en 172 s sur 240 s (370 aboutis, 0 en échec, 0.5 s/lien)"
+   "annonces": 46,
+   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; logic_immo : 17 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 149 s sur 240 s (400 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
