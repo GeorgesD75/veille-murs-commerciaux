@@ -177,7 +177,7 @@
   {
    "jour": "2026-10-25",
    "statut": "ok",
-   "annonces": 64,
+   "annonces": 63,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-25",
    "statut": "ok",
-   "annonces": 43,
-   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 364 liens résolus en 171 s sur 240 s (362 aboutis, 0 en échec, 0.5 s/lien)"
+   "annonces": 17,
+   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 174 liens résolus en 64 s sur 240 s (174 aboutis, 0 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2361,8 +2361,8 @@
   {
    "jour": "2026-10-25",
    "statut": "ok",
-   "annonces": 80,
-   "message": "/annonces/page/3/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 100,
+   "message": null
   }
  ],
  "latourimmo": [
