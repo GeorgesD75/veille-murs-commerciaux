@@ -72,7 +72,7 @@ def _points_proximite(annonce: Annonce, cfg: dict) -> float:
         return float(p["moins_de_20_min"])
     if t <= 40:
         return float(p["de_20_a_40_min"])
-    return float(p["de_40_a_60_min"])
+    return float(p["de_40_a_60_min"]) if t <= 60 else 0.0
 
 
 def _points_quartier(annonce: Annonce, cfg: dict) -> float:
@@ -124,8 +124,9 @@ def _points_financement(annonce: Annonce, cfg: dict, config: Config) -> float:
     else:
         t = float(financement["taux_pct"]) / 100 / 12
         n = int(financement["duree_ans"]) * 12
-        mensualite = emprunt * t / (1 - (1 + t) ** -n)
+        mensualite = emprunt * t / (1 - (1 + t) ** -n) if t else emprunt / n
         cash_flow = loyer - mensualite
+    cash_flow -= (annonce.taxe_fonciere_annuelle or 0) / 12
     if cash_flow >= 0:
         return plein
     # Léger déficit (< 10 % du loyer, par défaut) : encore finançable de justesse.
@@ -222,7 +223,6 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
     if (
         cfg["seuils"].get("pepite_exige_loyer_fiable")
         and annonce.loyer_estime
-        and annonce.loyer_confiance != "comparables"
     ):
         plafond_pepite = int(cfg["seuils"]["pepite"]) - 1
         if annonce.score > plafond_pepite:
@@ -242,6 +242,7 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
     if (
         cfg["seuils"].get("pepite_exige_texte_complet")
         and annonce.source.startswith("alerte_")
+        and not annonce.texte_detail
         and "murs" not in normaliser_texte(annonce.texte_complet())
     ):
         plafond_teaser = int(cfg["seuils"]["pepite"]) - 1

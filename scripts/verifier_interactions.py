@@ -1,0 +1,59 @@
+"""QA optionnelle sur le HTML généré : python scripts/verifier_interactions.py.
+
+Nécessite Playwright (pip install playwright) et un Chrome/Chromium installé.
+Utilise le navigateur existant ; aucune installation de navigateur automatique.
+"""
+from pathlib import Path
+import shutil
+
+from playwright.sync_api import sync_playwright
+
+RACINE = Path(__file__).resolve().parent.parent
+
+
+def main():
+    candidats = [shutil.which("google-chrome"), shutil.which("chromium"),
+                 r"C:\Program Files\Google\Chrome\Application\chrome.exe"]
+    navigateur = next((c for c in candidats if c and Path(c).exists()), None)
+    if not navigateur:
+        raise SystemExit("Chrome/Chromium installé requis pour ce contrôle optionnel.")
+    with sync_playwright() as p:
+        browser = p.chromium.launch(executable_path=navigateur, headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        erreurs = []
+        page.on("pageerror", lambda e: erreurs.append(str(e)))
+        # Les images distantes ne sont pas nécessaires aux tests d'interaction.
+        page.route("**/*", lambda route: route.abort() if route.request.resource_type == "image" else route.continue_())
+        page.goto((RACINE / "docs/index.html").as_uri(), wait_until="domcontentloaded")
+        page.locator("#volet-filtres > summary").click()
+        assert page.locator("#f-surface").input_value() == "40"
+        assert page.locator(".decision .priorite").count() > 0
+        page.locator("#f-surface").fill("25")
+        assert page.evaluate("D.retenues.filter(a=>appliquer(a,filtres())).every(a=>a.surface_m2<25)")
+        page.reload(wait_until="domcontentloaded")
+        page.locator("#volet-filtres > summary").click()
+        assert page.locator("#f-surface").input_value() == "25"
+        page.locator("#f-reset").click()
+        assert page.locator("#f-surface").input_value() == ""
+        assert not page.locator("#f-cf").is_checked()
+        assert not page.locator("#f-archives").is_checked()
+        page.locator("#f-surface").fill("40")
+        page.locator("#f-trajet").fill("30")
+        page.locator("#f-tri").select_option("prix")
+        assert page.evaluate("D.retenues.filter(a=>appliquer(a,filtres())).every(a=>a.surface_m2<40 && a.temps_trajet_min<=30)")
+        # Le simulateur et le formulaire de contact doivent encore s'ouvrir.
+        page.locator(".carte button[data-sim]").first.click()
+        assert page.locator("#outil-contenu").is_visible()
+        page.keyboard.press("Escape")
+        for largeur in [320, 390, 768, 1440]:
+            page.set_viewport_size({"width": largeur, "height": 900})
+            if largeur <= 760:
+                page.locator("#volet-filtres").evaluate("e=>e.open=true")
+            assert not page.evaluate("document.documentElement.scrollWidth > innerWidth"), f"Débordement à {largeur}px"
+        assert not erreurs, erreurs
+        browser.close()
+    print("Interactions, persistance, simulateur et responsive 320–1440 px : OK")
+
+
+if __name__ == "__main__":
+    main()

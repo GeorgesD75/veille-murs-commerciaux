@@ -53,7 +53,7 @@ class SourceHtml(Source):
         for chemin, contexte in pages:
             try:
                 html = self.client.obtenir(self.BASE + chemin)
-                lot = extraire(html, contexte)
+                lot = list(extraire(html, contexte))
             except SourceBloqueeErreur as exc:
                 erreurs.append(exc)
                 self.avertissements.append(f"{chemin} : {exc}")

@@ -71,6 +71,7 @@ class SourceBureauxLocaux(SourceHtml):
                 chemin = base if page == 1 else f"{base}/page/{page}"
                 try:
                     html = self.client.obtenir(self.BASE + chemin)
+                    lot, total_pages_vues = self._extraire_page(html, departement)
                 except SourceBloqueeErreur as exc:
                     erreurs.append(exc)
                     self.avertissements.append(f"{chemin} : {exc}")
@@ -79,7 +80,6 @@ class SourceBureauxLocaux(SourceHtml):
                     erreurs.append(exc)
                     self.avertissements.append(f"{chemin} : {exc}")
                     break
-                lot, total_pages_vues = self._extraire_page(html, departement)
                 if page == 1:
                     total_pages = total_pages_vues or 1
                 for annonce in lot:

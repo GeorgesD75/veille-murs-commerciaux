@@ -17,6 +17,15 @@ def _brute(**surcharges) -> AnnonceBrute:
 
 
 class TestHistoriquePrix:
+    def test_champs_absents_neffacent_pas_et_surface_corrigee_est_rafraichie(self, config):
+        annonces = {}
+        integrer([_brute()], annonces, config, "2026-07-01T07:00:00+02:00")
+        a = next(iter(annonces.values()))
+        a.approfondie, a.texte_detail = True, "Ancienne surface"
+        integrer([_brute(prix=None, surface_m2=30)], annonces, config, "2026-07-02T07:00:00+02:00")
+        assert a.prix == 250000 and a.surface_m2 == 30
+        assert not a.approfondie and not a.texte_detail
+
     def test_premiere_collecte_pas_d_historique(self, config):
         annonces: dict[str, Annonce] = {}
         integrer([_brute()], annonces, config, "2026-07-01T07:00:00+02:00")

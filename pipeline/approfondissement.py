@@ -28,9 +28,12 @@ import logging
 import re
 import time
 from typing import TYPE_CHECKING
+from urllib.parse import urlparse
+
+from bs4 import BeautifulSoup
 
 from sources.extraction import extraire_surface, loyer_mensuel_depuis_texte
-from sources.http import ClientPoli, SourceBloqueeErreur
+from sources.http import ClientPoli, SourceBloqueeErreur, SourceTemporaireErreur
 
 if TYPE_CHECKING:
     from pipeline.config import Config
@@ -47,12 +50,25 @@ _ENTITES = {"&amp;": "&", "&nbsp;": " ", "&#39;": "'", "&apos;": "'",
 
 
 def texte_de_page(html: str) -> str:
-    """Texte lisible d'une page HTML, sans parseur dédié ni dépendance."""
-    texte = _SCRIPTS.sub(" ", html)
-    texte = _BALISES.sub(" ", texte)
-    for entite, caractere in _ENTITES.items():
-        texte = texte.replace(entite, caractere)
-    return " ".join(texte.split())
+    """Isole le contenu principal et retire les recommandations d'autres biens."""
+    soup = BeautifulSoup(html, "html.parser")
+    for noeud in soup.select("script, style, noscript, svg, nav, footer, header, aside, form"):
+        noeud.decompose()
+    for noeud in list(soup.find_all(["section", "div", "ul"])):
+        if noeud.attrs is None:
+            continue
+        identite = " ".join(noeud.get("class", [])) + " " + str(noeud.get("id", ""))
+        if re.search(r"similar|related|recommend|suggest|autres-annonces", identite, re.I):
+            noeud.decompose()
+    racine = soup.select_one("main, [role='main']") or soup.body or soup
+    for titre in racine.find_all(["h2", "h3", "h4"]):
+        if re.search(r"annonces? similaires?|biens? similaires?|vous aimerez|autres (?:annonces|biens)",
+                     titre.get_text(" ", strip=True), re.I):
+            for suivant in list(titre.find_all_next()):
+                suivant.decompose()
+            titre.decompose()
+            break
+    return " ".join(racine.get_text(" ", strip=True).split())
 
 
 def approfondir(annonce: "Annonce", texte: str) -> list[str]:
@@ -91,28 +107,47 @@ def approfondir_annonces(annonces: dict[str, "Annonce"], config: "Config") -> No
     candidats = sorted(
         (a for a in annonces.values()
          if not a.exclue and not a.approfondie and a.url.startswith("http")),
-        key=lambda a: ((a.score or 50), a.loyer_mensuel is None),
+        key=lambda a: (
+            bool(a.surface_m2 and 0 < a.surface_m2 < config.donnees.get("recherche", {}).get("surface_max_m2", 40)),
+            a.code_postal == "75018", a.date_derniere_vue, (a.score or 50), a.loyer_mensuel is None),
         reverse=True,
-    )[:max_par_run]
+    )
     if not candidats:
         return
 
     client = ClientPoli()
+    hotes_bloques: set[str] = set()
     debut = time.monotonic()
+    tentatives = 0
     for a in candidats:
+        hote = urlparse(a.url).netloc
+        if hote in hotes_bloques:
+            continue
+        if tentatives >= max_par_run:
+            break
         if time.monotonic() - debut > budget_s:
             log.info("budget de temps approfondissement (%.0f s) atteint", budget_s)
             break
+        tentatives += 1
         try:
             html = client.obtenir(a.url)
+        except SourceTemporaireErreur as exc:
+            hotes_bloques.add(hote)
+            log.info("hôte temporairement indisponible (%s) : %s", hote, exc)
+            continue
         except SourceBloqueeErreur as exc:
             a.approfondie = True   # interdit : inutile d'y revenir
+            hotes_bloques.add(hote)
             log.info("détail refusé (%s) : %s", a.url, exc)
             continue
         except Exception as exc:  # noqa: BLE001 — jamais bloquant, on retentera
             log.info("détail indisponible (%s) : %s", a.url, exc)
             continue
-        appris = approfondir(a, texte_de_page(html))
+        texte = texte_de_page(html)
+        if len(texte) < 80:
+            log.info("détail trop pauvre (%s), aucune donnée inférée", a.url)
+            continue
+        appris = approfondir(a, texte)
         a.approfondie = True
         if appris:
             log.info("approfondi %s : %s", a.url, ", ".join(appris))

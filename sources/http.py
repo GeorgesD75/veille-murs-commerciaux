@@ -33,13 +33,17 @@ _urllib3_connexion.allowed_gai_family = lambda: socket.AF_INET
 
 USER_AGENT = (
     "VeilleMursCommerciaux/0.1 "
-    "(veille personnelle d'annonces, 1 requete/3-5s, 1 run/jour; "
+    "(veille personnelle d'annonces, 1 requete/3-5s, 3 runs/jour; "
     "contact: georgesdurand75@gmail.com)"
 )
 
 
 class SourceBloqueeErreur(RuntimeError):
     """HTTP 403/429 ou interdiction robots.txt : arrêt propre de la source."""
+
+
+class SourceTemporaireErreur(RuntimeError):
+    """Serveur/robots indisponible : réessayer à la prochaine tournée."""
 
 
 class ClientPoli:
@@ -50,6 +54,7 @@ class ClientPoli:
         self.delai_max_s = delai_max_s
         self._derniere_requete = 0.0
         self._robots: dict[str, urllib.robotparser.RobotFileParser | None] = {}
+        self._indisponibles: dict[str, str] = {}
 
     def _attendre_son_tour(self) -> None:
         ecoule = time.monotonic() - self._derniere_requete
@@ -62,16 +67,22 @@ class ClientPoli:
 
         RobotFileParser.read() utilise urllib et son UA par défaut, que certains
         sites (ex. papcommerces) refusent en 403 — le parseur conclurait alors,
-        à tort, « tout interdit ». Un robots.txt inaccessible (4xx/erreur) vaut
-        « pas de consigne » : les chemins de chaque source ont de toute façon
-        été validés manuellement (relevés documentés en tête des parsers).
+        à tort, « tout interdit ». RFC 9309 : un robots en 5xx ou inaccessible
+        suspend la collecte jusqu'à la prochaine tournée.
         """
         decoupe = urlparse(url)
         hote = f"{decoupe.scheme}://{decoupe.netloc}"
+        if hote in self._indisponibles:
+            raise SourceTemporaireErreur(self._indisponibles[hote])
         if hote not in self._robots:
             parseur: urllib.robotparser.RobotFileParser | None = None
             try:
+                self._attendre_son_tour()
                 reponse = self.session.get(f"{hote}/robots.txt", timeout=15)
+                self._derniere_requete = time.monotonic()
+                if reponse.status_code == 429 or reponse.status_code >= 500:
+                    self._indisponibles[hote] = f"robots.txt indisponible : HTTP {reponse.status_code} sur {hote}"
+                    raise SourceTemporaireErreur(self._indisponibles[hote])
                 if reponse.status_code == 200:
                     parseur = urllib.robotparser.RobotFileParser()
                     parseur.parse(reponse.text.splitlines())
@@ -80,8 +91,10 @@ class ClientPoli:
                         "robots.txt de %s en HTTP %s — consignes réputées absentes",
                         hote, reponse.status_code,
                     )
-            except Exception as exc:  # noqa: BLE001
-                log.warning("robots.txt illisible pour %s (%s)", hote, exc)
+            except requests.RequestException as exc:
+                self._derniere_requete = time.monotonic()
+                self._indisponibles[hote] = f"robots.txt inaccessible pour {hote}"
+                raise SourceTemporaireErreur(f"robots.txt inaccessible pour {hote}") from exc
             self._robots[hote] = parseur
         return self._robots[hote]
 
@@ -90,12 +103,22 @@ class ClientPoli:
         parseur = self._robots_pour(url)
         if parseur is not None and not parseur.can_fetch(USER_AGENT, url):
             raise SourceBloqueeErreur(f"robots.txt interdit {url}")
+        if parseur is not None:
+            delai = parseur.crawl_delay(USER_AGENT) or parseur.crawl_delay("*")
+            if delai:
+                self.delai_min_s = max(self.delai_min_s, float(delai))
+                self.delai_max_s = max(self.delai_max_s, self.delai_min_s)
         self._attendre_son_tour()
         try:
             reponse = self.session.get(url, timeout=30)
         finally:
             self._derniere_requete = time.monotonic()
-        if reponse.status_code in (403, 429):
+        if reponse.status_code == 429 or reponse.status_code >= 500:
+            decoupe = urlparse(url)
+            hote = f"{decoupe.scheme}://{decoupe.netloc}"
+            self._indisponibles[hote] = f"HTTP {reponse.status_code} sur {url} — réessai à la prochaine tournée"
+            raise SourceTemporaireErreur(self._indisponibles[hote])
+        if reponse.status_code == 403:
             raise SourceBloqueeErreur(f"HTTP {reponse.status_code} sur {url} — arrêt propre")
         reponse.raise_for_status()
         return reponse.text

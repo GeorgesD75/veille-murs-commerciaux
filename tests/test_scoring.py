@@ -480,13 +480,14 @@ def test_pepite_refusee_sur_une_promesse_de_vendeur(config):
     assert "pepite_sur_loyer_estime" in a.flags
 
 
-def test_pepite_autorisee_sur_des_baux_reels_voisins(config):
-    # « comparables » = ≥ 2 baux RÉELS voisins : signal assez solide pour l'urgence.
+def test_pepite_refusee_sur_des_loyers_annonces_voisins(config):
+    # Des annonces de voisins ne prouvent ni le bail ni le loyer du bien ciblé.
     a = _annonce_calibre_pepite()
     a.loyer_estime = True
     a.loyer_confiance = "comparables"
     scorer(a, config)
-    assert "pepite_sur_loyer_estime" not in a.flags
+    assert "pepite_sur_loyer_estime" in a.flags
+    assert a.score < config.scoring["seuils"]["pepite"]
 
 
 def test_pepite_autorisee_sur_un_bail_en_place(config):

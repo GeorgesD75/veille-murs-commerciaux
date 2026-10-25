@@ -225,7 +225,7 @@ def loyer_mensuel_retenu(
         return annonce.loyer_mensuel, True, None, None
     if annonce.surface_m2:
         if comparables is not None:
-            trouve = comparables.pour(annonce.code_postal)
+            trouve = comparables.pour(annonce.code_postal, annonce.surface_m2)
             if trouve is not None:
                 loyer_m2_an, nb = trouve
                 return annonce.surface_m2 * loyer_m2_an / 12, True, "comparables", nb

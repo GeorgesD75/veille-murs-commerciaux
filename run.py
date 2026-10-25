@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 import sys
+from datetime import datetime
 from typing import Any
 
 from dashboard.generer import generer_dashboard
@@ -80,7 +81,18 @@ def integrer(
                         {"date": existante.date_premiere_vue, "prix": existante.prix}
                     )
                 existante.historique_prix.append({"date": quand, "prix": a.prix})
-            existante.prix = a.prix  # suit les baisses de prix
+            # Un champ temporairement absent d'une page ne doit pas effacer le stock.
+            changement = a.prix is not None and a.prix != existante.prix
+            if a.prix is not None:
+                existante.prix = a.prix
+            if a.surface_m2 is not None:
+                changement = changement or a.surface_m2 != existante.surface_m2
+                existante.surface_m2 = a.surface_m2
+            existante.type_murs = a.type_murs
+            existante.honoraires = a.honoraires if a.honoraires is not None else existante.honoraires
+            if changement:
+                existante.approfondie = False  # relire le détail après un changement matériel
+                existante.texte_detail = ""
             existante.loyer_mensuel = a.loyer_mensuel or existante.loyer_mensuel
             # Les infos de présentation se rafraîchissent aussi (photos ajoutées
             # par l'agence, description étoffée…)
@@ -170,6 +182,11 @@ def executer() -> dict[str, Any]:
 
     # Pages de DÉTAIL des meilleures annonces : loyer réel, DPE, copro, rue…
     # AVANT filtrage et scoring, pour que tous les détecteurs voient ce texte.
+    # Préfiltre : ne pas dépenser le budget de détail sur du hors zone/budget.
+    # Recalculé après le détail, qui peut révéler une cession de fonds.
+    for a in annonces.values():
+        a.raison_exclusion = raison_exclusion(a, config, trajets)
+        a.exclue = a.raison_exclusion is not None
     try:
         approfondir_annonces(annonces, config)
     except Exception:  # noqa: BLE001 — enrichissement optionnel, jamais bloquant
@@ -203,7 +220,8 @@ def executer() -> dict[str, Any]:
     except Exception:  # noqa: BLE001
         log.exception("collecte DVF en échec, on continue au référentiel interne")
 
-    comparables = LoyersComparables.depuis(a for a in annonces.values() if not a.exclue)
+    comparables = LoyersComparables.depuis(
+        (a for a in annonces.values() if not a.exclue), maintenant=datetime.fromisoformat(quand))
     for a in annonces.values():
         if a.exclue:
             a.score = None

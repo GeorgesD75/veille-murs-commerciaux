@@ -30,6 +30,7 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 
 from pipeline.modeles import AnnonceBrute
+from pipeline.texte import cle_commune
 from sources.base import SourceHtml
 from sources.extraction import (
     LIMITE_DESCRIPTION,
@@ -85,10 +86,12 @@ class SourceGeolocaux(SourceHtml):
         client=None,
         departements: list[str] | None = None,
         prix_max: int | None = None,
+        communes_prioritaires: list[str] | None = None,
     ) -> None:
         super().__init__(client)
         self.departements = departements or list(_SLUGS)
         self.prix_max = prix_max
+        self.communes_prioritaires = [cle_commune(v) for v in (communes_prioritaires or [])]
         self._requetes = 0
         self._bloquee = False
         self._erreurs: list[Exception] = []
@@ -98,7 +101,11 @@ class SourceGeolocaux(SourceHtml):
     def collecter(self) -> list[AnnonceBrute]:
         self._requetes, self._bloquee, self._erreurs = 0, False, []
         annonces: dict[str, AnnonceBrute] = {}
-        for chemin, departement, ville, code_postal, total in self._decouvrir_listings():
+        listings = self._decouvrir_listings()
+        if self.communes_prioritaires:
+            ordre = {ville: i for i, ville in enumerate(self.communes_prioritaires)}
+            listings.sort(key=lambda x: ordre.get(cle_commune(x[2] or ("Paris" if x[1] == "75" else "")), len(ordre)))
+        for chemin, departement, ville, code_postal, total in listings:
             self._collecter_listing(chemin, departement, ville, code_postal, total, annonces)
             if self._bloquee:
                 break

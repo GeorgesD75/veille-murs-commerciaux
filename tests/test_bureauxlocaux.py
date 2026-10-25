@@ -9,6 +9,16 @@ from sources.bureauxlocaux import SourceBureauxLocaux
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
+def test_page_suivante_illisible_preserve_les_annonces_deja_collectees():
+    base = SourceBureauxLocaux.BASE + "/immobilier-d-entreprise/annonces/paris-75/vente-commerces"
+    client = ClientFactice({base: _charger("bureauxlocaux_page1.html"),
+                            base + "/page/2": "<html>Structure modifiée</html>"})
+    source = SourceBureauxLocaux(client=client, departements=["75"])
+    annonces = source.collecter()
+    assert annonces
+    assert any("react-context" in message for message in source.avertissements)
+
+
 def _charger(nom: str) -> str:
     return (FIXTURES / nom).read_text(encoding="utf-8")
 

@@ -89,3 +89,20 @@ def test_inactif_ne_fait_rien(monkeypatch):
     annonces = {"a": faire_annonce(id="a", score=80)}
     approfondir_annonces(annonces, _config(actif=False))
     assert client.urls == []
+
+
+def test_texte_detail_ignore_les_loyers_des_recommandations():
+    html = '<main><h1>Murs de 30 m²</h1><p>Local libre.</p><section class="related-properties">Loyer annuel 99 000 €</section></main>'
+    texte = texte_de_page(html)
+    assert "99 000" not in texte and "30 m²" in texte
+    html = '<main><h1>Local libre</h1><h2>Annonces similaires</h2><div><p>Loyer 8000 €/mois</p></div></main>'
+    assert "8000" not in texte_de_page(html)
+
+
+def test_priorite_detail_aux_petites_surfaces(monkeypatch):
+    client = ClientFactice()
+    monkeypatch.setattr("pipeline.approfondissement.ClientPoli", lambda: client)
+    annonces = {"grand": faire_annonce(score=90, url="https://exemple.fr/grand"),
+                "petit": faire_annonce(surface_m2=25, score=55, url="https://exemple.fr/petit")}
+    approfondir_annonces(annonces, _config(max_par_run=1))
+    assert client.urls == ["https://exemple.fr/petit"]

@@ -12,6 +12,13 @@ budget:
 zone:
   temps_trajet_max_min: 60    # temps de transport max depuis Paris 18e
 
+# Préférences personnelles distinctes de la qualité économique du bien.
+recherche:
+  surface_max_m2: 40          # strictement moins de 40 m² ; les autres restent consultables
+  trajet_cible_min: 30        # depuis la rue Francoeur, Paris 18e (trajets estimatifs)
+  vacance_prudente_pct: 8     # hypothèse de simulation, pas une statistique de marché
+  provision_charges_pct: 10  # entretien, gestion et charges : provision à préciser
+
 filtres:
   # Piège n°1 : fonds de commerce / droit au bail déguisés en vente de murs.
   mots_toujours_eliminatoires:
@@ -74,8 +81,8 @@ scoring:
       autre:                        {plancher: 5.5, plafond: 10}
   penalite_loyer_estime: 10   # murs libres (référentiel de zone générique, ou promesse du
                               # vendeur) : forte incertitude + vacance
-  penalite_loyer_estime_comparables: 4   # murs libres estimés via ≥ 2 baux RÉELS voisins
-                              # (même code postal) : bien plus fiable qu'une moyenne de zone
+  penalite_loyer_estime_comparables: 4   # ≥ 2 loyers déclarés de locaux occupés voisins
+                              # (même code postal, surface voisine, annonce récente)
   emplacement:                # 25 pts max
     paris: 25
     petite_couronne_dynamique: 20
@@ -161,10 +168,9 @@ scoring:
     - nom: taxe_fonciere_locataire
       points: 2
       mots: ["taxe foncière à la charge du locataire", "taxe foncière au locataire", "taxe foncière refacturée"]
-    - nom: charges_au_locataire  # bail où les grosses charges (article 606, triple net)
-      points: 1                  # pèsent sur le locataire : cash-flow bien plus prévisible
-      mots: ["article 606", "606 à la charge du locataire", "triple net",
-             "toutes charges au locataire", "charges refacturées au locataire"]
+    - nom: charges_au_locataire
+      points: 1                  # signal annoncé seulement, répartition à vérifier au bail
+      mots: ["charges refacturées au locataire"]
     - nom: enseigne_nationale
       points: 1
       mots: ["enseigne nationale", "locataire national", "franchise nationale"]
@@ -228,9 +234,10 @@ scoring:
                               # ESTIMÉ au signal le plus faible (moyenne de zone, ou simple
                               # promesse du vendeur sur murs libres) — jamais un bail. Or la
                               # pépite déclenche un email « tout de suite » : l'urgence doit
-                              # être adossée à un loyer réel (bail en place) ou, à défaut, à
-                              # ≥ 2 baux RÉELS voisins (confiance « comparables »). Une simple
-                              # moyenne de zone reste un bon signal de tri, pas un signal
+                              # être adossée à un loyer annoncé sur des murs occupés.
+                              # Depuis octobre 2026 : même une estimation par comparables
+                              # reste une hypothèse, jamais suffisante pour une alerte.
+                              # Un comparable reste un signal de tri, pas un signal
                               # d'urgence. Le bien reste visible et bien classé — seulement
                               # plafonné juste sous « pépite ». Mettre à false pour revenir
                               # au comportement précédent.
@@ -247,7 +254,11 @@ sources:                      # activer/désactiver une source = une ligne
   papcommerces:    {actif: true}   # site commerces de PAP, listing IdF
   bienici:         {actif: true, max_annonces: 100}   # API JSON, boutiques triées par date
   cessionpme:      {actif: true}   # listing « vente locaux commerciaux IdF » (1 000+ annonces)
-  geolocaux:       {actif: true, prix_max: 420000}   # pages communales SSR découvertes via les pages
+  geolocaux:
+    actif: true
+    prix_max: 420000
+    # Consommer le budget de 90 requêtes d'abord près du domicile.
+    communes_prioritaires: [Paris, Saint-Ouen-sur-Seine, Saint-Ouen, Clichy, Saint-Denis, Aubervilliers, Pantin, Levallois-Perret]
                                    # département ; prix_max (= prix_max_filtre) épargne les communes hors budget
   bureauxlocaux:   {actif: true, max_pages: 5}   # JSON react-context par département IdF ; is_occupied /
                                    # is_sale_of_business_assets structurés (pas de mots-clés à deviner)

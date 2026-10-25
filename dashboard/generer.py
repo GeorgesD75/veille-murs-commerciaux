@@ -23,6 +23,7 @@ from typing import Any
 
 from dashboard.dossier_banque import generer_dossiers
 from pipeline.config import Config
+from pipeline.decision import analyser_decision, priorite_recherche
 from pipeline.modeles import Annonce
 
 HEURES_NOUVEAUTE = 48
@@ -71,7 +72,10 @@ def preparer_payload(
         retenues.append(
             {
                 "id": a.id,
+                "recherche": priorite_recherche(a, config),
+                "decision": analyser_decision(a, config),
                 "titre": a.titre,
+                "source": a.source,
                 "url": a.url,
                 "urls_multiples": a.urls_multiples,
                 "ville": a.ville,
@@ -189,14 +193,15 @@ def preparer_payload(
             # classement affiché (« se classe Xᵉ sur Y ») — les annonces
             # probablement retirées n'y comptent pas.
             "retenues": rang,
-            "nouvelles": sum(1 for a in retenues if a["est_nouvelle"]),
-            "pepites": sum(1 for a in retenues if (a["score"] or 0) >= seuils["pepite"]),
+            "nouvelles": sum(1 for a in retenues if a["est_nouvelle"] and not a["peut_etre_retiree"]),
+            "pepites": sum(1 for a in retenues if (a["score"] or 0) >= seuils["pepite"] and not a["peut_etre_retiree"]),
             "analysees": len(retenues) + len(exclues_recentes),
             "exclues_recentes": len(exclues_recentes),
             "exclues_hors_zone": len(exclues_recentes) - len(exclues_detail),
             "encheres_ecartees": meta.get("encheres_ecartees", 0),
         },
         "retenues": retenues,
+        "recherche": config.donnees.get("recherche", {"surface_max_m2": 40, "trajet_cible_min": 30}),
         "exclues_recentes": exclues_detail,
         "encheres": meta.get("encheres", []),
         "analyse": config["analyse"],
@@ -271,6 +276,26 @@ _GABARIT = """<!doctype html>
   }
 }
 * { box-sizing: border-box; }
+:focus-visible { outline: 3px solid var(--or); outline-offset: 3px; }
+.recherche-intro { display:flex; justify-content:space-between; gap:24px; align-items:center;
+  padding:22px 0 12px; }
+.recherche-intro h2 { font: 700 clamp(24px, 4vw, 34px)/1.15 Fraunces, Georgia, serif; margin:0 0 8px; }
+.recherche-intro p { margin:0; color:var(--encre-2); max-width:680px; }
+.recherche-chiffres { display:flex; gap:22px; flex-shrink:0; }
+.recherche-chiffres strong { display:block; font-size:26px; color:var(--vert-texte); }
+.recherche-chiffres span { font-size:12px; color:var(--encre-2); }
+.decision { background:var(--bande); border:1px solid var(--filet); border-radius:10px; padding:12px 14px; margin:14px 0; }
+.decision p { margin:5px 0; font-size:13px; }
+.decision summary { cursor:pointer; font-size:13px; margin-top:8px; }
+.decision ul { padding-left:20px; font-size:13px; }
+.decision .priorite { display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-weight:650; }
+.decision small { display:block; color:var(--encre-2); line-height:1.5; }
+.reglages-finance { flex-basis:100%; border-top:1px solid var(--filet); padding-top:10px; }
+.reglages-finance > summary { cursor:pointer; font-weight:600; color:var(--encre-2); }
+.reglages-contenu { display:flex; flex-wrap:wrap; gap:12px; padding-top:12px; }
+#recherche-etat { color:var(--encre-2); font-size:13px; padding:10px 0; }
+@media(max-width:760px) { .recherche-intro { align-items:flex-start; flex-direction:column; gap:12px; }
+  .recherche-chiffres { gap:24px; } .decision { padding:10px; } }
 body { margin: 0; background: var(--plan); color: var(--encre-1);
   font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
 a { color: var(--marque); text-decoration: none; }
@@ -388,7 +413,7 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
    la barre défile avec la page au lieu de manger l'écran en permanence. ---- */
 .volet-filtres { background: var(--plan);
   border-bottom: 1px solid var(--filet); margin-bottom: 4px; }
-.volet-filtres > summary { display: none; cursor: pointer; padding: 10px 0;
+.volet-filtres > summary { display: block; cursor: pointer; padding: 10px 0;
   font-weight: 600; color: var(--encre-2); list-style: none; }
 .volet-filtres > summary::-webkit-details-marker { display: none; }
 .filtres { display: flex; align-items: end; gap: 14px; flex-wrap: wrap; padding: 12px 0; }
@@ -771,6 +796,12 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
     gap: 16px; align-items: baseline; }
 }
 @media (max-width: 760px) {
+  .profil-groupe { flex-wrap: wrap; max-width: 100%; gap:10px; margin-left:0; }
+  .ligne-compacte { flex-wrap:wrap; }
+  .ligne-compacte .d { flex:1 1 100%; min-width:0; white-space:normal; overflow-wrap:anywhere; }
+  .multi-liste { min-width:180px; max-width:calc(100vw - 40px); }
+  .multi-liste label { white-space:normal; }
+  .decision { overflow-wrap:anywhere; }
   .page { padding: 8px 14px 40px; }
   .masthead-inner { padding: 16px 16px 12px; }
   .wordmark { font-size: 34px; }
@@ -782,7 +813,7 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
   .hud, .btn-comp, .plateau { display: none !important; }
   .carte .pourquoi { border-top: 1px solid var(--filet); margin-top: 10px; padding-top: 10px; }
   .volet-filtres > summary { display: block; }
-  .carte { grid-template-columns: 1fr 84px; gap: 12px; padding: 12px; }
+  .carte { grid-template-columns: minmax(0,1fr) 72px; gap: 10px; padding: 12px; }
   .carte-img { grid-column: 1 / -1; height: 150px; }
   .carte-enchere { grid-template-columns: 1fr; }
   .metriques { gap: 12px 18px; }
@@ -838,9 +869,28 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
   </div>
 
   <div id="vue-chasse">
+  <section class="recherche-intro" aria-label="Votre recherche">
+    <div><h2>De petits murs. Une vraie opportunité.</h2>
+      <p>Votre recherche : moins de 40 m², si possible à proximité de la rue Francoeur.
+      L’adéquation à vos critères et la qualité économique se lisent séparément.</p></div>
+    <div class="recherche-chiffres" id="recherche-chiffres"></div>
+  </section>
+  <div id="recherche-etat" role="status" aria-live="polite"></div>
+  <details class="decision" id="qualite-veille"><summary id="qualite-veille-resume">État de la collecte</summary>
+    <div id="qualite-veille-detail"></div></details>
   <details class="volet-filtres" id="volet-filtres">
-    <summary>Filtres &amp; réglages ▾</summary>
+    <summary>Affiner ma recherche — surface, trajet, tri et financement ▾</summary>
     <div class="filtres">
+      <div class="filtre"><label for="f-surface">Surface strictement inférieure à (m²)</label>
+        <input id="f-surface" type="number" min="1" step="1" value="40" placeholder="Toutes"></div>
+      <div class="filtre"><label for="f-trajet">Trajet max estimé (min)</label>
+        <input id="f-trajet" type="number" min="1" step="5" placeholder="Sans limite"></div>
+      <div class="filtre"><label for="f-tri">Classer par</label><select id="f-tri">
+        <option value="recherche">Mes critères</option><option value="score">Score économique</option>
+        <option value="prix">Prix croissant</option><option value="trajet">Proximité</option>
+        <option value="recent">Dernière détection</option></select></div>
+      <div class="filtre"><label for="f-archives">Disponibilité</label>
+        <label><input id="f-archives" type="checkbox"> Inclure les annonces non revues depuis 14 j</label></div>
       <div class="filtre"><label for="f-type">Type</label>
         <select id="f-type">
           <option value="tous">Tous</option>
@@ -863,6 +913,7 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
       <div class="filtre"><label for="f-cf">Cash-flow</label>
         <label style="font-size:14px;color:var(--encre-1);padding:6px 0"
           title="Masque les biens qui vous coûteraient de l'argent chaque mois AVEC VOTRE profil de financement. Le score, lui, est calculé à un financement de référence fixe pour rester comparable d'une annonce à l'autre : un bien bien noté peut donc afficher un cash-flow négatif si votre profil est plus prudent que cette référence."><input id="f-cf" type="checkbox"> Positif seulement</label></div>
+      <details class="reglages-finance"><summary>Mon financement et ma fiscalité — modifier les hypothèses</summary><div class="reglages-contenu">
       <div class="profil-groupe" data-titre="Mon profil de financement" title="Votre profil de financement : il recalcule tous les cash-flows du site.">
         <div class="filtre"><label for="p-apport">Mon apport
           <select id="p-apport-mode" title="En % : l'apport suit le prix de chaque bien (comparable d'une annonce à l'autre). En € : une somme fixe, la même partout — plus concret quand on raisonne à partir de son épargne disponible.">
@@ -895,6 +946,10 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
           </select></div>
         <button id="p-fiscal-reset" type="button" title="Revenir à « non renseigné »">↺</button>
       </div>
+      </div>
+      <p class="profil-note">Ces réglages sont mémorisés sur cet appareil et recalculent les cash-flows du site.
+        Le scénario prudent utilise une référence fixe, indiquée sur chaque fiche.</p>
+      </details>
       <button id="f-reset" type="button">Réinitialiser</button>
       <span class="compteur" id="compteur"></span>
     </div>
@@ -924,7 +979,9 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
       <ul>
         <li>Date de signature et prochaine échéance triennale — un bail récent sécurise, un bail en fin de période se renégocie.</li>
         <li>Indexation (ILC de préférence) et loyer à jour des indexations.</li>
-        <li>Répartition des charges : article 606 (gros travaux) et taxe foncière — idéalement au locataire.</li>
+        <li>Vérifier l’inventaire des charges et la refacturation de la taxe foncière au bail.
+          Les grosses réparations de l’article 606 restent au bailleur pour les baux conclus ou renouvelés depuis novembre 2014.
+          <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F32336" target="_blank" rel="noopener">Règles officielles</a>.</li>
         <li>Dépôt de garantie, garanties personnelles, destination des lieux (« tous commerces » vaut de l'or).</li>
       </ul>
       <h4>Le locataire (celui qui paie votre retraite)</h4>
@@ -976,14 +1033,14 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 </div>
 
 <div class="plateau" id="plateau"></div>
-<div class="comparateur-fond" id="comparateur-fond">
+<div class="comparateur-fond" id="comparateur-fond" role="dialog" aria-modal="true" aria-label="Comparaison des biens">
   <div class="comparateur">
     <button class="fermer" id="comp-fermer">Fermer ✕</button>
     <h3>Face à face</h3>
     <div id="comp-table"></div>
   </div>
 </div>
-<div class="outil-fond" id="outil-fond">
+<div class="outil-fond" id="outil-fond" role="dialog" aria-modal="true" aria-label="Outil d’aide à la décision">
   <div class="comparateur">
     <button class="fermer" id="outil-fermer">Fermer ✕</button>
     <div id="outil-contenu"></div>
@@ -994,6 +1051,31 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 <script>
 "use strict";
 const D = JSON.parse(document.getElementById("donnees").textContent);
+// Focus dans les outils, fermeture au clavier, retour au bouton d'origine.
+let dialogueActif = null, focusAvantDialogue = null;
+for (const id of ["outil-fond", "comparateur-fond"]) {
+  const fond = document.getElementById(id);
+  new MutationObserver(() => {
+    if (fond.style.display === "block") {
+      if (dialogueActif !== fond) focusAvantDialogue = document.activeElement;
+      dialogueActif = fond;
+      fond.querySelector("button")?.focus();
+    } else if (dialogueActif === fond) {
+      dialogueActif = null;
+      focusAvantDialogue?.focus();
+    }
+  }).observe(fond, {attributes:true, attributeFilter:["style"]});
+}
+document.addEventListener("keydown", ev => {
+  if (!dialogueActif) return;
+  if (ev.key === "Escape") { dialogueActif.style.display = "none"; ev.preventDefault(); return; }
+  if (ev.key !== "Tab") return;
+  const elements = [...dialogueActif.querySelectorAll("button, a[href], input, select, textarea, [tabindex='0']")]
+    .filter(e => !e.disabled && e.getClientRects().length);
+  const premier = elements[0], dernier = elements[elements.length - 1];
+  if (ev.shiftKey && document.activeElement === premier) { dernier?.focus(); ev.preventDefault(); }
+  else if (!ev.shiftKey && document.activeElement === dernier) { premier?.focus(); ev.preventDefault(); }
+});
 const CLE_FILTRES = "veille-murs-filtres";
 const CLE_COMP = "veille-murs-comparateur";
 const CLE_PROFIL = "veille-murs-profil";
@@ -1410,7 +1492,7 @@ function enClairHtml(a) {
     phrases.push(`Le vendeur promet ${fmtEuros(loyer)}/mois de loyer — un niveau anormalement élevé. À prouver par un bail signé avant d'y croire.`);
   } else if (a.type_murs === "murs_libres") {
     const base = a.loyer_confiance === "comparables"
-      ? `estimé sur ${a.loyer_nb_comparables} baux réels voisins — fiable`
+      ? `estimé sur ${a.loyer_nb_comparables} loyers annoncés de locaux voisins occupés — à confirmer`
       : "estimé au référentiel du secteur — plus incertain";
     phrases.push(`Local vide : aucun loyer tant qu'un commerçant n'est pas trouvé. Au loyer ${base} (${fmtEuros(loyer)}/mois), financé ${finTxt()}, il ${cf >= 0 ? `laisserait ≈ ${fmtEuros(cf)}/mois` : `demanderait ≈ ${fmtEuros(-cf)}/mois de votre poche`}.`);
   } else if (cf >= 0) {
@@ -1541,7 +1623,7 @@ function ouvrirCritique(id) {
 }
 
 const EXPLICATIONS = {
-  rendement: "Ce que le bien vous rapporte chaque année, en % de son prix. Exemple : 1 000 €/mois de loyer sur un bien à 200 000 € = 6 % par an. Le barème s'adapte à la zone, car un rendement se juge contre ce que son marché exige : dans Paris, 3,5 % = 0 pt et 8 % = maximum ; en grande couronne, il faut 10 % pour le maximum (la vacance et la revente y sont plus dures). On enlève 10 pts si le loyer n'est qu'une promesse (pas de bail signé qui le prouve) — seulement 4 pts si l'estimation s'appuie sur des baux RÉELS de voisins immédiats. Et sous 7 % de rendement, quel que soit le score : pas de haut du panier.",
+  rendement: "Loyer annuel divisé par le prix, avant charges et vacance. Le barème dépend de la zone : dans Paris, 3,5 % = 0 point et 8 % = maximum. Une estimation de zone perd 10 points ; une estimation sur au moins deux loyers annoncés de locaux occupés comparables perd 4 points. Les baux ne sont pas consultés : tous les loyers sont à justifier. Sous 7 % de rendement brut : pas de haut du panier. Consultez aussi le scénario prudent.",
   emplacement: a => {
     let base = "Où est la boutique ? Dans une rue passante, le commerçant gagne sa vie et paie son loyer ; dans une rue morte, il ferme. Paris = 25 pts, communes qui montent (Pantin, Saint-Ouen, Montreuil…) = 20, reste de la petite couronne = 15, centre-ville de grande couronne = 10, ailleurs = 5. Quand une rue précise est citée dans l'annonce, un signal mesuré (Base Adresse Nationale + densité de commerces OpenStreetMap à 150 m) ajuste ce chiffre de −4 à +4 pts, et pénalise les locaux vacants voisins.";
     if (a && a.rue_categorie) {
@@ -1565,8 +1647,8 @@ function explicationLoyer(a, loyer) {
   const m2 = a.surface_m2;
   const tauxM2An = m2 ? Math.round((loyer * 12) / m2) : null;
   if (a.loyer_confiance === "comparables") {
-    return `Base : ${a.loyer_nb_comparables} bail(aux) RÉEL(S) de voisins immédiats (même code postal) — notre propre relevé, pas une API officielle.` +
-      (tauxM2An != null ? `\nCalcul : ${m2} m² × ${tauxM2An} €/m²/an (moyenne des baux voisins) ÷ 12 = ${fmtEuros(loyer)}/mois.` : "");
+    return `Base : ${a.loyer_nb_comparables} loyers annoncés de locaux occupés de surface voisine (même code postal). Baux non consultés : estimation à confirmer.` +
+      (tauxM2An != null ? `\nCalcul : ${m2} m² × ${tauxM2An} €/m²/an (médiane des loyers annoncés) ÷ 12 = ${fmtEuros(loyer)}/mois.` : "");
   }
   if (a.loyer_confiance === "benchmark") {
     return "Aucun bail réel voisin connu ici : estimation à partir d'un référentiel interne par secteur (data/benchmarks.json), pas une API officielle — fourchettes prudentes construites à la main (annonces constatées, études de réseaux spécialisés), à recouper vous-même (ex. observatoire local des loyers commerciaux)." +
@@ -1662,6 +1744,30 @@ function pourquoiHtml(a) {
   lignes.push(`<div class="jauge"><span>Bonus/malus</span><span></span>
     <span class="val">${bonus > 0 ? "+" : ""}${bonus}/5</span></div>`);
   return `<div class="pourquoi"><div class="titre-bloc">Pourquoi ce score</div>${lignes.join("")}</div>`;
+}
+
+function decisionHtml(a) {
+  const d = a.decision, r = a.recherche;
+  if (!d || !r) return "";
+  const cf = d.cashflow_prudent;
+  return `<div class="decision">
+    <div class="priorite">Adéquation à votre recherche : ${r.score}/100
+      ${r.petite_surface ? '<span class="badge badge-vert">Petite surface</span>' : ""}
+      ${r.proche ? '<span class="badge badge-vert">Proche de chez vous</span>' : ""}</div>
+    <p>Surface ${r.detail.surface}/40 · proximité ${r.detail.proximite}/30 · économie ${r.detail.economie}/30.
+      Données renseignées : ${d.documentation} % des 5 repères (aucun document vérifié).</p>
+    <p><b>${d.risques.length ? "Incohérence ou risque à éclaircir avant une visite." :
+      d.loyer_estime ? "Piste à creuser : le loyer reste une hypothèse." : "À qualifier auprès de l’agence : bail et encaissements à justifier."}</b></p>
+    ${cf == null ? '<p>Scénario prudent indisponible : prix ou loyer manquant.</p>' :
+      `<p>Trésorerie prudente : <b style="color:var(${cf >= 0 ? "--vert-texte" : "--alerte-texte"})">${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois</b>
+       ${d.loyer_estime ? "(loyer estimé)" : "(loyer annoncé)"} · prix d’équilibre simulé : <b>${fmtEuros(d.prix_equilibre)}</b>.</p>
+       <small>Référence fixe : ${d.apport_pct} % d’apport, ${d.duree_ans} ans à ${d.taux_pct} %, frais d’achat 8 %.
+       Provisions : vacance ${d.vacance_pct} % et charges ${d.charges_pct} % du loyer ; taxe foncière connue déduite.
+       Avant impôt, assurance emprunteur et travaux exceptionnels${a.taxe_fonciere_annuelle == null ? "; taxe foncière inconnue, non déduite" : ""}.
+       Hypothèses de prudence, à remplacer par les montants réels ; ce prix n’est pas une estimation de valeur.</small>`}
+    <details><summary>Les questions à poser avant d’avancer (${d.questions.length})</summary>
+      <ul>${d.questions.map(q => `<li>${ech(q)}</li>`).join("")}</ul></details>
+  </div>`;
 }
 
 function carteHtml(a, options) {
@@ -1829,10 +1935,11 @@ function carteHtml(a, options) {
       ${tampon}
       <div class="carte-titre"><a href="${ech(a.url)}" target="_blank" rel="noopener">${ech(a.titre)}</a>
         <span class="badges">${badges.join("")}</span></div>
-      <div class="carte-lieu">${ech(a.ville)}${a.code_postal ? " (" + ech(a.code_postal) + ")" : ""}
+      <div class="carte-lieu">${ech(a.ville)}${a.code_postal ? " (" + ech(a.code_postal) + ")" : ""} · ${ech(a.source || "source non renseignée")}
         · détectée le ${fmtDate(a.date_premiere_vue)}${joursMarcheHtml(a.date_premiere_vue)}${liens}</div>
       ${etiquettes ? `<div class="etiquettes">${etiquettes}</div>` : ""}
       <div class="metriques">${metriques}</div>
+      ${decisionHtml(a)}
       ${evolutionPrixHtml(a)}
       ${jaugeMarcheHtml(a)}
       ${enClairHtml(a)}
@@ -1843,7 +1950,7 @@ function carteHtml(a, options) {
     ${pourquoiHtml(a)}
     <div class="carte-score">
       <div class="score ${classeScore(a.score)}">${a.score ?? "—"}</div>
-      <div class="score-libelle">/100</div>
+      <div class="score-libelle">économie /100</div>
       <button type="button" class="btn-outil btn-outil--primaire" data-contact="${ech(a.id)}"
         title="Génère un message personnalisé à copier-coller pour contacter le vendeur : visite, offre, documents manquants.">${IC.enveloppe} Contacter</button>
       <button type="button" class="btn-comp${dansComp ? " actif" : ""}" data-id="${ech(a.id)}">
@@ -1990,6 +2097,10 @@ function enchereHtml(e, index) {
 
 function filtres() {
   return {
+    surface: document.getElementById("f-surface").value,
+    trajet: document.getElementById("f-trajet").value,
+    tri: document.getElementById("f-tri").value,
+    archives: document.getElementById("f-archives").checked,
     type: document.getElementById("f-type").value,
     dep: [...document.querySelectorAll("#f-dep-liste input:checked")].map(c => c.value),
     rdt: document.getElementById("f-rdt").value,
@@ -2000,6 +2111,9 @@ function filtres() {
 }
 
 function appliquer(a, f) {
+  if (!f.archives && a.peut_etre_retiree) return false;
+  if (f.surface && !(a.surface_m2 > 0 && a.surface_m2 < Number(f.surface))) return false;
+  if (f.trajet && !(a.temps_trajet_min != null && a.temps_trajet_min <= Number(f.trajet))) return false;
   if (f.type !== "tous" && a.type_murs !== f.type) return false;
   // secteurs cochés : union — le bien passe s'il est dans L'UN d'eux
   if (f.dep.length && !f.dep.some(v =>
@@ -2025,6 +2139,28 @@ function rendre() {
   localStorage.setItem(CLE_FILTRES, JSON.stringify(f));
   majResumeSecteurs(f);
   const visibles = D.retenues.filter(a => appliquer(a, f));
+  const tris = {
+    recherche: (a, b) => (b.recherche?.score || 0) - (a.recherche?.score || 0) || (b.score || 0) - (a.score || 0),
+    score: (a, b) => (b.score || 0) - (a.score || 0),
+    prix: (a, b) => (a.prix ?? Infinity) - (b.prix ?? Infinity),
+    trajet: (a, b) => (a.temps_trajet_min ?? Infinity) - (b.temps_trajet_min ?? Infinity),
+    recent: (a, b) => b.date_derniere_vue.localeCompare(a.date_derniere_vue),
+  };
+  visibles.sort(tris[f.tri] || tris.recherche);
+  const actives = D.retenues.filter(a => !a.peut_etre_retiree);
+  const petites = actives.filter(a => a.recherche?.petite_surface);
+  document.getElementById("recherche-chiffres").innerHTML =
+    `<div><strong>${petites.length}</strong><span>petites surfaces</span></div><div><strong>${petites.filter(a => a.recherche.proche).length}</strong><span>à moins de ${D.recherche.trajet_cible_min} min</span></div>`;
+  document.getElementById("recherche-etat").innerHTML =
+    `${visibles.length} annonce${visibles.length > 1 ? "s" : ""} avec vos filtres. ` +
+    (f.surface ? `Les surfaces inconnues et ≥ ${ech(f.surface)} m² sont masquées. ` : "Toutes les surfaces sont incluses. ") +
+    `${D.retenues.filter(a => a.peut_etre_retiree).length} annonces non revues depuis 14 jours. ` +
+    `<button type="button" id="voir-tout-stock" class="btn-outil">Voir tout le stock</button>`;
+  document.getElementById("voir-tout-stock").addEventListener("click", () => {
+    document.getElementById("f-reset").click();
+    document.getElementById("f-archives").checked = true;
+    rendre();
+  });
   // Une annonce écartée à la main OU plus revue en ligne depuis longtemps
   // (probablement vendue/retirée) descend dans le reste du tableau de chasse.
   const relegue = a => estAbandonnee(a.id) || a.peut_etre_retiree;
@@ -2041,14 +2177,15 @@ function rendre() {
 
   let index = 0;
   // Seules les meilleures occasions (score enchère ≥ seuil, plafonnées) montent
-  const occasions = (D.encheres || []).filter(e => e.haut_panier && !estAbandonnee(e.id));
+  const occasions = (D.encheres || []).filter(e => e.haut_panier && !estAbandonnee(e.id)
+    && (!f.surface || (e.surface_m2 > 0 && e.surface_m2 < Number(f.surface)))
+    && (!f.trajet || (e.temps_trajet_min != null && e.temps_trajet_min <= Number(f.trajet))));
   document.getElementById("bloc-prio").innerHTML =
-    `<h2 class="section">${IC.trophee} Le haut du panier <span class="nb">score ≥ ${D.seuils.vert} & occasions aux enchères</span></h2>` +
-    (prio.length || occasions.length
-      ? prio.map(a => carteHtml(a, {...opts(a), index: index++})).join("") +
+    (prio.length || occasions.length)
+      ? `<h2 class="section">${IC.trophee} Le haut du panier <span class="nb">score ≥ ${D.seuils.vert} & occasions aux enchères</span></h2>` +
+        prio.map(a => carteHtml(a, {...opts(a), index: index++})).join("") +
         occasions.map((e, i) => enchereHtml(e, index + i)).join("")
-      : `<div class="note-vide">Aucun trophée au-dessus de ${D.seuils.vert} aujourd'hui — les mieux classées sont ci-dessous.
-         La chasse reprend chaque matin à 7 h ; une pépite (≥ ${D.seuils.pepite}) déclenchera un email immédiat.</div>`);
+      : "";
   index += occasions.length;
 
   document.getElementById("bloc-etudier").innerHTML =
@@ -2073,6 +2210,18 @@ function rendre() {
 
 function rendreEncheres() {
   const s = D.stats;
+  const pannes = Object.entries(D.sante).filter(([,x]) => x.statut !== "ok");
+  const partielles = Object.entries(D.sante).filter(([,x]) => x.statut === "ok" &&
+    (x.annonces === 0 || (x.avertissements || []).some(t => !t.startsWith("budget de redirection :"))));
+  const heuresDepuisCollecte = (Date.now() - new Date(D.derniere_execution).getTime()) / 3600000;
+  document.getElementById("qualite-veille-resume").textContent =
+    `Dernière collecte : ${new Date(D.derniere_execution).toLocaleString("fr-FR", {timeZone:"Europe/Paris"})} · ` +
+    `${pannes.length} source(s) en échec, ${partielles.length} à contrôler` +
+    (heuresDepuisCollecte > 24 ? " · données de plus de 24 h" : "");
+  document.getElementById("qualite-veille-detail").innerHTML =
+    `<p>La collecte peut être partielle. Une annonce non revue n’est pas nécessairement vendue.
+    La date de génération du site ne remplace pas la date de collecte.</p>` +
+    [...pannes, ...partielles].map(([nom,x]) => `<p><b>${ech(nom)}</b> : ${ech(x.message || (x.avertissements || []).join(" ; ") || "Aucune annonce collectée ; absence d’offre ou source à vérifier.")}</p>`).join("");
   // Les meilleures occasions sont en haut de page ; le reste est REPLIÉ par
   // défaut (pas du top = pas d'espace), mêmes cartes une fois ouvert. Une
   // occasion masquée manuellement (croix) redescend ici comme les autres.
@@ -2156,7 +2305,7 @@ function ouvrirComparateur() {
 /* ---- Simulateur de financement ---- */
 function mensualite(capital, tauxPct, ans) {
   const t = tauxPct / 100 / 12, n = ans * 12;
-  return capital * t / (1 - Math.pow(1 + t, -n));
+  return t ? capital * t / (1 - Math.pow(1 + t, -n)) : capital / n;
 }
 
 // Le simulateur s'ouvre sur EXACTEMENT le même calcul que la métrique
@@ -2247,7 +2396,7 @@ const CHECKLIST = [
       auto: a => (a.bonus_detectes || []).includes("echeance_bail_proche") ? "⚠ échéance proche signalée dans l'annonce"
         : (a.bonus_detectes || []).includes("bail_longue_duree_restante") ? "bail loin de toute échéance signalé"
         : (a.bonus_detectes || []).includes("bail_recent") ? "bail récent signalé" : null},
-    {id: "bail_606", t: "Article 606 et taxe foncière à la charge du locataire",
+    {id: "bail_606", t: "Répartition légale des grosses réparations et refacturation de la taxe foncière vérifiées",
       auto: a => (a.bonus_detectes || []).includes("taxe_fonciere_locataire") ? "signalé dans l'annonce" : null},
     {id: "bail_destination", t: "Destination du bail large (« tous commerces » idéalement)",
       auto: a => (a.caracteristiques || []).includes("Toutes activités") ? "« toutes activités » signalé" : null},
@@ -2785,7 +2934,7 @@ function rendreSuivi() {
 
 function initialiser() {
   // Filtres ouverts d'office sur grand écran, repliés sur mobile
-  if (window.innerWidth > 760) document.getElementById("volet-filtres").open = true;
+  document.getElementById("volet-filtres").open = false;
 
   // Onglets. « Le marché » n'apparaît que si ses séries ont pu être collectées.
   const nav = document.getElementById("onglets");
@@ -2816,6 +2965,10 @@ function initialiser() {
     ev.preventDefault();
     basculerVue("chasse");
     // Lève tout ce qui peut cacher la pépite : filtres actifs et masquage manuel.
+    document.getElementById("f-surface").value = "";
+    document.getElementById("f-trajet").value = "";
+    document.getElementById("f-archives").checked = true;
+    document.getElementById("f-cf").checked = false;
     document.getElementById("f-type").value = "tous";
     document.querySelectorAll("#f-dep-liste input:checked").forEach(c => { c.checked = false; });
     document.getElementById("f-rdt").value = "";
@@ -2882,6 +3035,10 @@ function initialiser() {
 
   try {
     const memo = JSON.parse(localStorage.getItem(CLE_FILTRES) || "{}");
+    document.getElementById("f-surface").value = memo.surface ?? D.recherche.surface_max_m2;
+    document.getElementById("f-trajet").value = memo.trajet ?? "";
+    document.getElementById("f-tri").value = memo.tri || "recherche";
+    document.getElementById("f-archives").checked = !!memo.archives;
     if (memo.type) document.getElementById("f-type").value = memo.type;
     // ancien format : dep était une chaîne unique ("tous" / "18e" / "93")
     const depMemo = Array.isArray(memo.dep) ? memo.dep
@@ -2896,7 +3053,7 @@ function initialiser() {
     document.getElementById("f-cf").checked = !!memo.cf;
   } catch (e) { /* filtres mémorisés illisibles : on repart à zéro */ }
 
-  for (const id of ["f-type", "f-rdt", "f-score", "f-nouv", "f-cf"])
+  for (const id of ["f-type", "f-rdt", "f-score", "f-nouv", "f-cf", "f-surface", "f-trajet", "f-tri", "f-archives"])
     document.getElementById(id).addEventListener("input", rendre);
   listeDep.addEventListener("input", rendre);
 
@@ -2972,6 +3129,11 @@ function initialiser() {
   });
   document.getElementById("f-reset").addEventListener("click", () => {
     localStorage.removeItem(CLE_FILTRES);
+    document.getElementById("f-surface").value = "";
+    document.getElementById("f-trajet").value = "";
+    document.getElementById("f-tri").value = "recherche";
+    document.getElementById("f-archives").checked = false;
+    document.getElementById("f-cf").checked = false;
     document.getElementById("f-type").value = "tous";
     for (const case_ of listeDep.querySelectorAll("input")) case_.checked = false;
     document.getElementById("f-rdt").value = "";
@@ -2990,7 +3152,11 @@ function initialiser() {
     const parametres = new URLSearchParams(location.hash.slice(1));
     const idCible = parametres.get("annonce");
     if (idCible) {
-      document.getElementById("f-type").value = "tous";
+      document.getElementById("f-surface").value = "";
+    document.getElementById("f-trajet").value = "";
+    document.getElementById("f-archives").checked = true;
+    document.getElementById("f-cf").checked = false;
+    document.getElementById("f-type").value = "tous";
       document.querySelectorAll("#f-dep-liste input:checked").forEach(c => { c.checked = false; });
       document.getElementById("f-rdt").value = "";
       document.getElementById("f-score").value = "";
