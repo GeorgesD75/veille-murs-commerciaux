@@ -15,6 +15,7 @@ zone:
 # Préférences personnelles distinctes de la qualité économique du bien.
 recherche:
   surface_max_m2: 40          # strictement moins de 40 m² ; les autres restent consultables
+  prix_min_petite_surface: 50000  # petits tickets à explorer ; plafond existant conservé
   trajet_cible_min: 30        # depuis la rue Francoeur, Paris 18e (trajets estimatifs)
   vacance_prudente_pct: 8     # hypothèse de simulation, pas une statistique de marché
   provision_charges_pct: 10  # entretien, gestion et charges : provision à préciser
@@ -247,20 +248,22 @@ scoring:
 
 sources:                      # activer/désactiver une source = une ligne
   mock:            {actif: false}   # données de démonstration (tests/démo Phase 1)
-  pointdevente:    {actif: true, max_pages: 3}   # 3 pages × 50 annonces, tri récentes d'abord
+  pointdevente:    {actif: true, max_pages: 5}   # 5 pages × 50 annonces, tri récentes d'abord
   murscommerciaux: {actif: true}
   iburoshop:       {actif: true}
   flagship:        {actif: true}
   papcommerces:    {actif: true}   # site commerces de PAP, listing IdF
-  bienici:         {actif: true, max_annonces: 100}   # API JSON, boutiques triées par date
+  bienici:         {actif: true, max_annonces: 100, max_pages: 3}   # jusqu'à 300 annonces, pagination réelle
   cessionpme:      {actif: true}   # listing « vente locaux commerciaux IdF » (1 000+ annonces)
   geolocaux:
     actif: true
     prix_max: 420000
+    max_requetes: 110
+    rotation_secondaire: true
     # Consommer le budget de 90 requêtes d'abord près du domicile.
     communes_prioritaires: [Paris, Saint-Ouen-sur-Seine, Saint-Ouen, Clichy, Saint-Denis, Aubervilliers, Pantin, Levallois-Perret]
                                    # département ; prix_max (= prix_max_filtre) épargne les communes hors budget
-  bureauxlocaux:   {actif: true, max_pages: 5}   # JSON react-context par département IdF ; is_occupied /
+  bureauxlocaux:   {actif: true, max_pages: 8}   # JSON react-context par département IdF ; is_occupied /
                                    # is_sale_of_business_assets structurés (pas de mots-clés à deviner)
   encheres_publiques: {actif: true}  # enchères IdF — canal spécial sans scoring (mise à prix ≠ prix)
   # placedescommerces.com écarté : marché de fonds de commerce, pas de murs.
@@ -331,8 +334,9 @@ analyse:
                               # copro, article 606, nom de rue — tout ce que la page de liste
                               # tait. Poli (robots.txt, délais), plafonné par tournée.
     actif: true
-    max_par_run: 10
-    budget_secondes: 90
+    max_par_run: 24
+    budget_secondes: 180
+    age_max_jours: 30
   dvf:                        # ventes réelles de locaux commerciaux (pipeline/dvf.py) : la
                               # fourchette de prix d'un secteur vient des prix PAYÉS chez le
                               # notaire quand la commune compte assez de ventes

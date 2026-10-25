@@ -35,6 +35,7 @@ class AnnonceBrute:
     image_url: str | None = None
     images: list[str] = field(default_factory=list)  # toutes les photos connues
     description: str = ""
+    loyer_origine: str = "annonce"
 
 
 @dataclass
@@ -108,6 +109,12 @@ class Annonce:
     # Approfondissement : texte de la PAGE DE DÉTAIL (pipeline/approfondissement.py)
     approfondie: bool = False       # page lue (ou refusée) : on n'y revient pas
     texte_detail: str = ""          # nourrit texte_complet(), donc TOUS les détecteurs
+    etat_detail: str = "non_lu"
+    date_detail_tentative: str | None = None
+    date_detail_vue: str | None = None
+    preuves: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
+    conflits_donnees: list[str] = field(default_factory=list)
+    loyer_origine: str = "annonce"
 
     # Exclusion
     exclue: bool = False
@@ -119,6 +126,13 @@ class Annonce:
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         d["type_murs"] = self.type_murs.value
+        for cle in ["date_detail_tentative", "date_detail_vue", "preuves", "conflits_donnees"]:
+            if not d[cle]:
+                del d[cle]
+        if d["etat_detail"] == "non_lu":
+            del d["etat_detail"]
+        if d["loyer_origine"] == "annonce":
+            del d["loyer_origine"]
         return d
 
     @classmethod

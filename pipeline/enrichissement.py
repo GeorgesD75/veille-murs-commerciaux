@@ -220,7 +220,8 @@ def loyer_mensuel_retenu(
     jamais un bail : toujours hypothétique, sans confiance particulière.
     """
     if annonce.type_murs is TypeMurs.MURS_OCCUPES:
-        return annonce.loyer_mensuel, False, None, None
+        deduit = annonce.loyer_origine == "rendement"
+        return annonce.loyer_mensuel, deduit, "rendement" if deduit else None, None
     if annonce.loyer_mensuel:
         return annonce.loyer_mensuel, True, None, None
     if annonce.surface_m2:
@@ -256,6 +257,14 @@ def enrichir(
     comparables: LoyersComparables | None = None,
     dvf=None,
 ) -> Annonce:
+    # Recalcul intégral : une donnée retirée ne doit pas laisser un ancien rendement.
+    annonce.prix_m2 = None
+    annonce.rendement_brut_pct = None
+    annonce.rendement_acte_en_main_pct = None
+    annonce.prix_cible_rendement = None
+    annonce.decote_pct = None
+    annonce.marche_prix_m2_bas = None
+    annonce.marche_prix_m2_haut = None
     if annonce.prix and annonce.surface_m2:
         annonce.prix_m2 = round(annonce.prix / annonce.surface_m2)
 

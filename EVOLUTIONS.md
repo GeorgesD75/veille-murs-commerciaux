@@ -1,5 +1,58 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Deuxième passe (25–26 octobre) : collecte, qualité et démarches
+
+- Collecte régulière élargie : 5 pages Point de Vente, 8 pages par département
+  sur BureauxLocaux, jusqu'à 3 pages de 100 annonces sur Bien’ici, budget
+  Geolocaux de 110 requêtes avec rotation des communes secondaires ; 24 fiches
+  détaillées maximum par tournée (180 secondes). Délai poli maintenu.
+- Exploration dès 50 000 € uniquement pour les surfaces connues de moins de
+  40 m² ; plafond existant inchangé. Il s'agit d'un filtre de découverte.
+- Lecture JSON-LD de la fiche courante : prix, surface avec unité explicite,
+  code postal et photos ; origines datées et contradictions conservées.
+  Une page de résultats obtenue à la place d'une fiche est rejetée.
+- Contrôle réel sur trois sources : 306 annonces collectées lors de la passe
+  élargie ; deux nouvelles fiches ajoutées pendant la première passe. Ce
+  volume compte les sources séparément et ne désigne pas 306 nouveaux biens.
+- Nettoyage du stock : 33 fiches provenant de pages de résultats identifiées,
+  21 loyers retirés ou corrigés ; leurs anciens textes et critiques sont retirés.
+  Trois fiches supplémentaires ont été nettoyées après intégration de la
+  tournée nocturne (36 au total). 46 loyers reconstitués depuis un rendement
+  d'agence sont désormais marqués estimés, y compris sur des murs occupés.
+  Une fiche Orpi renvoyant HTTP 410 est signalée indisponible. Les refus 403
+  restent des refus d'accès, sans être assimilés à une vente.
+- Scoring : contradictions fortes plafonnées sous le seuil de recommandation,
+  occupation incertaine incompatible avec une alerte pépite. Simulation
+  suspendue si les chiffres se contredisent. Aucun rendement ancien conservé
+  lorsqu'un revenu disparaît. Fusion de doublons avec corroboration (liens,
+  photo commune ou description substantielle), au-delà du prix/surface/CP.
+- Scénario dégradé explicite : loyer −10 %, deux mois sans revenu, charges
+  provisionnées ; effort annuel, rendement après provisions et couverture
+  du crédit. Ces chiffres restent des simulations avant impôt et assurance.
+- Contact en trois étapes : premier message, demande de pièces, relance.
+  Messages adaptés au local libre/occupé/incertain, sans affirmer une valeur
+  de marché ou une disponibilité personnelle. Aucun envoi automatique.
+  Les modèles partagés évitent de répéter des milliers de longs messages
+  dans le HTML ; une édition manuelle n'est pas écrasée sans confirmation.
+- Recherche textuelle, filtres de baisse de prix, de cohérence et de trésorerie
+  prudente, raccourcis et espace distinct pour les chiffres à vérifier.
+- Résolution des chaînes d'alertes avec limite de quatre sauts et cache par
+  tournée. Sauvegarde du stock par remplacement atomique : un échec d'écriture
+  ne détruit pas le fichier précédent.
+
+Outils complémentaires (sans lecture IMAP ni notifications) :
+
+```powershell
+python scripts/actualiser_ciblee.py --pages 3 --details 16
+python scripts/nettoyer_fiches.py
+```
+
+La réparation des redirections d'alertes est testée sans accès à la boîte email.
+Les sites refusant la collecte ou ne fournissant pas de fiche exploitable
+restent signalés ; aucune couverture exhaustive ni disponibilité n'est garantie.
+
+## Première passe
+
 - Vue initiale sur les surfaces strictement inférieures à 40 m². Proximité depuis
   le domicile déjà configuré, rue Francoeur, Paris 18e. Temps de trajet indicatifs.
   Tous les biens restent accessibles en retirant les filtres.

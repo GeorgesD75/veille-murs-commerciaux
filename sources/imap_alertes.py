@@ -34,7 +34,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Callable
-from urllib.parse import unquote, urlparse
+from urllib.parse import unquote, urlparse, urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -375,6 +375,7 @@ class SourceImap(Source):
         # trop nombreux (il faut relever le compteur). Question posée par
         # l'utilisateur le 2026-09-05, sans réponse possible jusqu'ici.
         self.redirections_tentees = 0
+        self._cache_redirections: dict[str, str | None] = {}
         self.redirections_reussies = 0
         self.redirections_echouees = 0
         self.secondes_redirections = 0.0
@@ -417,6 +418,26 @@ class SourceImap(Source):
         return (time.monotonic() - self._debut_redirections) >= self._budget_redirection_s
 
     def _resoudre_redirection(self, href: str) -> str | None:
+        if href in self._cache_redirections:
+            return self._cache_redirections[href]
+        courant, vus = href, set()
+        for _ in range(4):
+            if courant in vus or urlparse(courant).scheme not in {"http", "https"}:
+                return None
+            vus.add(courant)
+            destination = self._resoudre_un_saut(courant)
+            if not destination:
+                return None
+            destination = urljoin(courant, destination)
+            if not re.match(r"(?:click|links?|mail|email|tracking|redirect)\.", urlparse(destination).netloc, re.I):
+                if urlparse(destination).scheme not in {"http", "https"}:
+                    return None
+                self._cache_redirections[href] = destination
+                return destination
+            courant = destination
+        return None
+
+    def _resoudre_un_saut(self, href: str) -> str | None:
         """Suit UNE redirection HTTP (302 Selligent/Adobe Campaign) pour
         révéler la vraie destination d'un jeton opaque — cf. curl -I sur un
         vrai lien logic_immo/iad le 2026-08-29.

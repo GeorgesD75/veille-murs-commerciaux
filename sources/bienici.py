@@ -40,19 +40,20 @@ class SourceBienici(SourceHtml):
     nom = "bienici"
     BASE = "https://www.bienici.com"
 
-    def __init__(self, client=None, max_annonces: int = 100, prix_max: int = 420_000) -> None:
+    def __init__(self, client=None, max_annonces: int = 100, prix_max: int = 420_000, max_pages: int = 1) -> None:
         super().__init__(client)
         self.max_annonces = max_annonces
         self.prix_max = prix_max
+        self.max_pages = max(1, min(5, max_pages))
 
-    def _url(self) -> str:
+    def _url(self, page: int = 1) -> str:
         filtres = {
             "size": self.max_annonces,
-            "from": 0,
+            "from": (page - 1) * self.max_annonces,
             "filterType": "buy",
             "propertyType": ["shop"],
             "maxPrice": self.prix_max,
-            "page": 1,
+            "page": page,
             "sortBy": "publicationDate",
             "sortOrder": "desc",
             "onTheMarket": [True],
@@ -63,7 +64,7 @@ class SourceBienici(SourceHtml):
 
     def collecter(self) -> list[AnnonceBrute]:
         return self.collecter_pages(
-            [(self._url(), None)],
+            [(self._url(page), None) for page in range(1, self.max_pages + 1)],
             lambda contenu, _ctx: self.convertir(json.loads(contenu)),
         )
 

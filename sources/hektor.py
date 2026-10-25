@@ -100,10 +100,12 @@ class SourceHektor(SourceHtml):
 
         # Loyer : annuel dans la description, sinon déduit de la rentabilité déclarée.
         loyer = loyer_mensuel_depuis_texte(description, prix)
+        origine = "annonce"
         if loyer is None:
             rentabilite = rentabilite_depuis_texte(description)
             if rentabilite:
                 loyer = round(prix * rentabilite / 100 / 12, 2)
+                origine = "rendement"
 
         ville = _premiere_ligne(carte.select_one("p.city")).title()
         quartier = _premiere_ligne(carte.select_one("p.quartier"))
@@ -120,6 +122,7 @@ class SourceHektor(SourceHtml):
             prix=prix,
             surface_m2=surface,
             loyer_mensuel=loyer,
+            loyer_origine=origine,
             image_url=images[0] if images else None,
             images=images,
             description=description,

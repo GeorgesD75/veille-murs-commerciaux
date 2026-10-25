@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pipeline.config import Config
 from pipeline.modeles import Annonce
+from pipeline.fiabilite import diagnostiquer
 
 
 def priorite_recherche(a: Annonce, config: Config) -> dict:
@@ -24,6 +25,7 @@ def priorite_recherche(a: Annonce, config: Config) -> dict:
 def analyser_decision(a: Annonce, config: Config) -> dict:
     """Chiffres avant impôt ; provisions explicites, aucune donnée manquante inventée."""
     cfg = config.donnees.get("recherche", {})
+    diagnostic = diagnostiquer(a)
     loyer = a.loyer_mensuel or a.loyer_mensuel_estime
     manquants = []
     if not a.surface_m2:
@@ -36,17 +38,22 @@ def analyser_decision(a: Annonce, config: Config) -> dict:
         manquants.append("Bail et quittances : le loyer annoncé reste à justifier")
     if a.taxe_fonciere_annuelle is None:
         manquants.append("Montant de la taxe foncière et répartition prévue au bail")
-    manquants.extend(["Charges non récupérables, procès-verbaux d’AG et travaux votés",
-                      "Solvabilité du locataire, impayés et prochaine échéance du bail"])
+    manquants.extend(["Charges non récupérables, procès-verbaux d’AG et travaux votés"])
+    if diagnostic["occupation"] == "libre":
+        manquants.append("Dernier bail, date de libération et loyer précédemment encaissé ; travaux de remise en location")
+    else:
+        manquants.append("Solvabilité du locataire, impayés et prochaine échéance du bail")
+    if diagnostic["bloquant"]:
+        manquants = [e["texte"] for e in diagnostic["alertes"] if e["niveau"] == "fort"] + manquants
     documente = sum([bool(a.surface_m2), bool(a.texte_detail),
                     bool(a.loyer_mensuel and not a.loyer_estime),
                     a.taxe_fonciere_annuelle is not None, a.bail_echeance_annee is not None])
     risques = [f for f in a.flags if f in {"localisation_incoherente", "dette_copropriete",
               "rendement_anormalement_eleve", "prix_m2_anormalement_bas", "texte_partiel_alerte"}]
-    resultat = {"documentation": documente * 20, "questions": manquants,
+    resultat = {"documentation": documente * 20, "questions": manquants, "diagnostic": diagnostic,
                 "risques": risques, "loyer_estime": bool(a.loyer_estime or not a.loyer_mensuel),
                 "cashflow_prudent": None, "prix_equilibre": None}
-    if not loyer or not a.prix:
+    if diagnostic["bloquant"] or not loyer or not a.prix:
         return resultat
     f = config["analyse"]["financement"]
     apport = float(config.scoring.get("financement", {}).get("apport_reference_pct", 20)) / 100
@@ -58,8 +65,15 @@ def analyser_decision(a: Annonce, config: Config) -> dict:
     # Taxe déduite par prudence même si refacturation annoncée : à vérifier au bail.
     taxe = (a.taxe_fonciere_annuelle or 0) / 12
     revenu = loyer * (1 - vacance - charges) - taxe
+    mensualite = a.prix * 1.08 * (1-apport) * coefficient
+    # Stress explicite : loyer -10 %, deux mois de vacance, mêmes charges en %.
+    stress = loyer * .9 * (10/12 - charges) - taxe
     resultat.update({"cashflow_prudent": round(revenu - a.prix * 1.08 * (1-apport) * coefficient),
                      "prix_equilibre": round(max(0, revenu) / ((1-apport)*1.08*coefficient)),
                      "vacance_pct": vacance * 100, "charges_pct": charges * 100,
-                     "apport_pct": apport * 100, "taux_pct": f["taux_pct"], "duree_ans": f["duree_ans"]})
+                     "apport_pct": apport * 100, "taux_pct": f["taux_pct"], "duree_ans": f["duree_ans"],
+                     "cashflow_stress": round(stress - mensualite),
+                     "rendement_net_prudent": round(revenu * 12 / (a.prix * 1.08) * 100, 2),
+                     "couverture_dette": round(revenu / mensualite, 2) if mensualite else None,
+                     "effort_annuel_stress": round(max(0, mensualite - stress) * 12)})
     return resultat

@@ -66,7 +66,10 @@ def raison_exclusion(annonce: Annonce, config: Config, trajets: Trajets) -> str 
     if annonce.prix is None:
         return "prix non renseigné"
     b = config.budget
-    if not (b["prix_min_filtre"] <= annonce.prix <= b["prix_max_filtre"]):
+    recherche = config.donnees.get("recherche", {})
+    petite = annonce.surface_m2 is not None and 0 < annonce.surface_m2 < recherche.get("surface_max_m2", 40)
+    minimum = recherche.get("prix_min_petite_surface", b["prix_min_filtre"]) if petite else b["prix_min_filtre"]
+    if not (minimum <= annonce.prix <= b["prix_max_filtre"]):
         return f"prix hors budget ({annonce.prix:,.0f} €)".replace(",", " ")
 
     if annonce.departement not in ILE_DE_FRANCE:

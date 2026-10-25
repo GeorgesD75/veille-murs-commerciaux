@@ -74,8 +74,10 @@ class SourceMursCommerciaux(SourceHtml):
         # Le loyer annuel de la description prime ; sinon on le déduit de la
         # rentabilité affichée par l'agence (donnée déclarée, pas une estimation).
         loyer = loyer_mensuel_depuis_texte(description, prix)
+        origine = "annonce"
         if loyer is None and prix and rentabilite and 2.0 <= rentabilite <= 15.0:
             loyer = round(prix * rentabilite / 100 / 12, 2)
+            origine = "rendement"
 
         # Localisation en tête de titre : « LEVALLOIS-PERRET (92) … » ou « PARIS (75) … ».
         # Sans CP précis, on synthétise « départerment + 000 » (suffisant pour le
@@ -98,6 +100,7 @@ class SourceMursCommerciaux(SourceHtml):
             prix=prix,
             surface_m2=surface,
             loyer_mensuel=loyer,
+            loyer_origine=origine,
             image_url=str(image.get("src")) if image and image.get("src") else None,
             description=description,
         )

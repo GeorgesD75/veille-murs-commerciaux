@@ -5,6 +5,7 @@ from pipeline.config import Config
 from pipeline.filtres import plancher_prix_m2
 from pipeline.geo import categorie_emplacement
 from pipeline.modeles import Annonce
+from pipeline.fiabilite import diagnostiquer
 from pipeline.texte import cle_commune, normaliser_texte
 
 # Enveloppe des bonus/malus (le poste vaut « 5 pts » dans la formule).
@@ -262,4 +263,10 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
         # bien reste visible et bien classé, mais jamais trône ni email pépite.
         annonce.flags.append("rendement_sous_objectif")
         annonce.score = min(annonce.score, int(cfg["seuils"]["vert"]) - 1)
+    diagnostic = diagnostiquer(annonce)
+    annonce.flags.extend(e["code"] for e in diagnostic["alertes"] if e["code"] not in annonce.flags)
+    if diagnostic["bloquant"]:
+        annonce.score = min(annonce.score, int(cfg["seuils"].get("affichage", 65)) - 1)
+    elif diagnostic["occupation"] == "a_confirmer":
+        annonce.score = min(annonce.score, int(cfg["seuils"]["pepite"]) - 1)
     return annonce

@@ -6,6 +6,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from pipeline.modeles import Annonce, AnnonceBrute, identifiant
+from pipeline.fiabilite import nombre_positif, noter_preuve
 
 FUSEAU = ZoneInfo("Europe/Paris")
 
@@ -30,7 +31,7 @@ def normaliser(brute: AnnonceBrute, quand: str | None = None) -> Annonce:
     for image in [*(brute.images or []), brute.image_url]:
         if image and image not in images:
             images.append(image)
-    return Annonce(
+    a = Annonce(
         id=identifiant(brute.source, brute.id_source),
         id_source=brute.id_source,
         source=brute.source,
@@ -40,13 +41,19 @@ def normaliser(brute: AnnonceBrute, quand: str | None = None) -> Annonce:
         code_postal=cp,
         departement=cp[:2],
         type_murs=brute.type_murs,
-        prix=brute.prix,
-        surface_m2=brute.surface_m2,
-        loyer_mensuel=brute.loyer_mensuel,
+        prix=nombre_positif(brute.prix),
+        surface_m2=nombre_positif(brute.surface_m2),
+        loyer_mensuel=nombre_positif(brute.loyer_mensuel),
         honoraires=brute.honoraires,
         image_url=images[0] if images else None,
         images=images,
         description=_nettoyer(brute.description),
+        loyer_origine=brute.loyer_origine,
+        loyer_estime=brute.loyer_origine == "rendement",
         date_premiere_vue=quand,
         date_derniere_vue=quand,
     )
+    for champ in ["prix", "surface_m2", "loyer_mensuel", "code_postal"]:
+        if (valeur := getattr(a, champ)) is not None and valeur != "":
+            noter_preuve(a, champ, valeur, "source:" + a.source, quand)
+    return a

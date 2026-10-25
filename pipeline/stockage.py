@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +26,15 @@ class Stockage:
         ordonnees = sorted(annonces.values(), key=lambda a: (a.score is None, -(a.score or 0)))
         contenu = {"meta": meta, "annonces": [a.to_dict() for a in ordonnees]}
         self.chemin.parent.mkdir(parents=True, exist_ok=True)
-        self.chemin.write_text(
-            json.dumps(contenu, ensure_ascii=False, indent=1), encoding="utf-8"
-        )
+        temporaire = None
+        try:
+            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=self.chemin.parent,
+                                             prefix=".annonces-", suffix=".tmp", delete=False) as fichier:
+                temporaire = Path(fichier.name)
+                json.dump(contenu, fichier, ensure_ascii=False, indent=1, allow_nan=False)
+                fichier.flush()
+                os.fsync(fichier.fileno())
+            os.replace(temporaire, self.chemin)
+        finally:
+            if temporaire:
+                temporaire.unlink(missing_ok=True)

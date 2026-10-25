@@ -24,6 +24,7 @@ from typing import Any
 from dashboard.dossier_banque import generer_dossiers
 from pipeline.config import Config
 from pipeline.decision import analyser_decision, priorite_recherche
+from pipeline.contact import messages_contact
 from pipeline.modeles import Annonce
 
 HEURES_NOUVEAUTE = 48
@@ -57,6 +58,20 @@ def preparer_payload(
     # ce garde-fou, un site qui change de structure ferait basculer tout son
     # stock en « peut-être vendue » à tort au bout de 14 jours.
     sante = meta.get("sante_sources", {})
+    modeles_contact: list[str] = []
+    index_modeles: dict[str, int] = {}
+
+    def contact_compact(a):
+        resultat = {}
+        for mode, texte in messages_contact(a).items():
+            texte = texte.replace(f"{a.titre} à {a.ville}", "__REFERENCE__").replace(a.url, "__URL__")
+            if a.loyer_mensuel:
+                texte = texte.replace(f"{a.loyer_mensuel:,.0f}".replace(",", " ") + " €/mois", "__LOYER__")
+            if texte not in index_modeles:
+                index_modeles[texte] = len(modeles_contact)
+                modeles_contact.append(texte)
+            resultat[mode] = index_modeles[texte]
+        return resultat
 
     def _source_en_panne(source: str) -> bool:
         cle = "imap" if source.startswith("alerte_") else source
@@ -74,6 +89,9 @@ def preparer_payload(
                 "id": a.id,
                 "recherche": priorite_recherche(a, config),
                 "decision": analyser_decision(a, config),
+                "modeles_contact": contact_compact(a),
+                "etat_detail": a.etat_detail,
+                "date_detail_vue": a.date_detail_vue,
                 "titre": a.titre,
                 "source": a.source,
                 "url": a.url,
@@ -123,8 +141,8 @@ def preparer_payload(
                 "date_derniere_vue": a.date_derniere_vue,
                 "est_nouvelle": _iso(a.date_premiere_vue) >= seuil_nouveaute,
                 "jours_sans_vue": (maintenant - _iso(a.date_derniere_vue)).days,
-                "peut_etre_retiree": _iso(a.date_derniere_vue) < seuil_retiree
-                                     and not _source_en_panne(a.source),
+                "peut_etre_retiree": a.etat_detail == "retiree" or (_iso(a.date_derniere_vue) < seuil_retiree
+                                     and not _source_en_panne(a.source)),
                 # classeur Excel « dossier banque », si généré pour ce bien
                 "dossier": f"dossiers/{dossiers[a.id]}" if dossiers and a.id in dossiers else None,
             }
@@ -201,12 +219,18 @@ def preparer_payload(
             "encheres_ecartees": meta.get("encheres_ecartees", 0),
         },
         "retenues": retenues,
+        "modeles_contact": modeles_contact,
         "recherche": config.donnees.get("recherche", {"surface_max_m2": 40, "trajet_cible_min": 30}),
         "exclues_recentes": exclues_detail,
         "encheres": meta.get("encheres", []),
         "analyse": config["analyse"],
         "taux_marche": meta.get("taux_marche"),
         "sante": meta.get("sante_sources", {}),
+        "collecte_ciblee": meta.get("collecte_ciblee"),
+        "enrichissement_detail": meta.get("enrichissement_detail"),
+        "qualite_donnees": {"fiches_tracees": sum(a.etat_detail == "lu" for a in annonces.values()),
+                            "listes_ecartees": sum(a.etat_detail == "redirection_liste" for a in annonces.values()),
+                            "nettoyage": meta.get("nettoyage_fiches")},
         "marche": marche,
     }
 
@@ -290,6 +314,22 @@ _GABARIT = """<!doctype html>
 .decision ul { padding-left:20px; font-size:13px; }
 .decision .priorite { display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-weight:650; }
 .decision small { display:block; color:var(--encre-2); line-height:1.5; }
+.decision-action { font-size:15px; font-weight:700; color:var(--encre-1); }
+.badge-vert { background:var(--vert-fond); color:var(--vert-texte); }
+.decision-chiffres { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:12px 0; }
+.decision-chiffres > div { background:var(--surface); padding:10px; border-radius:8px; border:1px solid var(--filet); }
+.decision-chiffres span { display:block; font-size:11px; color:var(--encre-2); }
+.decision-chiffres b { font-size:17px; font-variant-numeric:tabular-nums; }
+.alerte-donnee { border-left:3px solid var(--or); padding-left:9px; }
+.alerte-donnee.fort { border-color:var(--alerte-texte); color:var(--alerte-texte); }
+.preuves-table { border-collapse:collapse; width:100%; margin:10px 0; font-size:12px; }
+.preuves-table td,.preuves-table th { text-align:left; border-bottom:1px solid var(--filet); padding:6px 5px; overflow-wrap:anywhere; }
+.contact-modes { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
+.contact-modes .actif { background:var(--marque); color:var(--marque-encre); }
+.recherche-raccourcis { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+.recherche-raccourcis button { padding:7px 12px; border:1px solid var(--filet); border-radius:20px; background:var(--surface); color:var(--encre-1); cursor:pointer; }
+.recherche-raccourcis button[aria-pressed=true] { background:var(--marque); color:var(--marque-encre); }
+@media(max-width:600px) { .decision-chiffres { grid-template-columns:1fr; } .preuves-table { font-size:11px; } }
 .reglages-finance { flex-basis:100%; border-top:1px solid var(--filet); padding-top:10px; }
 .reglages-finance > summary { cursor:pointer; font-weight:600; color:var(--encre-2); }
 .reglages-contenu { display:flex; flex-wrap:wrap; gap:12px; padding-top:12px; }
@@ -876,11 +916,22 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
     <div class="recherche-chiffres" id="recherche-chiffres"></div>
   </section>
   <div id="recherche-etat" role="status" aria-live="polite"></div>
+  <div class="recherche-raccourcis" aria-label="Recherches rapides">
+    <button type="button" data-raccourci="cible">Petits murs proches</button>
+    <button type="button" data-raccourci="baisses">Baisses de prix</button>
+    <button type="button" data-raccourci="completer">Dossiers à compléter</button>
+  </div>
   <details class="decision" id="qualite-veille"><summary id="qualite-veille-resume">État de la collecte</summary>
     <div id="qualite-veille-detail"></div></details>
   <details class="volet-filtres" id="volet-filtres">
     <summary>Affiner ma recherche — surface, trajet, tri et financement ▾</summary>
     <div class="filtres">
+      <div class="filtre"><label for="f-texte">Ville, rue, référence</label>
+        <input id="f-texte" type="search" placeholder="ex. Saint-Ouen" style="max-width:200px"></div>
+      <div class="filtre"><label for="f-signal">Signal recherché</label><select id="f-signal">
+        <option value="tous">Tous</option><option value="baisses">Prix en baisse</option>
+        <option value="completer">Données à compléter</option><option value="coherent">Sans contradiction détectée</option>
+        <option value="prudent">Trésorerie prudente positive</option></select></div>
       <div class="filtre"><label for="f-surface">Surface strictement inférieure à (m²)</label>
         <input id="f-surface" type="number" min="1" step="1" value="40" placeholder="Toutes"></div>
       <div class="filtre"><label for="f-trajet">Trajet max estimé (min)</label>
@@ -890,7 +941,7 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
         <option value="prix">Prix croissant</option><option value="trajet">Proximité</option>
         <option value="recent">Dernière détection</option></select></div>
       <div class="filtre"><label for="f-archives">Disponibilité</label>
-        <label><input id="f-archives" type="checkbox"> Inclure les annonces non revues depuis 14 j</label></div>
+        <label><input id="f-archives" type="checkbox"> Inclure les archives et fiches retirées</label></div>
       <div class="filtre"><label for="f-type">Type</label>
         <select id="f-type">
           <option value="tous">Tous</option>
@@ -963,6 +1014,7 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 
   <section id="bloc-prio"></section>
   <section id="bloc-etudier"></section>
+  <details class="repli" id="bloc-verifier"><summary></summary><div id="verifier-liste"></div></details>
   <details class="repli" id="bloc-reste"><summary></summary><div id="reste-liste"></div></details>
 
   <details class="repli" id="bloc-encheres"><summary></summary><div id="encheres-liste"></div></details>
@@ -1508,9 +1560,9 @@ function enClairHtml(a) {
     phrases.push(`Rue mesurée très commerçante (${a.rue_nb_commerces} commerces actifs à 150 m) : un vrai passage, au-delà du classement administratif.`);
   else {
     const emp = (a.detail_score || {}).emplacement ?? 0;
-    if (emp >= 25) phrases.push("Emplacement le plus sûr de la grille : Paris intra-muros, où la demande de boutiques ne se tarit pas.");
-    else if (emp >= 20) phrases.push("Commune en plein essor : bon compromis entre prix d'achat et solidité de la demande de locaux.");
-    else if (emp >= 15) phrases.push("Petite couronne : demande correcte, à juger rue par rue.");
+    if (emp >= 25) phrases.push("Paris intra-muros : la note de zone ne suffit pas à juger la rue, le passage et la demande locative.");
+    else if (emp >= 20) phrases.push("Commune prioritaire de la grille : vérifier le passage et les commerces voisins sur place.");
+    else if (emp >= 15) phrases.push("Petite couronne : emplacement à juger rue par rue.");
     else phrases.push("Secteur périphérique : la valeur dépend fortement de la rue exacte — visite indispensable.");
   }
   if (a.rue_nb_vacants != null && a.rue_nb_vacants >= 3)
@@ -1543,51 +1595,15 @@ function explicationPepiteHtml(a) {
     Un score ≥ ${D.seuils.pepite}/100 est rare — vérifiez vite (visite, bail, copropriété) avant qu'elle ne parte.</div>`;
 }
 
-function messageContact(a) {
-  // Modèle personnalisé — à relire et adapter avant envoi, jamais un envoi
-  // automatique. Retour utilisateur du 2026-08-17 : plus court, moins
-  // formaté-IA, jamais "je suis cette annonce depuis" (ça sonne robotique).
-  // Se concentrer sur ce qui MANQUE vraiment : raison de la vente, durée de
-  // bail restante, loyer, charges — mais seulement quand l'annonce ne le dit
-  // pas déjà (inutile de redemander un loyer ou une échéance déjà connus).
-  const nl = String.fromCharCode(10);
-  const lignes = [];
-  lignes.push(`Objet : ${a.titre} — quelques questions avant de visiter`, "");
-  lignes.push("Bonjour,", "");
-  lignes.push(`Je m'intéresse à votre annonce « ${a.titre} » à ${a.ville}` +
-    `${a.code_postal ? ` (${a.code_postal})` : ""}` +
-    `${a.prix != null ? `, affichée à ${fmtEuros(a.prix)}` : ""}.`);
-  lignes.push(`Lien : ${a.url}`, "");
-  lignes.push("Je cherche des murs commerciaux en Île-de-France, disponible rapidement pour visiter.", "");
-
-  // Faits de marché — seulement quand on les a vraiment, glissés en aparté
-  // plutôt qu'encadrés dans un paragraphe "transparence" trop formel.
-  const faits = [];
-  const hist = a.historique_prix || [];
-  if (hist.length >= 2 && hist[hist.length - 1].prix < hist[0].prix)
-    faits.push(`j'ai vu que le prix était passé de ${fmtEuros(hist[0].prix)} à ` +
-      `${fmtEuros(hist[hist.length - 1].prix)} depuis le ${fmtDate(hist[0].date)}`);
-  if (a.decote_pct != null && a.decote_pct <= -5 && a.prix_m2 != null
-      && a.marche_prix_m2_bas != null && a.marche_prix_m2_haut != null)
-    faits.push(`le secteur se négocie plutôt entre ${fmtEuros(a.marche_prix_m2_bas)} et ` +
-      `${fmtEuros(a.marche_prix_m2_haut)}/m², contre ${fmtEuros(a.prix_m2)}/m² ici`);
-  if (faits.length) lignes.push(`Au passage, ${faits.join(" ; ")}.`, "");
-
-  const questions = ["Le bien est-il toujours disponible ?", "Pour quelle raison vendez-vous ?"];
-  if (a.type_murs === "murs_occupes") {
-    if (a.bail_echeance_annee == null)
-      questions.push("Il y a un bail en cours : savez-vous combien de temps il reste avant la prochaine échéance ?");
-    if (a.loyer_mensuel == null)
-      questions.push("Quel est le loyer actuel ?");
-  } else if (a.loyer_mensuel == null) {
-    questions.push("Le local a-t-il déjà été loué ? À quel loyer ?");
+function messageContact(a, mode = "court") {
+  if (a.modeles_contact && D.modeles_contact) {
+    const modele = D.modeles_contact[a.modeles_contact[mode]];
+    if (modele) return modele.replace(/__REFERENCE__|__URL__|__LOYER__/g, cle => ({
+      __REFERENCE__: `${a.titre} à ${a.ville}`, __URL__: a.url,
+      __LOYER__: fmtEuros(a.loyer_mensuel) + "/mois"
+    })[cle]);
   }
-  questions.push("Et à combien s'élèvent les charges (copropriété, taxe foncière) ?");
-  lignes.push(...questions.map(q => `- ${q}`), "");
-
-  lignes.push("Quelles seraient vos disponibilités pour une visite ?", "");
-  lignes.push("Cordialement,", "[Votre nom] — [téléphone]");
-  return lignes.join(nl);
+  return ["Bonjour,", "", a.url, "", "Ce bien est-il toujours disponible ?", "", "Cordialement,"].join(String.fromCharCode(10));
 }
 
 function ouvrirContact(id) {
@@ -1595,9 +1611,14 @@ function ouvrirContact(id) {
   if (!a) return;
   document.getElementById("outil-contenu").innerHTML = `
     <h3>${IC.enveloppe} Contacter le vendeur — ${ech(a.titre)}</h3>
-    <p style="font-size:13px;color:var(--encre-2)">Message généré à partir des informations de
-    l'annonce — relisez-le et personnalisez-le (nom, ton) avant de l'envoyer par email ou via la
-    messagerie du site.</p>
+    <p style="font-size:13px;color:var(--encre-2)">Choisissez l’étape de votre démarche. Le message tient compte de l’occupation annoncée et des informations manquantes.
+    Relisez-le avant de le copier ; aucun message n’est envoyé par l’application.</p>
+    <div class="contact-modes" role="group" aria-label="Étape de contact">
+      <button type="button" class="btn-outil actif" data-contact-mode="court" data-contact-id="${ech(id)}">1. Premier contact</button>
+      <button type="button" class="btn-outil" data-contact-mode="dossier" data-contact-id="${ech(id)}">2. Demander les pièces</button>
+      <button type="button" class="btn-outil" data-contact-mode="relance" data-contact-id="${ech(id)}">3. Relancer</button>
+    </div>
+    <label for="contact-texte">Message à personnaliser</label>
     <textarea id="contact-texte" class="contact-texte" rows="15">${ech(messageContact(a))}</textarea>
     <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
       <button type="button" class="btn-outil" id="contact-copier">${IC.coche} Copier le message</button>
@@ -1750,32 +1771,54 @@ function decisionHtml(a) {
   const d = a.decision, r = a.recherche;
   if (!d || !r) return "";
   const cf = d.cashflow_prudent;
+  const diagnostic = d.diagnostic || {alertes:[], preuves:{}};
+  const action = diagnostic.bloquant ? "Vérifier les chiffres avant d’avancer" :
+    d.loyer_estime ? "Confirmer le revenu locatif" : cf != null && cf < 0 ? "Étudier le prix et l’effort d’épargne" : "Demander les pièces pour qualifier le dossier";
+  const montant = v => v == null ? "—" : `${v >= 0 ? "+" : "−"}${fmtEuros(Math.abs(v))}`;
+  const NOMS = {prix:"Prix",surface_m2:"Surface",loyer_mensuel:"Loyer mensuel",code_postal:"Code postal"};
+  const preuves = Object.entries(diagnostic.preuves || {}).flatMap(([champ, entrees]) => entrees.map(e =>
+    `<tr><th scope="row">${NOMS[champ] || ech(champ)}</th><td>${ech(String(e.valeur))}${champ === "surface_m2" ? " m²" : champ === "code_postal" ? "" : " €"}</td>
+      <td>${ech(e.origine)}<br>${fmtDate(e.observe_le)}</td></tr>`)).join("");
   return `<div class="decision">
+    <div class="decision-action">${action}</div>
     <div class="priorite">Adéquation à votre recherche : ${r.score}/100
       ${r.petite_surface ? '<span class="badge badge-vert">Petite surface</span>' : ""}
       ${r.proche ? '<span class="badge badge-vert">Proche de chez vous</span>' : ""}</div>
     <p>Surface ${r.detail.surface}/40 · proximité ${r.detail.proximite}/30 · économie ${r.detail.economie}/30.
       Données renseignées : ${d.documentation} % des 5 repères (aucun document vérifié).</p>
-    <p><b>${d.risques.length ? "Incohérence ou risque à éclaircir avant une visite." :
-      d.loyer_estime ? "Piste à creuser : le loyer reste une hypothèse." : "À qualifier auprès de l’agence : bail et encaissements à justifier."}</b></p>
-    ${cf == null ? '<p>Scénario prudent indisponible : prix ou loyer manquant.</p>' :
-      `<p>Trésorerie prudente : <b style="color:var(${cf >= 0 ? "--vert-texte" : "--alerte-texte"})">${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois</b>
-       ${d.loyer_estime ? "(loyer estimé)" : "(loyer annoncé)"} · prix d’équilibre simulé : <b>${fmtEuros(d.prix_equilibre)}</b>.</p>
+    ${diagnostic.alertes.slice(0,2).map(e => `<p class="alerte-donnee ${e.niveau}">${ech(e.texte)}</p>`).join("")}
+    ${cf == null ? `<p>${diagnostic.bloquant ? "Simulation suspendue : résoudre les contradictions de données." : "Scénario prudent indisponible : prix ou loyer manquant."}</p>` :
+      `<div class="decision-chiffres"><div><span>Prudent · avant impôt</span><b>${montant(cf)}/mois</b></div>
+       <div><span>Scénario dégradé</span><b>${montant(d.cashflow_stress)}/mois</b></div>
+       <div><span>Rendement net prudent*</span><b>${fmtPct(d.rendement_net_prudent)}</b></div></div>
+       <details><summary>Hypothèses, risque et prix d’équilibre</summary>
+       <p>Prix d’équilibre simulé : <b>${fmtEuros(d.prix_equilibre)}</b> ; couverture de la dette : ${d.couverture_dette ?? "—"}× (1× = revenus nets égaux au crédit).
+       Scénario dégradé : loyer −10 %, deux mois sans loyer par an ; effort d’épargne : ${fmtEuros(d.effort_annuel_stress)}/an.</p>
        <small>Référence fixe : ${d.apport_pct} % d’apport, ${d.duree_ans} ans à ${d.taux_pct} %, frais d’achat 8 %.
        Provisions : vacance ${d.vacance_pct} % et charges ${d.charges_pct} % du loyer ; taxe foncière connue déduite.
        Avant impôt, assurance emprunteur et travaux exceptionnels${a.taxe_fonciere_annuelle == null ? "; taxe foncière inconnue, non déduite" : ""}.
-       Hypothèses de prudence, à remplacer par les montants réels ; ce prix n’est pas une estimation de valeur.</small>`}
+       *Net des provisions, avant financement et impôt. ${d.loyer_estime ? "Loyer estimé" : "Loyer annoncé"}, à justifier.
+       Hypothèses de prudence, à remplacer par les montants réels ; ce prix n’est pas une estimation de valeur.</small></details>`}
+    <details><summary>Origine des chiffres et points de vigilance</summary>
+      ${diagnostic.alertes.map(e => `<p class="alerte-donnee ${e.niveau}">${ech(e.texte)}</p>`).join("")}
+      <p>Fiche : ${a.etat_detail === "lu" ? "lue le " + fmtDate(a.date_detail_vue) : a.etat_detail === "retiree" ? "retirée ou introuvable" : a.etat_detail === "refuse" ? "accès refusé par le site" : a.etat_detail === "temporaire" ? "temporairement indisponible" : a.etat_detail === "pauvre" ? "contenu insuffisant" : "pas de lecture complète tracée"}.</p>
+      ${preuves ? `<table class="preuves-table"><thead><tr><th>Repère</th><th>Valeur déclarée</th><th>Origine et date</th></tr></thead><tbody>${preuves}</tbody></table>` : "<p>Valeurs issues du stock historique : provenance détaillée non enregistrée avant cette mise à jour.</p>"}
+      <small>Une donnée structurée ou annoncée ne constitue pas un document vérifié.</small></details>
     <details><summary>Les questions à poser avant d’avancer (${d.questions.length})</summary>
       <ul>${d.questions.map(q => `<li>${ech(q)}</li>`).join("")}</ul></details>
   </div>`;
 }
 
+function disponibiliteTexte(a) {
+  return a.etat_detail === "retiree" ? "Fiche retirée ou introuvable" : `Non revue depuis ${a.jours_sans_vue} jours : disponibilité à confirmer`;
+}
+
 function carteHtml(a, options) {
   const cf = cashflowMensuel(a);
   const suspect = (a.flags || []).includes("rendement_anormalement_eleve");
-  const prixSuspect = (a.flags || []).includes("prix_m2_anormalement_bas");
+  const prixSuspect = (a.flags || []).includes("prix_m2_anormalement_bas") || a.decision?.diagnostic?.bloquant;
   const badges = [];
-  badges.push(`<span class="badge badge-type">${a.type_murs === "murs_occupes" ? "Murs occupés" : "Murs libres"}</span>`);
+  badges.push(`<span class="badge badge-type">${a.decision?.diagnostic?.occupation === "a_confirmer" ? "Occupation à confirmer" : a.type_murs === "murs_occupes" ? "Murs occupés" : "Murs libres"}</span>`);
   if ((a.decote_pct ?? 0) >= 15 && !suspect && !prixSuspect) {
     // La confiance de la décote dépend de sa source : des ventes réelles DVF
     // valent bien plus qu'un référentiel écrit à la main — un écart qu'on
@@ -1789,7 +1832,7 @@ function carteHtml(a, options) {
   }
   if (a.est_nouvelle) badges.push(`<span class="badge badge-nouveau">${IC.etincelle} nouveau</span>`);
   if (a.peut_etre_retiree)
-    badges.push(`<span class="badge badge-alerte" title="Cette annonce n'apparaît plus dans les résultats de sa source depuis le ${fmtDate(a.date_derniere_vue)} (${a.jours_sans_vue} jours). Elle a probablement été vendue ou retirée — ou, plus rarement, la source a changé de structure. Cliquez le lien pour vérifier avant d'y investir du temps.">${IC.alerte} peut-être vendue · non revue depuis ${a.jours_sans_vue} j</span>`);
+    badges.push(`<span class="badge badge-alerte">${IC.alerte} ${disponibiliteTexte(a)}</span>`);
   if (suspect)
     badges.push(`<span class="badge badge-alerte">${IC.alerte} rendement à vérifier</span>`);
   if (prixSuspect)
@@ -1941,8 +1984,8 @@ function carteHtml(a, options) {
       <div class="metriques">${metriques}</div>
       ${decisionHtml(a)}
       ${evolutionPrixHtml(a)}
-      ${jaugeMarcheHtml(a)}
-      ${enClairHtml(a)}
+      ${a.decision?.diagnostic?.bloquant ? "" : jaugeMarcheHtml(a)}
+      ${a.decision?.diagnostic?.bloquant ? "" : enClairHtml(a)}
       ${pepite ? explicationPepiteHtml(a) : ""}
       ${faitsClesHtml(a)}
       ${questionsReponsesHtml(a)}
@@ -1982,7 +2025,7 @@ function ligneCompacteHtml(a) {
       <span class="chevron">▸</span>
       <span class="mini-score" style="background:${fonds};color:${encres}">${a.score ?? "—"}</span>
       <span class="t">${ech(a.titre)}</span>
-      <span class="d">${ech(a.ville)} · ${fmtEuros(a.prix)} · rdt ${fmtPct(a.rendement_brut_pct)}${a.peut_etre_retiree ? ` · <span style="color:var(--alerte-texte)">non revue depuis ${a.jours_sans_vue} j</span>` : ""}</span>
+      <span class="d">${ech(a.ville)} · ${fmtEuros(a.prix)} · rdt ${fmtPct(a.rendement_brut_pct)}${a.peut_etre_retiree ? ` · <span style="color:var(--alerte-texte)">${disponibiliteTexte(a)}</span>` : ""}</span>
     </div></summary>
     <div class="corps-depliable"></div>
   </details>`;
@@ -2097,6 +2140,8 @@ function enchereHtml(e, index) {
 
 function filtres() {
   return {
+    texte: document.getElementById("f-texte").value,
+    signal: document.getElementById("f-signal").value,
     surface: document.getElementById("f-surface").value,
     trajet: document.getElementById("f-trajet").value,
     tri: document.getElementById("f-tri").value,
@@ -2111,6 +2156,16 @@ function filtres() {
 }
 
 function appliquer(a, f) {
+  const texte = (f.texte || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const contenu = `${a.titre} ${a.ville} ${a.code_postal} ${a.rue_voie || ""} ${a.id}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (texte && !contenu.includes(texte)) return false;
+  if (f.signal === "baisses") {
+    const h = a.historique_prix || [];
+    if (h.length < 2 || h[h.length-1].prix >= h[0].prix) return false;
+  }
+  if (f.signal === "completer" && (a.decision?.documentation ?? 0) >= 80) return false;
+  if (f.signal === "coherent" && a.decision?.diagnostic?.bloquant) return false;
+  if (f.signal === "prudent" && !(a.decision?.cashflow_prudent != null && a.decision.cashflow_prudent >= 0)) return false;
   if (!f.archives && a.peut_etre_retiree) return false;
   if (f.surface && !(a.surface_m2 > 0 && a.surface_m2 < Number(f.surface))) return false;
   if (f.trajet && !(a.temps_trajet_min != null && a.temps_trajet_min <= Number(f.trajet))) return false;
@@ -2147,6 +2202,8 @@ function rendre() {
     recent: (a, b) => b.date_derniere_vue.localeCompare(a.date_derniere_vue),
   };
   visibles.sort(tris[f.tri] || tris.recherche);
+  document.querySelectorAll("[data-raccourci]").forEach(b => b.setAttribute("aria-pressed", String(
+    b.dataset.raccourci === "cible" ? Number(f.surface) === D.recherche.surface_max_m2 && Number(f.trajet) === D.recherche.trajet_cible_min : f.signal === b.dataset.raccourci)));
   const actives = D.retenues.filter(a => !a.peut_etre_retiree);
   const petites = actives.filter(a => a.recherche?.petite_surface);
   document.getElementById("recherche-chiffres").innerHTML =
@@ -2154,7 +2211,7 @@ function rendre() {
   document.getElementById("recherche-etat").innerHTML =
     `${visibles.length} annonce${visibles.length > 1 ? "s" : ""} avec vos filtres. ` +
     (f.surface ? `Les surfaces inconnues et ≥ ${ech(f.surface)} m² sont masquées. ` : "Toutes les surfaces sont incluses. ") +
-    `${D.retenues.filter(a => a.peut_etre_retiree).length} annonces non revues depuis 14 jours. ` +
+    `${D.retenues.filter(a => a.peut_etre_retiree).length} annonces anciennes ou signalées indisponibles. ` +
     `<button type="button" id="voir-tout-stock" class="btn-outil">Voir tout le stock</button>`;
   document.getElementById("voir-tout-stock").addEventListener("click", () => {
     document.getElementById("f-reset").click();
@@ -2164,10 +2221,12 @@ function rendre() {
   // Une annonce écartée à la main OU plus revue en ligne depuis longtemps
   // (probablement vendue/retirée) descend dans le reste du tableau de chasse.
   const relegue = a => estAbandonnee(a.id) || a.peut_etre_retiree;
-  const prio = visibles.filter(a => (a.score ?? 0) >= D.seuils.vert && !relegue(a));
+  const incoherente = a => !!a.decision?.diagnostic?.bloquant;
+  const verifier = visibles.filter(a => incoherente(a) && !relegue(a));
+  const prio = visibles.filter(a => (a.score ?? 0) >= D.seuils.vert && !relegue(a) && !incoherente(a));
   const etudier = visibles.filter(a =>
-    (a.score ?? 0) >= D.seuils.affichage && (a.score ?? 0) < D.seuils.vert && !relegue(a));
-  const reste = visibles.filter(a => (a.score ?? 0) < D.seuils.affichage || relegue(a));
+    (a.score ?? 0) >= D.seuils.affichage && (a.score ?? 0) < D.seuils.vert && !relegue(a) && !incoherente(a));
+  const reste = visibles.filter(a => ((a.score ?? 0) < D.seuils.affichage && !incoherente(a)) || relegue(a));
 
   const podium = [...prio, ...etudier].slice(0, 3).map(a => a.id);
   const opts = a => ({
@@ -2197,6 +2256,9 @@ function rendre() {
   bloc.querySelector("summary").textContent =
     `Le reste du tableau de chasse (${reste.length}) — score sous ${D.seuils.affichage}`;
   document.getElementById("reste-liste").innerHTML = reste.map(ligneCompacteHtml).join("");
+  document.getElementById("bloc-verifier").style.display = verifier.length ? "" : "none";
+  document.querySelector("#bloc-verifier > summary").textContent = `${verifier.length} annonce(s) avec des chiffres à vérifier — écartées des recommandations`;
+  document.getElementById("verifier-liste").innerHTML = verifier.map(ligneCompacteHtml).join("");
 
   document.getElementById("compteur").textContent =
     `${visibles.length} / ${D.retenues.length} annonces`;
@@ -2215,13 +2277,27 @@ function rendreEncheres() {
     (x.annonces === 0 || (x.avertissements || []).some(t => !t.startsWith("budget de redirection :"))));
   const heuresDepuisCollecte = (Date.now() - new Date(D.derniere_execution).getTime()) / 3600000;
   document.getElementById("qualite-veille-resume").textContent =
-    `Dernière collecte : ${new Date(D.derniere_execution).toLocaleString("fr-FR", {timeZone:"Europe/Paris"})} · ` +
+    `Tournée complète : ${new Date(D.derniere_execution).toLocaleString("fr-FR", {timeZone:"Europe/Paris"})} · ` +
     `${pannes.length} source(s) en échec, ${partielles.length} à contrôler` +
     (heuresDepuisCollecte > 24 ? " · données de plus de 24 h" : "");
   document.getElementById("qualite-veille-detail").innerHTML =
     `<p>La collecte peut être partielle. Une annonce non revue n’est pas nécessairement vendue.
     La date de génération du site ne remplace pas la date de collecte.</p>` +
     [...pannes, ...partielles].map(([nom,x]) => `<p><b>${ech(nom)}</b> : ${ech(x.message || (x.avertissements || []).join(" ; ") || "Aucune annonce collectée ; absence d’offre ou source à vérifier.")}</p>`).join("");
+  if (D.collecte_ciblee) {
+    const c = D.collecte_ciblee, d = c.details || {};
+    document.getElementById("qualite-veille-resume").textContent += ` · passe ciblée ${new Date(c.date).toLocaleDateString("fr-FR", {timeZone:"Europe/Paris"})} ${new Date(c.date).toLocaleTimeString("fr-FR", {timeZone:"Europe/Paris",hour:"2-digit",minute:"2-digit"})}`;
+    document.getElementById("qualite-veille-detail").innerHTML +=
+      `<p><b>Passe ciblée complémentaire : ${fmtDate(c.date)}</b> · ${c.nouvelles} nouvelle(s) fiche(s).</p>` +
+      Object.entries(c.sources || {}).map(([nom,x]) => `<p>${ech(nom)} : ${x.statut === "ok" ? x.annonces + " annonces collectées (couverture partielle)" : ech(x.message)}</p>`).join("") +
+      `<p>${d.refusees || 0} accès refusés pendant cette passe. Les résultats ont ensuite fait l’objet d’un contrôle de qualité.</p>`;
+  }
+  if (D.qualite_donnees) {
+    const q = D.qualite_donnees;
+    document.getElementById("qualite-veille-detail").innerHTML +=
+      `<p><b>Qualité du stock :</b> ${q.fiches_tracees} fiches complètes identifiées et tracées ; ${q.listes_ecartees} redirections vers des listes écartées.</p>` +
+      (q.nettoyage ? `<p>Nettoyage historique : ${q.nettoyage.fiches_nettoyees} fiches corrigées, ${q.nettoyage.loyers_retires_ou_corriges} loyers retirés ou rectifiés. Les annonces sources restent des déclarations, pas des pièces vérifiées.</p>` : "");
+  }
   // Les meilleures occasions sont en haut de page ; le reste est REPLIÉ par
   // défaut (pas du top = pas d'espace), mêmes cartes une fois ouvert. Une
   // occasion masquée manuellement (croix) redescend ici comme les autres.
@@ -2559,6 +2635,26 @@ document.addEventListener("mouseup", ev => {
 });
 
 document.addEventListener("click", ev => {
+  const raccourci = ev.target.closest("[data-raccourci]");
+  if (raccourci) {
+    document.getElementById("f-reset").click();
+    document.getElementById("f-surface").value = D.recherche.surface_max_m2;
+    if (raccourci.dataset.raccourci === "cible") document.getElementById("f-trajet").value = D.recherche.trajet_cible_min;
+    else document.getElementById("f-signal").value = raccourci.dataset.raccourci;
+    rendre();
+    return;
+  }
+  const modeContact = ev.target.closest("[data-contact-mode]");
+  if (modeContact) {
+    const a = D.retenues.find(x => x.id === modeContact.dataset.contactId);
+    if (!a) return;
+    const champ = document.getElementById("contact-texte");
+    if (champ.dataset.modifie === "oui" && !confirm("Remplacer le texte que vous avez personnalisé par ce modèle ?")) return;
+    champ.value = messageContact(a, modeContact.dataset.contactMode);
+    champ.dataset.modifie = "non";
+    document.querySelectorAll("[data-contact-mode]").forEach(b => b.classList.toggle("actif", b === modeContact));
+    return;
+  }
   // Carrousel photo
   const car = ev.target.closest(".car-btn");
   if (car) {
@@ -2610,6 +2706,9 @@ document.addEventListener("click", ev => {
     document.getElementById("outil-fond").style.display = "none";
     rendre();  // rafraîchit les compteurs de checklist sur les cartes
   }
+});
+document.addEventListener("input", ev => {
+  if (ev.target.id === "contact-texte") ev.target.dataset.modifie = "oui";
 });
 
 /* ---- Onglet « Le marché » : le paysage derrière les annonces ----
@@ -2913,7 +3012,7 @@ function rendreSuivi() {
       const a = D.retenues.find(x => x.id === id);
       const inst = s.instantane || {};
       const alerte = a && a.peut_etre_retiree
-        ? ` · <span class="suivi-alerte">plus revue en ligne depuis ${a.jours_sans_vue} j — vérifiez qu'elle est toujours à vendre</span>`
+        ? ` · <span class="suivi-alerte">${disponibiliteTexte(a)}</span>`
         : (!a && inst.titre
           ? ` · <span class="suivi-alerte">n'apparaît plus dans les annonces retenues (vendue, retirée ou exclue)</span>` : "");
       const entete = a
@@ -2969,6 +3068,8 @@ function initialiser() {
     document.getElementById("f-trajet").value = "";
     document.getElementById("f-archives").checked = true;
     document.getElementById("f-cf").checked = false;
+    document.getElementById("f-texte").value = "";
+    document.getElementById("f-signal").value = "tous";
     document.getElementById("f-type").value = "tous";
     document.querySelectorAll("#f-dep-liste input:checked").forEach(c => { c.checked = false; });
     document.getElementById("f-rdt").value = "";
@@ -3035,6 +3136,8 @@ function initialiser() {
 
   try {
     const memo = JSON.parse(localStorage.getItem(CLE_FILTRES) || "{}");
+    document.getElementById("f-texte").value = memo.texte || "";
+    document.getElementById("f-signal").value = memo.signal || "tous";
     document.getElementById("f-surface").value = memo.surface ?? D.recherche.surface_max_m2;
     document.getElementById("f-trajet").value = memo.trajet ?? "";
     document.getElementById("f-tri").value = memo.tri || "recherche";
@@ -3053,7 +3156,7 @@ function initialiser() {
     document.getElementById("f-cf").checked = !!memo.cf;
   } catch (e) { /* filtres mémorisés illisibles : on repart à zéro */ }
 
-  for (const id of ["f-type", "f-rdt", "f-score", "f-nouv", "f-cf", "f-surface", "f-trajet", "f-tri", "f-archives"])
+  for (const id of ["f-type", "f-rdt", "f-score", "f-nouv", "f-cf", "f-surface", "f-trajet", "f-tri", "f-archives", "f-texte", "f-signal"])
     document.getElementById(id).addEventListener("input", rendre);
   listeDep.addEventListener("input", rendre);
 
@@ -3128,12 +3231,16 @@ function initialiser() {
     rendre();
   });
   document.getElementById("f-reset").addEventListener("click", () => {
+    document.getElementById("f-texte").value = "";
+    document.getElementById("f-signal").value = "tous";
     localStorage.removeItem(CLE_FILTRES);
     document.getElementById("f-surface").value = "";
     document.getElementById("f-trajet").value = "";
     document.getElementById("f-tri").value = "recherche";
     document.getElementById("f-archives").checked = false;
     document.getElementById("f-cf").checked = false;
+    document.getElementById("f-texte").value = "";
+    document.getElementById("f-signal").value = "tous";
     document.getElementById("f-type").value = "tous";
     for (const case_ of listeDep.querySelectorAll("input")) case_.checked = false;
     document.getElementById("f-rdt").value = "";
@@ -3156,6 +3263,8 @@ function initialiser() {
     document.getElementById("f-trajet").value = "";
     document.getElementById("f-archives").checked = true;
     document.getElementById("f-cf").checked = false;
+    document.getElementById("f-texte").value = "";
+    document.getElementById("f-signal").value = "tous";
     document.getElementById("f-type").value = "tous";
       document.querySelectorAll("#f-dep-liste input:checked").forEach(c => { c.checked = false; });
       document.getElementById("f-rdt").value = "";

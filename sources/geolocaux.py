@@ -24,6 +24,8 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
@@ -87,11 +89,15 @@ class SourceGeolocaux(SourceHtml):
         departements: list[str] | None = None,
         prix_max: int | None = None,
         communes_prioritaires: list[str] | None = None,
+        max_requetes: int | None = None,
+        rotation_secondaire: bool = False,
     ) -> None:
         super().__init__(client)
         self.departements = departements or list(_SLUGS)
         self.prix_max = prix_max
         self.communes_prioritaires = [cle_commune(v) for v in (communes_prioritaires or [])]
+        self.MAX_REQUETES = int(max_requetes or self.MAX_REQUETES)
+        self.rotation_secondaire = rotation_secondaire
         self._requetes = 0
         self._bloquee = False
         self._erreurs: list[Exception] = []
@@ -105,6 +111,14 @@ class SourceGeolocaux(SourceHtml):
         if self.communes_prioritaires:
             ordre = {ville: i for i, ville in enumerate(self.communes_prioritaires)}
             listings.sort(key=lambda x: ordre.get(cle_commune(x[2] or ("Paris" if x[1] == "75" else "")), len(ordre)))
+            if self.rotation_secondaire:
+                prioritaires = [x for x in listings if cle_commune(x[2] or ("Paris" if x[1] == "75" else "")) in ordre]
+                secondaires = [x for x in listings if x not in prioritaires]
+                if secondaires:
+                    maintenant = datetime.now(ZoneInfo("Europe/Paris"))
+                    debut = (maintenant.toordinal() * 3 + maintenant.hour // 8) * 20 % len(secondaires)
+                    secondaires = secondaires[debut:] + secondaires[:debut]
+                listings = prioritaires + secondaires
         for chemin, departement, ville, code_postal, total in listings:
             self._collecter_listing(chemin, departement, ville, code_postal, total, annonces)
             if self._bloquee:

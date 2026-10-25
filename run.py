@@ -93,7 +93,16 @@ def integrer(
             if changement:
                 existante.approfondie = False  # relire le détail après un changement matériel
                 existante.texte_detail = ""
-            existante.loyer_mensuel = a.loyer_mensuel or existante.loyer_mensuel
+                existante.etat_detail = "non_lu"
+                existante.date_detail_tentative = None
+            for champ, preuves in a.preuves.items():
+                anciennes = existante.preuves.setdefault(champ, [])
+                origines = {p["origine"] for p in preuves}
+                anciennes[:] = [p for p in anciennes if p.get("origine") not in origines] + preuves
+                del anciennes[:-4]
+            if a.loyer_mensuel and not (a.loyer_origine == "rendement" and existante.loyer_origine == "fiche_texte"):
+                existante.loyer_mensuel = a.loyer_mensuel
+                existante.loyer_origine = a.loyer_origine
             # Les infos de présentation se rafraîchissent aussi (photos ajoutées
             # par l'agence, description étoffée…)
             existante.images = a.images or existante.images
@@ -187,8 +196,9 @@ def executer() -> dict[str, Any]:
     for a in annonces.values():
         a.raison_exclusion = raison_exclusion(a, config, trajets)
         a.exclue = a.raison_exclusion is not None
+    rapport_detail = {}
     try:
-        approfondir_annonces(annonces, config)
+        rapport_detail = approfondir_annonces(annonces, config)
     except Exception:  # noqa: BLE001 — enrichissement optionnel, jamais bloquant
         log.exception("approfondissement en échec, on continue sans")
 
@@ -238,6 +248,7 @@ def executer() -> dict[str, Any]:
         log.exception("critique IA en échec, on continue sans")
 
     meta = {
+        "enrichissement_detail": rapport_detail,
         "derniere_execution": quand,
         "sante_sources": sante,
         "nouvelles_ce_run": nouvelles,

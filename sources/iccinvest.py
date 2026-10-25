@@ -115,6 +115,7 @@ class SourceIccInvest(SourceHtml):
             prix=prix,
             surface_m2=extraire_surface(f"{titre} {description}"),
             loyer_mensuel=loyer_mensuel,
+            loyer_origine="rendement" if loyer_mensuel else "annonce",
             image_url=image,
             description=description[:LIMITE_DESCRIPTION],
         )

@@ -34,6 +34,9 @@ class LoyersComparables:
             if (
                 a.type_murs is TypeMurs.MURS_OCCUPES
                 and not a.loyer_estime
+                and a.loyer_origine != "rendement"
+                and not a.conflits_donnees
+                and a.etat_detail not in {"retiree", "redirection_liste"}
                 and not a.exclue
                 and a.loyer_mensuel
                 and a.surface_m2

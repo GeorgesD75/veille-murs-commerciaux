@@ -87,7 +87,7 @@ def extraire_surface(texte: str | None) -> float | None:
     return extraire_nombre(trouve.group(1)) if trouve else None
 
 
-def loyer_mensuel_depuis_texte(texte: str | None, prix: float | None) -> float | None:
+def loyer_mensuel_depuis_texte(texte: str | None, prix: float | None, surface_m2: float | None = None) -> float | None:
     """Loyer mensuel déduit d'un texte d'annonce, avec garde-fous.
 
     Priorité au « loyer annuel : … » explicite ; sinon formes génériques
@@ -96,10 +96,26 @@ def loyer_mensuel_depuis_texte(texte: str | None, prix: float | None) -> float |
     annuel, puis écarté s'il reste aberrant.
     """
     texte = texte or ""
+    unitaire = re.search(
+        r"loyer[^0-9€]{0,30}(\d[\d\s.,]*)\s*(?:€|euros?)(?:\s*(?:ht|hc|cc|ttc))*\s*(?:/\s*m\s*[²2]|par\s*m\s*[²2])([^.;]{0,25})",
+        texte, re.I)
+    if unitaire:
+        # Ne jamais confondre €/m²/an avec le loyer global mensuel.
+        valeur = extraire_nombre(unitaire.group(1))
+        if not valeur or not surface_m2:
+            return None
+        contexte = unitaire.group(0).lower()
+        if re.search(r"/\s*an\b|annuel|par an", contexte):
+            valeur = valeur * surface_m2 / 12
+        elif re.search(r"/\s*mois|mensuel|par mois", contexte):
+            valeur *= surface_m2
+        else:
+            return None  # périodicité inconnue
+        return round(valeur, 2) if prix is None or valeur * 12 / prix <= RENDEMENT_MAX_PLAUSIBLE else None
     trouve = _LOYER_ANNUEL.search(texte)
     if trouve:
         annuel = extraire_nombre(trouve.group(1))
-        if annuel and (prix is None or annuel < prix):
+        if annuel and (prix is None or annuel / prix <= RENDEMENT_MAX_PLAUSIBLE):
             return round(annuel / 12, 2)
         return None
 
@@ -109,10 +125,13 @@ def loyer_mensuel_depuis_texte(texte: str | None, prix: float | None) -> float |
     valeur = extraire_nombre(trouve.group(1))
     if not valeur:
         return None
+    explicite = bool(trouve.group(2)) or "mensuel" in trouve.group(0).lower()
     if trouve.group(2) and "mois" not in trouve.group(2):  # « /an », « annuel »
         valeur /= 12
     if prix:
         if valeur * 12 / prix > RENDEMENT_MAX_PLAUSIBLE:
+            if explicite:
+                return None  # ne pas réinterpréter une unité explicitement annoncée
             valeur /= 12
         if valeur * 12 / prix > RENDEMENT_MAX_PLAUSIBLE:
             return None

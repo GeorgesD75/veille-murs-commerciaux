@@ -21,7 +21,7 @@ from pipeline.scoring import scorer
 from pipeline.stockage import Stockage
 
 
-def main() -> None:
+def main(persister: bool = False) -> None:
     config = Config.charger()
     stockage = Stockage(RACINE / "data/annonces.json")
     annonces, meta = stockage.charger()
@@ -53,6 +53,8 @@ def main() -> None:
     payload = preparer_payload(annonces, meta, config, maintenant, dossiers, marche=marche)
     cible = RACINE / "docs/index.html"
     cible.write_text(generer_html(payload), encoding="utf-8")
+    if persister:
+        stockage.sauvegarder(annonces, meta)
     print(cible)
 
 

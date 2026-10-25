@@ -41,6 +41,20 @@ def main():
         page.locator("#f-trajet").fill("30")
         page.locator("#f-tri").select_option("prix")
         assert page.evaluate("D.retenues.filter(a=>appliquer(a,filtres())).every(a=>a.surface_m2<40 && a.temps_trajet_min<=30)")
+        page.locator(".carte button[data-contact]").first.click()
+        premier = page.locator("#contact-texte").input_value()
+        page.locator("[data-contact-mode=dossier]").click()
+        dossier = page.locator("#contact-texte").input_value()
+        page.locator("[data-contact-mode=relance]").click()
+        relance = page.locator("#contact-texte").input_value()
+        assert len({premier, dossier, relance}) == 3
+        assert all("__URL__" not in m and "__REFERENCE__" not in m for m in [premier, dossier, relance])
+        page.keyboard.press("Escape")
+        page.locator("#f-texte").fill("Paris")
+        assert page.evaluate("D.retenues.filter(a=>appliquer(a,filtres())).every(a=>(a.titre+' '+a.ville).toLowerCase().includes('paris'))")
+        page.locator("#f-texte").fill("")
+        page.locator("[data-raccourci=cible]").click()
+        assert page.locator("#f-trajet").input_value() == "30"
         # Le simulateur et le formulaire de contact doivent encore s'ouvrir.
         page.locator(".carte button[data-sim]").first.click()
         assert page.locator("#outil-contenu").is_visible()
