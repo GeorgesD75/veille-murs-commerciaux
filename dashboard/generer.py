@@ -885,11 +885,19 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 .onglets { margin:0 0 10px; }
 .onglet { font-family:Fraunces, Georgia, serif; font-size:16px; font-weight:600; padding:12px 18px; }
 .onglet.actif { font-weight:700; border-bottom-color:var(--or-vif); }
-.volet-filtres { border:0; border-bottom:1px solid var(--filet); }
-.volet-filtres > summary { display:flex; align-items:center; gap:16px; padding:10px 2px;
-  font-size:13px; font-weight:600; list-style:none; }
+.volet-filtres { border:0; }
+.volet-filtres > summary { display:flex; align-items:center; gap:12px; width:fit-content;
+  max-width:100%; padding:6px 0; font-size:13px; font-weight:600; list-style:none; }
+.bouton-filtres { display:inline-flex; align-items:center; gap:9px; flex-shrink:0;
+  min-height:42px; padding:10px 14px; border:1px solid transparent; border-radius:9px;
+  background:var(--marque); color:var(--marque-encre); box-shadow:0 2px 5px rgba(20,58,45,.12); }
+.bouton-filtres .icone-filtres { width:18px; height:18px; color:var(--or-vif); }
+.volet-filtres > summary:hover .bouton-filtres { background:var(--marque-fonce); }
+.volet-filtres > summary:focus-visible { outline:none; }
+.volet-filtres > summary:focus-visible .bouton-filtres { outline:3px solid var(--or); outline-offset:3px; }
+.volet-filtres[open] .bouton-filtres { background:var(--marque-fonce); border-color:var(--or-vif); }
 #resume-filtres { color:var(--encre-2); font-size:12px; font-weight:400; }
-.filtre-chevron { margin-left:auto; font-size:18px; color:var(--encre-2); }
+.filtre-chevron { width:14px; height:14px; margin-left:4px; }
 .volet-filtres[open] .filtre-chevron { transform:rotate(180deg); }
 h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:600; margin:18px 0 14px; }
 .carte { grid-template-columns:160px minmax(0,1fr) 116px; padding:20px; gap:22px;
@@ -994,7 +1002,7 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
 
   <div id="vue-chasse">
   <details class="volet-filtres" id="volet-filtres">
-    <summary><span>Filtres</span><span id="resume-filtres"></span><span class="filtre-chevron" aria-hidden="true">⌄</span></summary>
+    <summary><span class="bouton-filtres"><svg class="icone-filtres" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h3m4 0h9M4 17h9m4 0h3"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg><span>Filtres</span><svg class="filtre-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></span><span id="resume-filtres"></span></summary>
     <div class="filtres">
       <div class="filtre"><label for="f-texte">Ville, rue, référence</label>
         <input id="f-texte" type="search" placeholder="ex. Saint-Ouen" style="max-width:200px"></div>

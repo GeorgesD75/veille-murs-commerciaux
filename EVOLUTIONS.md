@@ -1,5 +1,11 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Un bouton visible pour les filtres (26 octobre)
+
+- Déclencheur présenté comme un bouton vert avec une icône de réglages dorée,
+  un chevron et un état ouvert distinct. Rappel des critères placé à côté.
+- Ouverture native au clic et au clavier conservée ; réglages repliés au départ.
+
 ## Retrouver l’identité de l’enseigne (26 octobre)
 
 - Retour du header vert profond, du filet et du soulignement dorés, du logo
