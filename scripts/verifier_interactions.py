@@ -25,6 +25,15 @@ def main():
         # Les images distantes ne sont pas nécessaires aux tests d'interaction.
         page.route("**/*", lambda route: route.abort() if route.request.resource_type == "image" else route.continue_())
         page.goto((RACINE / "docs/index.html").as_uri(), wait_until="domcontentloaded")
+        assert not page.locator("#volet-filtres").evaluate("e=>e.open")
+        assert page.locator(".carte").first.bounding_box()["y"] < 250
+        assert not page.locator(".analyse-annonce").first.evaluate("e=>e.open")
+        page.locator(".analyse-annonce > summary").first.click()
+        assert page.locator(".analyse-contenu").first.is_visible()
+        page.locator(".analyse-annonce > summary").first.click()
+        page.locator(".outils-annonce > summary").first.click()
+        assert page.locator(".carte button[data-check]").first.is_visible()
+        page.locator(".outils-annonce > summary").first.click()
         page.locator("#volet-filtres > summary").click()
         assert page.locator("#f-surface").input_value() == "40"
         assert page.locator(".decision .priorite").count() > 0
@@ -53,7 +62,7 @@ def main():
         page.locator("#f-texte").fill("Paris")
         assert page.evaluate("D.retenues.filter(a=>appliquer(a,filtres())).every(a=>(a.titre+' '+a.ville).toLowerCase().includes('paris'))")
         page.locator("#f-texte").fill("")
-        page.locator("[data-raccourci=cible]").click()
+        page.locator("#f-trajet").fill("30")
         assert page.locator("#f-trajet").input_value() == "30"
         # Le simulateur et le formulaire de contact doivent encore s'ouvrir.
         page.locator(".carte button[data-sim]").first.click()
@@ -64,6 +73,10 @@ def main():
             if largeur <= 760:
                 page.locator("#volet-filtres").evaluate("e=>e.open=true")
             assert not page.evaluate("document.documentElement.scrollWidth > innerWidth"), f"Débordement à {largeur}px"
+        page.set_viewport_size({"width":390,"height":844})
+        page.locator("#volet-filtres").evaluate("e=>e.open=false")
+        page.evaluate("scrollTo(0,0)")
+        assert page.locator(".carte").first.bounding_box()["y"] < 260
         assert not erreurs, erreurs
         browser.close()
     print("Interactions, persistance, simulateur et responsive 320–1440 px : OK")

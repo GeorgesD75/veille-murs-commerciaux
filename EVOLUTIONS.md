@@ -1,5 +1,17 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Présentation épurée (26 octobre)
+
+- Suppression du bloc d'introduction, des compteurs et des raccourcis en haut
+  de page : les meilleures annonces arrivent directement après la navigation.
+- Filtres repliés par défaut avec un rappel discret de la surface et du trajet.
+- Fiches allégées : chiffres essentiels, contact et financement ; analyse et
+  actions complémentaires accessibles à la demande.
+- État de collecte et informations techniques déplacés dans le pied de page,
+  sous « À propos de la veille ».
+- Contrôle du premier écran sur ordinateur et mobile, des panneaux repliables,
+  des interactions et de l'absence de débordement horizontal.
+
 ## Deuxième passe (25–26 octobre) : collecte, qualité et démarches
 
 - Collecte régulière élargie : 5 pages Point de Vente, 8 pages par département

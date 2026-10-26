@@ -5,7 +5,7 @@ et ça ne se voit qu'après rendu CSS réel, jamais dans le HTML brut ni dans le
 payload JSON que testent les tests Python habituels.
 
 Pas de diff pixel par pixel (fragile : polices, anti-aliasing, sous-pixel) —
-juste la hauteur du bandeau vert, repérée par transition de couleur sur une
+juste la hauteur du bandeau, repérée par transition de couleur sur une
 capture d'écran headless, comparée à une plage large. Attrape une vraie
 explosion, jamais un ajustement mineur de quelques pixels.
 
@@ -22,7 +22,7 @@ from pathlib import Path
 RACINE = Path(__file__).resolve().parent.parent
 CIBLE = RACINE / "docs" / "index.html"
 CAPTURE = RACINE / "_apercu_header.png"
-HAUTEUR_MIN, HAUTEUR_MAX = 100, 260  # px — généreux, on attrape une explosion, pas un pixel près
+HAUTEUR_MIN, HAUTEUR_MAX = 40, 100  # bandeau compact : les annonces doivent apparaître rapidement
 
 
 def _navigateur() -> str | None:
@@ -48,8 +48,7 @@ def hauteur_header(navigateur: str) -> int:
         check=True, timeout=30,
     )
     img = Image.open(CAPTURE)
-    # y=20 : dans le vert du bandeau, après la fine bordure or du tout haut
-    # (3 px) — un point de repère stable plutôt que le tout premier pixel.
+    # y=20 : dans le fond du bandeau, à distance du texte et des icônes.
     couleur_bandeau = img.getpixel((5, 20))
     for y in range(20, img.height):
         if _distance(img.getpixel((5, y)), couleur_bandeau) < 20:

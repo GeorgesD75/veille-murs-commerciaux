@@ -869,6 +869,78 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+/* Lecture compacte : les annonces d'abord, les explications à la demande. */
+.masthead { background:var(--surface); color:var(--encre-1); border-top:0;
+  border-bottom:1px solid var(--filet); box-shadow:none; }
+.masthead-inner { min-height:60px; padding:12px 24px; }
+.enseigne { gap:10px; }
+.enseigne svg.devanture { width:28px; height:28px; color:var(--encre-2); }
+.wordmark { font-size:29px; text-shadow:none; letter-spacing:0; }
+.wordmark .point { color:var(--marque); }
+.wordmark .trait { display:none; }
+.page { padding-top:0; }
+.onglets { margin:0 0 10px; }
+.onglet { font-family:inherit; font-size:14px; font-weight:500; padding:14px 18px; }
+.onglet.actif { font-weight:650; border-bottom-color:var(--marque); }
+.volet-filtres { border:0; border-bottom:1px solid var(--filet); }
+.volet-filtres > summary { display:flex; align-items:center; gap:16px; padding:10px 2px;
+  font-size:13px; font-weight:600; list-style:none; }
+#resume-filtres { color:var(--encre-2); font-size:12px; font-weight:400; }
+.filtre-chevron { margin-left:auto; font-size:18px; color:var(--encre-2); }
+.volet-filtres[open] .filtre-chevron { transform:rotate(180deg); }
+h2.section { font-family:inherit; font-size:18px; font-weight:650; margin:20px 0 14px; }
+.carte { grid-template-columns:160px minmax(0,1fr) 116px; padding:20px; gap:22px;
+  border-radius:10px; margin-bottom:14px; animation:none; transition:none; }
+.carte:hover { transform:none; box-shadow:none; border-color:var(--encre-3); }
+.carte.prio,.carte.podium-1,.carte.rang-s { background:var(--surface); border-color:var(--filet); box-shadow:none; animation:none; }
+.carte-img { height:130px; border-radius:6px; }
+.carte-titre { font-size:16px; line-height:1.35; margin-bottom:6px; }
+.carte-lieu { font-size:12px; margin-bottom:16px; }
+.carte .badges { margin-left:8px; gap:4px; }
+.badge { font-size:10.5px; padding:2px 6px; font-weight:500; }
+.metriques { gap:16px 24px; margin-bottom:14px; }
+.metrique .libelle { font-size:11px; letter-spacing:0; text-transform:none; }
+.metrique .valeur,.metrique--cle .valeur { font-size:16px; line-height:1.45; font-weight:600; }
+.metrique--cle .libelle { font-weight:400; color:var(--encre-2); }
+.metriques .info-i { display:none; }
+.carte-score { gap:7px; }
+.carte-score .score { width:44px; height:38px; border-radius:7px; font-size:20px; font-weight:600; }
+.carte-score .score-libelle { font-size:10px; margin-bottom:4px; }
+.carte-score > button { width:100%; padding:7px 8px; font-size:12px; }
+.analyse-annonce { border-top:1px solid var(--filet); padding-top:10px; }
+.analyse-annonce > summary { cursor:pointer; color:var(--encre-2); font-size:12px; list-style:none; }
+.analyse-annonce > summary span { margin-left:6px; }
+.analyse-annonce[open] > summary { color:var(--encre-1); }
+.analyse-contenu { padding-top:12px; }
+.analyse-contenu .pourquoi { padding:16px 0 0; margin-top:16px; border-top:1px solid var(--filet); }
+.provenance-annonce { color:var(--encre-2); font-size:12px; }
+.outils-annonce { width:100%; }
+.outils-annonce > summary { cursor:pointer; color:var(--encre-2); font-size:11px; text-align:center; padding:5px 0; list-style:none; }
+.outils-annonce button,.outils-annonce a,.outils-annonce select { display:block; width:100%; margin-top:7px; }
+.infos-veille > summary { cursor:pointer; font-size:12px; color:var(--encre-2); }
+.infos-veille > div,.infos-veille > details { margin-top:16px; }
+.infos-veille .hud { margin:12px 0; }
+.infos-veille .hud-texte { text-align:left; background:none; border:none; box-shadow:none; padding:0; }
+@media(max-width:760px) {
+  .masthead-inner { min-height:54px; padding:12px 16px; }
+  .wordmark { font-size:26px; }
+  .enseigne svg.devanture { width:24px; height:24px; }
+  .onglet { padding:13px 12px; }
+  .carte { grid-template-columns:76px minmax(0,1fr); padding:14px; gap:14px; }
+  .carte-img { grid-column:auto; height:94px; }
+  .carte-titre { font-size:15px; }
+  .carte-lieu .badges { display:flex; margin:5px 0 0; }
+  .metriques { gap:10px 16px; }
+  .metrique .valeur,.metrique--cle .valeur { font-size:15px; }
+  .carte-score { grid-column:1 / -1; flex-direction:row; justify-content:flex-end; flex-wrap:wrap; gap:8px; }
+  .carte-score .score { width:34px; height:30px; font-size:17px; }
+  .carte-score .score-libelle { margin:0 auto 0 -4px; max-width:52px; }
+  .carte-score > button { width:auto; padding:7px 9px; }
+  .outils-annonce { width:100%; }
+  .outils-annonce > summary { text-align:right; }
+  .carte-enchere { grid-template-columns:1fr; }
+  .carte-enchere .carte-img { height:130px; }
+}
 </style>
 </head>
 <body>
@@ -880,10 +952,8 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
         <svg class="trait" width="208" height="8" viewBox="0 0 208 8" aria-hidden="true"><path d="M2 5 C 38 1.5, 66 7, 104 4 S 172 6.5, 206 2.5" stroke="var(--or-vif)" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
       </h1>
     </div>
-    <div class="hud" id="hud"></div>
   </div>
 </header>
-<div class="auvent" aria-hidden="true"></div>
 <div class="page">
 
   <nav class="onglets" id="onglets">
@@ -909,22 +979,8 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
   </div>
 
   <div id="vue-chasse">
-  <section class="recherche-intro" aria-label="Votre recherche">
-    <div><h2>De petits murs. Une vraie opportunité.</h2>
-      <p>Votre recherche : moins de 40 m², si possible à proximité de la rue Francoeur.
-      L’adéquation à vos critères et la qualité économique se lisent séparément.</p></div>
-    <div class="recherche-chiffres" id="recherche-chiffres"></div>
-  </section>
-  <div id="recherche-etat" role="status" aria-live="polite"></div>
-  <div class="recherche-raccourcis" aria-label="Recherches rapides">
-    <button type="button" data-raccourci="cible">Petits murs proches</button>
-    <button type="button" data-raccourci="baisses">Baisses de prix</button>
-    <button type="button" data-raccourci="completer">Dossiers à compléter</button>
-  </div>
-  <details class="decision" id="qualite-veille"><summary id="qualite-veille-resume">État de la collecte</summary>
-    <div id="qualite-veille-detail"></div></details>
   <details class="volet-filtres" id="volet-filtres">
-    <summary>Affiner ma recherche — surface, trajet, tri et financement ▾</summary>
+    <summary><span>Filtres</span><span id="resume-filtres"></span><span class="filtre-chevron" aria-hidden="true">⌄</span></summary>
     <div class="filtres">
       <div class="filtre"><label for="f-texte">Ville, rue, référence</label>
         <input id="f-texte" type="search" placeholder="ex. Saint-Ouen" style="max-width:200px"></div>
@@ -1078,9 +1134,14 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
   </div><!-- /vue-chasse -->
 
   <footer>
+    <details class="infos-veille"><summary>À propos de la veille</summary>
+    <details id="qualite-veille"><summary id="qualite-veille-resume">État de la collecte</summary>
+      <div id="qualite-veille-detail"></div></details>
+    <div class="hud" id="hud"></div>
     <div><strong>Santé des sources</strong> — dernier passage : <span id="pied-maj"></span></div>
     <div class="sante" id="sante"></div>
     <div class="legende" id="legende"></div>
+    </details>
   </footer>
 </div>
 
@@ -1953,10 +2014,10 @@ function carteHtml(a, options) {
     ["Surface", a.surface_m2 == null ? "—" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²", ""],
     ["Loyer/mois", loyer == null ? "—" : fmtEuros(loyer) + est + loyerInfo, ""],
     ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "") + rdtBrutInfo, "cle"],
-    [apportEstNul() ? "Cash-flow crédit 100 %" : `Cash-flow (${apportLibelle()})`, cfHtml, "cle"],
-    ["Rdt acte en main", fmtPct(a.rendement_acte_en_main_pct) + rdtActeInfo, "detail"],
-    ["Trajet", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min", "detail"],
-  ].concat(fiscal ? [[fiscal.libelle, fiscalHtml, "detail"]] : []).map(([l, v, rang]) =>
+    ["Trésorerie prudente", a.decision?.cashflow_prudent == null ? "—" :
+      `${a.decision.cashflow_prudent >= 0 ? "+" : "−"}${fmtEuros(Math.abs(a.decision.cashflow_prudent))}/mois`, "cle"],
+    ["Trajet", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min", ""],
+  ].map(([l, v, rang]) =>
     `<div class="metrique${rang ? " metrique--" + rang : ""}"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
 
   const tampon = options.medaille != null
@@ -1975,13 +2036,18 @@ function carteHtml(a, options) {
     ${boutonMasquerHtml(a.id)}
     <div class="carte-img" data-id="${ech(a.id)}" data-idx="0">${img}</div>
     <div>
-      ${tampon}
       <div class="carte-titre"><a href="${ech(a.url)}" target="_blank" rel="noopener">${ech(a.titre)}</a>
-        <span class="badges">${badges.join("")}</span></div>
-      <div class="carte-lieu">${ech(a.ville)}${a.code_postal ? " (" + ech(a.code_postal) + ")" : ""} · ${ech(a.source || "source non renseignée")}
-        · détectée le ${fmtDate(a.date_premiere_vue)}${joursMarcheHtml(a.date_premiere_vue)}${liens}</div>
-      ${etiquettes ? `<div class="etiquettes">${etiquettes}</div>` : ""}
+        </div>
+      <div class="carte-lieu">${ech(a.ville)}${a.code_postal ? " (" + ech(a.code_postal) + ")" : ""}
+        <span class="badges">${badges[0] || ""}${a.decision?.diagnostic?.bloquant ? '<span class="badge badge-alerte">Chiffres à vérifier</span>' : ""}</span></div>
       <div class="metriques">${metriques}</div>
+      <details class="analyse-annonce"><summary>Voir l’analyse et les informations à vérifier <span aria-hidden="true">⌄</span></summary>
+      <div class="analyse-contenu">
+      <p class="provenance-annonce">${ech(a.source || "source non renseignée")} · détectée le ${fmtDate(a.date_premiere_vue)}${joursMarcheHtml(a.date_premiere_vue)}${liens}</p>
+      <div class="badges">${badges.slice(1).join("")}</div>
+      ${etiquettes ? `<div class="etiquettes">${etiquettes}</div>` : ""}
+      <p>Rendement acte en main : ${fmtPct(a.rendement_acte_en_main_pct)}${rdtActeInfo}${fiscal ? ` · ${fiscal.libelle} : ${fiscalHtml}` : ""}.</p>
+      <p>${apportEstNul() ? "Cash-flow crédit 100 %" : `Cash-flow (${apportLibelle()})`} : ${cfHtml}.</p>
       ${decisionHtml(a)}
       ${evolutionPrixHtml(a)}
       ${a.decision?.diagnostic?.bloquant ? "" : jaugeMarcheHtml(a)}
@@ -1989,16 +2055,18 @@ function carteHtml(a, options) {
       ${pepite ? explicationPepiteHtml(a) : ""}
       ${faitsClesHtml(a)}
       ${questionsReponsesHtml(a)}
+      ${pourquoiHtml(a)}
+      </div></details>
     </div>
-    ${pourquoiHtml(a)}
     <div class="carte-score">
       <div class="score ${classeScore(a.score)}">${a.score ?? "—"}</div>
       <div class="score-libelle">économie /100</div>
       <button type="button" class="btn-outil btn-outil--primaire" data-contact="${ech(a.id)}"
         title="Génère un message personnalisé à copier-coller pour contacter le vendeur : visite, offre, documents manquants.">${IC.enveloppe} Contacter</button>
+      <button type="button" class="btn-outil" data-sim="${ech(a.id)}">${IC.calc} Financer</button>
+      <details class="outils-annonce"><summary>Plus d’actions</summary>
       <button type="button" class="btn-comp${dansComp ? " actif" : ""}" data-id="${ech(a.id)}">
         ${IC.balance} ${dansComp ? "Comparé" : "Comparer"}</button>
-      <button type="button" class="btn-outil" data-sim="${ech(a.id)}">${IC.calc} Financer</button>
       <button type="button" class="btn-outil" data-check="${ech(a.id)}">${IC.coche} ${nbChecklist(a)}</button>
       <button type="button" class="btn-outil${a.critique_ia ? " a-critique" : ""}" data-critique="${ech(a.id)}"
         title="${a.critique_ia ? "Critique honnête générée par une IA (Claude Haiku) : ce qui pourrait clocher, au-delà du score." : "Critique IA : pas encore générée pour ce bien."}">${IC.esprit} Critique IA</button>
@@ -2010,6 +2078,7 @@ function carteHtml(a, options) {
         ${SUIVI_STATUTS.map(([v, l]) =>
           `<option value="${v}"${(suivi[a.id] || {}).statut === v ? " selected" : ""}>${l}</option>`).join("")}
       </select>
+      </details>
     </div>
   </article>`;
 }
@@ -2202,22 +2271,10 @@ function rendre() {
     recent: (a, b) => b.date_derniere_vue.localeCompare(a.date_derniere_vue),
   };
   visibles.sort(tris[f.tri] || tris.recherche);
-  document.querySelectorAll("[data-raccourci]").forEach(b => b.setAttribute("aria-pressed", String(
-    b.dataset.raccourci === "cible" ? Number(f.surface) === D.recherche.surface_max_m2 && Number(f.trajet) === D.recherche.trajet_cible_min : f.signal === b.dataset.raccourci)));
-  const actives = D.retenues.filter(a => !a.peut_etre_retiree);
-  const petites = actives.filter(a => a.recherche?.petite_surface);
-  document.getElementById("recherche-chiffres").innerHTML =
-    `<div><strong>${petites.length}</strong><span>petites surfaces</span></div><div><strong>${petites.filter(a => a.recherche.proche).length}</strong><span>à moins de ${D.recherche.trajet_cible_min} min</span></div>`;
-  document.getElementById("recherche-etat").innerHTML =
-    `${visibles.length} annonce${visibles.length > 1 ? "s" : ""} avec vos filtres. ` +
-    (f.surface ? `Les surfaces inconnues et ≥ ${ech(f.surface)} m² sont masquées. ` : "Toutes les surfaces sont incluses. ") +
-    `${D.retenues.filter(a => a.peut_etre_retiree).length} annonces anciennes ou signalées indisponibles. ` +
-    `<button type="button" id="voir-tout-stock" class="btn-outil">Voir tout le stock</button>`;
-  document.getElementById("voir-tout-stock").addEventListener("click", () => {
-    document.getElementById("f-reset").click();
-    document.getElementById("f-archives").checked = true;
-    rendre();
-  });
+  const resume = [];
+  if (f.surface) resume.push(`< ${f.surface} m²`);
+  if (f.trajet) resume.push(`${f.trajet} min max`);
+  document.getElementById("resume-filtres").textContent = resume.join(" · ");
   // Une annonce écartée à la main OU plus revue en ligne depuis longtemps
   // (probablement vendue/retirée) descend dans le reste du tableau de chasse.
   const relegue = a => estAbandonnee(a.id) || a.peut_etre_retiree;
@@ -2241,14 +2298,14 @@ function rendre() {
     && (!f.trajet || (e.temps_trajet_min != null && e.temps_trajet_min <= Number(f.trajet))));
   document.getElementById("bloc-prio").innerHTML =
     (prio.length || occasions.length)
-      ? `<h2 class="section">${IC.trophee} Le haut du panier <span class="nb">score ≥ ${D.seuils.vert} & occasions aux enchères</span></h2>` +
+      ? `<h2 class="section">Les meilleures annonces</h2>` +
         prio.map(a => carteHtml(a, {...opts(a), index: index++})).join("") +
         occasions.map((e, i) => enchereHtml(e, index + i)).join("")
       : "";
   index += occasions.length;
 
   document.getElementById("bloc-etudier").innerHTML =
-    `<h2 class="section">${IC.loupe} À étudier de près <span class="nb">score ${D.seuils.affichage}–${D.seuils.vert - 1}</span></h2>` +
+    `<h2 class="section">${prio.length || occasions.length ? "À étudier aussi" : "Les meilleures annonces"}</h2>` +
     (etudier.length ? etudier.map(a => carteHtml(a, {...opts(a), index: index++})).join("")
       : '<div class="note-vide">Rien dans cette tranche avec ces filtres.</div>');
 
@@ -2635,15 +2692,6 @@ document.addEventListener("mouseup", ev => {
 });
 
 document.addEventListener("click", ev => {
-  const raccourci = ev.target.closest("[data-raccourci]");
-  if (raccourci) {
-    document.getElementById("f-reset").click();
-    document.getElementById("f-surface").value = D.recherche.surface_max_m2;
-    if (raccourci.dataset.raccourci === "cible") document.getElementById("f-trajet").value = D.recherche.trajet_cible_min;
-    else document.getElementById("f-signal").value = raccourci.dataset.raccourci;
-    rendre();
-    return;
-  }
   const modeContact = ev.target.closest("[data-contact-mode]");
   if (modeContact) {
     const a = D.retenues.find(x => x.id === modeContact.dataset.contactId);
