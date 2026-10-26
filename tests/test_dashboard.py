@@ -53,6 +53,20 @@ def test_payload_trie_par_score_decroissant(config):
     assert scores == [85, 60]
 
 
+def test_pepite_grande_surface_visible_mais_pas_une_ancienne_en_source_en_panne(config):
+    recente = faire_annonce(id="grande", titre="Murs occupés", surface_m2=100,
+                           score=85, date_derniere_vue=MAINTENANT.isoformat())
+    ancienne = faire_annonce(id="ancienne", titre="Murs occupés", score=90,
+                            date_derniere_vue="2026-06-01T07:00:00+02:00")
+    meta = {"sante_sources": {"test": {"statut": "erreur"}}}
+    payload = preparer_payload({a.id: a for a in [recente, ancienne]}, meta, config, MAINTENANT)
+    par_id = {a["id"]: a for a in payload["retenues"]}
+    assert par_id["grande"]["pepite"] is True
+    assert par_id["ancienne"]["peut_etre_retiree"] is False  # panne ≠ vente
+    assert par_id["ancienne"]["pepite"] is False  # fraîcheur non établie
+    assert payload["stats"]["pepites"] == 1
+
+
 def test_badge_nouveaute_sous_48h(config):
     payload = preparer_payload(_annonces_exemple(), {}, config, MAINTENANT)
     par_id = {a["id"]: a for a in payload["retenues"]}

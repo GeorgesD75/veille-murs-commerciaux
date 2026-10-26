@@ -28,6 +28,7 @@ import logging
 import re
 import json
 import time
+from collections import deque
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
@@ -117,8 +118,9 @@ def approfondir(annonce: "Annonce", texte: str, quand: str | None = None) -> lis
 def approfondir_annonces(annonces: dict[str, "Annonce"], config: "Config") -> dict:
     """Va lire la page de détail des meilleures annonces pas encore lues.
 
-    Priorité aux scores élevés (ceux qui comptent), et parmi eux à ceux dont
-    le loyer manque (la donnée la plus précieuse). Une page en échec réseau
+    Deux petites surfaces puis une opportunité hors surface cible, pour ne
+    pas laisser les grandes annonces prometteuses sans lecture détaillée.
+    Une page en échec réseau
     n'est pas marquée : un prochain run réessaiera. Un site bloqué (robots,
     403) marque l'annonce pour ne pas s'acharner.
     """
@@ -144,16 +146,48 @@ def approfondir_annonces(annonces: dict[str, "Annonce"], config: "Config") -> di
                 return False
         return not a.approfondie or bool(a.texte_detail) or bool(a.date_detail_tentative)
 
+    limite_surface = config.donnees.get("recherche", {}).get("surface_max_m2", 40)
+    def petite(a):
+        return bool(a.surface_m2 and 0 < a.surface_m2 < limite_surface)
+
     candidats = sorted(
         (a for a in annonces.values()
          if (not a.exclue or a.raison_exclusion == "prix non renseigné") and eligible(a) and a.url.startswith("http")),
         key=lambda a: (
-            bool(a.surface_m2 and 0 < a.surface_m2 < config.donnees.get("recherche", {}).get("surface_max_m2", 40)),
+            petite(a),
             a.code_postal == "75018", a.date_derniere_vue, (a.score or 50), a.loyer_mensuel is None),
         reverse=True,
     )
     if not candidats:
         return rapport
+
+    scoring = config.donnees.get("scoring", {})
+    seuils = scoring.get("seuils", {})
+    def prometteuse(a):
+        # Un score précédent OU le revenu déclaré justifie d'aller lire la
+        # fiche. Cela ne suffit pas à qualifier une pépite sur le dashboard.
+        if (a.score or 0) >= seuils.get("affichage", 65):
+            return True
+        if not a.prix or not a.loyer_mensuel or a.loyer_estime or a.loyer_origine == "rendement":
+            return False
+        rendement = a.loyer_mensuel * 1200 / a.prix
+        return seuils.get("rendement_minimum_vert", 7) <= rendement <= scoring.get("seuil_alerte_rendement_pct", 10)
+
+    petites = deque(a for a in candidats if petite(a))
+    opportunites = deque(sorted((a for a in candidats if not petite(a) and prometteuse(a)),
+                                key=lambda a: (a.score or 50, a.date_derniere_vue), reverse=True))
+    autres = [a for a in candidats if not petite(a) and not prometteuse(a)]
+    candidats = []
+    # Un tiers des créneaux disponibles, tant que les deux files sont pleines.
+    # Aucun appel supplémentaire : les mêmes plafonds de temps/requêtes restent appliqués.
+    while petites and opportunites:
+        for _ in range(2):
+            if petites:
+                candidats.append(petites.popleft())
+        candidats.append(opportunites.popleft())
+    candidats.extend(petites)
+    candidats.extend(opportunites)
+    candidats.extend(autres)
 
     client = ClientPoli()
     hotes_bloques: set[str] = set()

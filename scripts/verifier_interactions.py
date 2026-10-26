@@ -11,6 +11,62 @@ from playwright.sync_api import sync_playwright
 RACINE = Path(__file__).resolve().parent.parent
 
 
+def verifier_exceptions_pepites(browser):
+    """Scénarios en mémoire uniquement : le stock réel peut n'avoir aucune pépite."""
+    page = browser.new_page(viewport={"width": 1440, "height": 1000})
+    erreurs = []
+    page.on("pageerror", lambda e: erreurs.append(str(e)))
+    page.route("**/*", lambda r: r.abort() if r.request.resource_type == "image" else r.continue_())
+    page.goto((RACINE / "docs/index.html").as_uri(), wait_until="domcontentloaded")
+    assert page.locator("#f-pepites").is_checked()
+    page.evaluate("""() => {
+      const base = structuredClone(D.retenues[0]);
+      const creer = (id, score, surface, trajet, pepite) => ({...structuredClone(base),
+        id, titre:id, score, surface_m2:surface, temps_trajet_min:trajet, pepite,
+        ville:'Pantin', code_postal:'93500', departement:'93', type_murs:'murs_occupes',
+        peut_etre_retiree:false, est_nouvelle:false, recherche:{...structuredClone(base.recherche),score:surface<40?100:30},
+        decision:{...structuredClone(base.decision), diagnostic:{occupation:'occupe',bloquant:false,alertes:[]}}
+      });
+      D.retenues = [creer('petite',70,25,15,false), creer('grande',90,65,45,true),
+        creer('limite',85,40,20,true), creer('ordinaire',79,60,15,false),
+        creer('estimee',79,60,15,false), creer('retiree',95,65,45,true),
+        creer('contradictoire',95,65,45,true)];
+      D.retenues.find(a=>a.id==='retiree').peut_etre_retiree=true;
+      D.retenues.find(a=>a.id==='contradictoire').decision.diagnostic.bloquant=true;
+      D.encheres=[];
+    }""")
+    page.locator("#volet-filtres > summary").click()
+    page.locator("#f-surface").fill("40")
+    page.locator("#f-trajet").fill("30")
+    assert page.locator(".carte-img").evaluate_all("els=>els.map(e=>e.dataset.id)") == ["grande", "limite", "petite"]
+    assert page.locator(".exception-recherche").count() == 2
+    assert "65 m²" in page.locator(".exception-recherche").first.inner_text()
+    assert "45 min" in page.locator(".exception-recherche").first.inner_text()
+    # Une préférence souple ne contourne pas une recherche explicite.
+    page.locator("#f-texte").fill("petite")
+    assert page.locator(".carte").count() == 1
+    page.locator("#f-texte").fill("")
+    page.locator("#f-nouv").check()
+    assert page.locator(".carte").count() == 0
+    page.locator("#f-nouv").uncheck()
+    page.locator("#f-type").select_option("murs_libres")
+    assert page.locator(".carte").count() == 0
+    page.locator("#f-type").select_option("tous")
+    page.evaluate("masquees.push('grande'); rendre()")
+    assert page.locator('.carte-img[data-id="grande"]').count() == 0
+    page.evaluate("masquees=[]; rendre()")
+    for largeur in [320, 390, 768]:
+        page.set_viewport_size({"width":largeur,"height":844})
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth")
+    page.locator("#f-pepites").uncheck()
+    assert page.locator(".carte-img").evaluate_all("els=>els.map(e=>e.dataset.id)") == ["petite"]
+    page.reload(wait_until="domcontentloaded")
+    assert not page.locator("#f-pepites").is_checked()
+    assert page.locator("#f-surface").input_value() == "40"
+    assert not erreurs, erreurs
+    page.close()
+
+
 def main():
     candidats = [shutil.which("google-chrome"), shutil.which("chromium"),
                  r"C:\Program Files\Google\Chrome\Application\chrome.exe"]
@@ -38,7 +94,7 @@ def main():
         assert page.locator("#f-surface").input_value() == "40"
         assert page.locator(".decision .priorite").count() > 0
         page.locator("#f-surface").fill("25")
-        assert page.evaluate("D.retenues.filter(a=>appliquer(a,filtres())).every(a=>a.surface_m2<25)")
+        assert page.evaluate("D.retenues.filter(a=>appliquer(a,filtres())).every(a=>a.surface_m2<25 || estPepite(a))")
         page.reload(wait_until="domcontentloaded")
         page.locator("#volet-filtres > summary").click()
         assert page.locator("#f-surface").input_value() == "25"
@@ -49,6 +105,7 @@ def main():
         page.locator("#f-surface").fill("40")
         page.locator("#f-trajet").fill("30")
         page.locator("#f-tri").select_option("prix")
+        page.locator("#f-pepites").uncheck()
         assert page.evaluate("D.retenues.filter(a=>appliquer(a,filtres())).every(a=>a.surface_m2<40 && a.temps_trajet_min<=30)")
         page.locator(".carte button[data-contact]").first.click()
         premier = page.locator("#contact-texte").input_value()
@@ -78,6 +135,7 @@ def main():
         page.evaluate("scrollTo(0,0)")
         assert page.locator(".carte").first.bounding_box()["y"] < 260
         assert not erreurs, erreurs
+        verifier_exceptions_pepites(browser)
         browser.close()
     print("Interactions, persistance, simulateur et responsive 320–1440 px : OK")
 

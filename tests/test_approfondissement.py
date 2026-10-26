@@ -106,3 +106,31 @@ def test_priorite_detail_aux_petites_surfaces(monkeypatch):
                 "petit": faire_annonce(surface_m2=25, score=55, url="https://exemple.fr/petit")}
     approfondir_annonces(annonces, _config(max_par_run=1))
     assert client.urls == ["https://exemple.fr/petit"]
+
+
+def test_grandes_opportunites_ne_sont_pas_affamees_par_les_petites(monkeypatch):
+    client = ClientFactice()
+    monkeypatch.setattr("pipeline.approfondissement.ClientPoli", lambda: client)
+    annonces = {f"p{i}": faire_annonce(id=f"p{i}", surface_m2=25, score=60,
+                                     url=f"https://exemple.fr/p{i}") for i in range(10)}
+    annonces["grande"] = faire_annonce(id="grande", score=90, url="https://exemple.fr/grande")
+    # Une nouvelle fiche sans score reste éligible à l'exploration si son
+    # revenu déclaré est intéressant ; sa qualification sera faite après lecture.
+    annonces["nouvelle"] = faire_annonce(id="nouvelle", score=None, url="https://exemple.fr/nouvelle")
+    annonces["ordinaire"] = faire_annonce(id="ordinaire", score=30, loyer_mensuel=500,
+                                         url="https://exemple.fr/ordinaire")
+    rapport = approfondir_annonces(annonces, _config(max_par_run=6))
+    assert client.urls == [f"https://exemple.fr/{id}" for id in
+                           ["p0", "p1", "grande", "p2", "p3", "nouvelle"]]
+    assert rapport["tentees"] == 6
+    assert not annonces["ordinaire"].approfondie
+
+
+def test_creneaux_inutilises_reviennent_aux_petites_surfaces(monkeypatch):
+    client = ClientFactice()
+    monkeypatch.setattr("pipeline.approfondissement.ClientPoli", lambda: client)
+    annonces = {str(i): faire_annonce(id=str(i), surface_m2=25, url=f"https://exemple.fr/{i}")
+                for i in range(4)}
+    rapport = approfondir_annonces(annonces, _config(max_par_run=4))
+    assert rapport["tentees"] == 4
+    assert len(set(client.urls)) == 4

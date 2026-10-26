@@ -1,5 +1,26 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Pépites au-delà des préférences (26 octobre)
+
+- Moins de 40 m² reste la recherche principale ; une option active par défaut
+  laisse passer les pépites plus grandes ou au-delà du trajet souhaité.
+  Le texte recherché, le secteur, le type, les seuils et les autres filtres
+  restent appliqués. Le budget et la zone de collecte restent inchangés.
+- Le signal exige le seuil pépite existant, un revenu déclaré non estimé,
+  une occupation explicite, des chiffres renseignés et sans contradiction,
+  ainsi qu'une observation dans les 14 derniers jours. Il ne certifie pas
+  les documents du vendeur. Aucun seuil économique abaissé.
+- Les pépites remontent dans le tri par critères personnels. Un badge discret
+  et la surface/le trajet dépassés expliquent leur présence sur la fiche.
+  L'option de filtre strict est mémorisée sur l'appareil.
+- Lecture détaillée : alternance de deux petites surfaces et d'une annonce
+  prometteuse hors surface cible, dans les mêmes budgets de temps/requêtes.
+  Un revenu déclaré intéressant peut ouvrir cette exploration avant le score ;
+  cela ne qualifie pas encore une pépite.
+- Tests des exceptions, limites strictes, fiches anciennes, loyers estimés,
+  contradictions, masquage manuel, persistance et affichage mobile. Les exemples
+  synthétiques restent en mémoire des tests, sans ajout au stock publié.
+
 ## Présentation épurée (26 octobre)
 
 - Suppression du bloc d'introduction, des compteurs et des raccourcis en haut

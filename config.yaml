@@ -14,7 +14,7 @@ zone:
 
 # Préférences personnelles distinctes de la qualité économique du bien.
 recherche:
-  surface_max_m2: 40          # strictement moins de 40 m² ; les autres restent consultables
+  surface_max_m2: 40          # préférence ; les pépites plus grandes restent visibles par défaut
   prix_min_petite_surface: 50000  # petits tickets à explorer ; plafond existant conservé
   trajet_cible_min: 30        # depuis la rue Francoeur, Paris 18e (trajets estimatifs)
   vacance_prudente_pct: 8     # hypothèse de simulation, pas une statistique de marché

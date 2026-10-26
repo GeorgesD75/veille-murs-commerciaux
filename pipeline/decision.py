@@ -2,8 +2,32 @@
 from __future__ import annotations
 
 from pipeline.config import Config
-from pipeline.modeles import Annonce
+from pipeline.modeles import Annonce, TypeMurs
 from pipeline.fiabilite import diagnostiquer
+
+
+def est_pepite(a: Annonce, config: Config) -> bool:
+    """Signal économique d'annonce, jamais une validation des pièces du vendeur.
+
+    La surface et la proximité ne décident pas de ce signal. Une exception aux
+    préférences exige toutefois des chiffres renseignés et cohérents : un score
+    ancien, estimé ou contradictoire ne suffit pas. La fraîcheur est contrôlée
+    séparément par le dashboard, à la date de génération.
+    """
+    diagnostic = diagnostiquer(a)
+    return bool(
+        not a.exclue
+        and (a.score or 0) >= config.scoring["seuils"]["pepite"]
+        and a.prix and a.prix > 0 and a.surface_m2 and a.surface_m2 > 0
+        and a.loyer_mensuel and a.loyer_mensuel > 0
+        and not a.loyer_estime and a.loyer_origine != "rendement"
+        and a.type_murs == TypeMurs.MURS_OCCUPES
+        and diagnostic["occupation"] == "occupe" and not diagnostic["bloquant"]
+        and not set(a.flags).intersection({
+            "rendement_anormalement_eleve", "prix_m2_anormalement_bas",
+            "texte_partiel_alerte", "localisation_incoherente",
+        })
+    )
 
 
 def priorite_recherche(a: Annonce, config: Config) -> dict:

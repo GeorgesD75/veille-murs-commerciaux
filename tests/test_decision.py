@@ -4,10 +4,32 @@ from datetime import datetime
 import pytest
 
 from pipeline.config import Config
-from pipeline.decision import analyser_decision, priorite_recherche
+from pipeline.decision import analyser_decision, est_pepite, priorite_recherche
 from pipeline.comparables import LoyersComparables
 from pipeline.scoring import scorer
 from tests.fabriques import faire_annonce
+
+
+@pytest.mark.parametrize("surface,trajet", [(25, 15), (40, 35), (100, 55)])
+def test_pepite_independante_de_la_surface_et_du_trajet(config, surface, trajet):
+    a = faire_annonce(titre="Murs occupés", score=85, surface_m2=surface,
+                      temps_trajet_min=trajet)
+    assert est_pepite(a, config)
+
+
+@pytest.mark.parametrize("changements", [
+    {"score": 79}, {"score": None}, {"exclue": True},
+    {"loyer_estime": True}, {"loyer_mensuel": None}, {"loyer_origine": "rendement"},
+    {"surface_m2": None}, {"surface_m2": 0}, {"surface_m2": float("nan")},
+    {"prix": -1}, {"etat_detail": "retiree"}, {"etat_detail": "redirection_liste"},
+    {"conflits_donnees": ["prix"]}, {"flags": ["prix_m2_anormalement_bas"]},
+    {"titre": "Local commercial", "description": "Vente de murs"},
+    {"description": "Murs occupés, local libre de toute occupation"},
+])
+def test_score_seul_ne_suffit_pas_pour_deroger_aux_preferences(config, changements):
+    valeurs = {"titre": "Murs occupés", "score": 85}
+    valeurs.update(changements)
+    assert not est_pepite(faire_annonce(**valeurs), config)
 
 
 def test_priorite_petite_surface_proche_sans_favoriser_un_grand_bien(config):

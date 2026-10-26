@@ -8,10 +8,9 @@ La préparation des données (tri, badge nouveau < 48 h, exclues < 7 jours,
 hors-zone agrégé, lecture du prix) est faite en Python pour être testable ;
 le JavaScript ne fait que filtrer/afficher.
 
-Identité « Les Murs. » : devanture de boutique parisienne — store scalloped
-sous le bandeau, pictogrammes SVG tracés à la main (pas d'emoji), tampons
-encrés pour le podium, or réservé aux trophées. Mobile : filtres repliés,
-comparateur et jauges de score masqués. Animations coupées si
+Identité « Les Murs. » : bandeau compact, pictogrammes SVG et annonces dès
+le premier écran. Filtres et analyse repliés ; signal discret pour les pépites,
+y compris hors des préférences de surface/trajet. Animations coupées si
 prefers-reduced-motion.
 """
 from __future__ import annotations
@@ -23,7 +22,7 @@ from typing import Any
 
 from dashboard.dossier_banque import generer_dossiers
 from pipeline.config import Config
-from pipeline.decision import analyser_decision, priorite_recherche
+from pipeline.decision import analyser_decision, est_pepite, priorite_recherche
 from pipeline.contact import messages_contact
 from pipeline.modeles import Annonce
 
@@ -87,6 +86,7 @@ def preparer_payload(
         retenues.append(
             {
                 "id": a.id,
+                "pepite": est_pepite(a, config) and _iso(a.date_derniere_vue) >= seuil_retiree,
                 "recherche": priorite_recherche(a, config),
                 "decision": analyser_decision(a, config),
                 "modeles_contact": contact_compact(a),
@@ -212,7 +212,7 @@ def preparer_payload(
             # probablement retirées n'y comptent pas.
             "retenues": rang,
             "nouvelles": sum(1 for a in retenues if a["est_nouvelle"] and not a["peut_etre_retiree"]),
-            "pepites": sum(1 for a in retenues if (a["score"] or 0) >= seuils["pepite"] and not a["peut_etre_retiree"]),
+            "pepites": sum(1 for a in retenues if a["pepite"]),
             "analysees": len(retenues) + len(exclues_recentes),
             "exclues_recentes": len(exclues_recentes),
             "exclues_hors_zone": len(exclues_recentes) - len(exclues_detail),
@@ -898,6 +898,8 @@ h2.section { font-family:inherit; font-size:18px; font-weight:650; margin:20px 0
 .carte-lieu { font-size:12px; margin-bottom:16px; }
 .carte .badges { margin-left:8px; gap:4px; }
 .badge { font-size:10.5px; padding:2px 6px; font-weight:500; }
+.badge-pepite { background:var(--or-clair); color:var(--encre-1); }
+.exception-recherche { margin:-6px 0 14px; font-size:12px; color:var(--encre-2); }
 .metriques { gap:16px 24px; margin-bottom:14px; }
 .metrique .libelle { font-size:11px; letter-spacing:0; text-transform:none; }
 .metrique .valeur,.metrique--cle .valeur { font-size:16px; line-height:1.45; font-weight:600; }
@@ -988,8 +990,10 @@ h2.section { font-family:inherit; font-size:18px; font-weight:650; margin:20px 0
         <option value="tous">Tous</option><option value="baisses">Prix en baisse</option>
         <option value="completer">Données à compléter</option><option value="coherent">Sans contradiction détectée</option>
         <option value="prudent">Trésorerie prudente positive</option></select></div>
-      <div class="filtre"><label for="f-surface">Surface strictement inférieure à (m²)</label>
+      <div class="filtre"><label for="f-surface">Surface souhaitée : moins de (m²)</label>
         <input id="f-surface" type="number" min="1" step="1" value="40" placeholder="Toutes"></div>
+      <div class="filtre"><label for="f-pepites">Opportunités hors critères</label>
+        <label><input id="f-pepites" type="checkbox" checked> Inclure les pépites plus grandes ou plus loin</label></div>
       <div class="filtre"><label for="f-trajet">Trajet max estimé (min)</label>
         <input id="f-trajet" type="number" min="1" step="5" placeholder="Sans limite"></div>
       <div class="filtre"><label for="f-tri">Classer par</label><select id="f-tri">
@@ -1639,21 +1643,24 @@ function explicationPepiteHtml(a) {
   const d = a.detail_score || {};
   const atouts = [];
   if (d.rendement >= 32)
-    atouts.push(`rendement exceptionnel (${fmtPct(a.rendement_brut_pct)} brut, ${d.rendement}/${D.maxima.rendement} pts)`);
+    atouts.push(`rendement bien noté dans sa zone (${fmtPct(a.rendement_brut_pct)} brut, ${d.rendement}/${D.maxima.rendement} pts)`);
   if (d.emplacement >= 20)
-    atouts.push(`emplacement parmi les plus sûrs de la grille (${d.emplacement}/25 pts)`);
+    atouts.push(`emplacement bien noté dans la grille (${d.emplacement}/25 pts)`);
   // La décote n'est PAS reprise ici : le badge près du titre et la jauge de
   // marché juste au-dessus la donnent déjà, chiffre à l'appui. Idem pour le
   // cash-flow (métrique en gros caractères + badge « s'autofinance »). Ce bloc
   // ne vaut que s'il apporte ce qu'on ne voit nulle part ailleurs — sinon il
   // dit trois fois la même chose et noie ses propres arguments.
-  if ((a.bonus_detectes || []).length)
-    atouts.push(`dossier propre (${a.bonus_detectes.join(", ")})`);
+  const signauxFavorables = {bail_recent:"bail récent", taxe_fonciere_locataire:"taxe foncière au locataire",
+    enseigne_nationale:"enseigne nationale", bail_longue_duree_restante:"bail loin de son échéance"};
+  const signaux = (a.bonus_detectes || []).filter(n => signauxFavorables[n]).map(n => signauxFavorables[n]);
+  if (signaux.length) atouts.push(`signaux déclarés : ${signaux.join(", ")}`);
   if (a.rue_categorie === "tres_commercante" && a.rue_nb_commerces != null)
     atouts.push(`rue mesurée très commerçante (${a.rue_nb_commerces} commerces à 150 m)`);
-  const liste = atouts.length ? atouts.join(" · ") : "un cumul de tous les critères, sans point faible";
+  const liste = atouts.length ? atouts.join(" · ") : `score économique de ${a.score}/100 sur les données disponibles`;
   return `<div class="pepite-pourquoi">${IC.pepite} <b>Pourquoi une pépite :</b> ${liste}.
-    Un score ≥ ${D.seuils.pepite}/100 est rare — vérifiez vite (visite, bail, copropriété) avant qu'elle ne parte.</div>`;
+    Signal d’intérêt à partir de ${D.seuils.pepite}/100 ; le loyer reste déclaré par l’annonce.
+    Bail, quittances, charges, copropriété et disponibilité à confirmer avant décision.</div>`;
 }
 
 function messageContact(a, mode = "court") {
@@ -2022,15 +2029,12 @@ function carteHtml(a, options) {
 
   const tampon = options.medaille != null
     ? `<div><span class="tampon">${TAMPONS[options.medaille]}</span></div>` : "";
-  const pepite = (a.score ?? 0) >= D.seuils.pepite;
+  const pepite = estPepite(a);
+  const exceptions = options.exceptions || [];
   const dansComp = comparaison.includes(a.id);
 
-  // Les pépites (score ≥ seuil pépite) restent signalées par la bordure or +
-  // reflet de la carte (.rang-s) ; la décote vs marché est un badge en ligne
-  // près du titre, non un autocollant flottant sur le coin de la carte —
-  // évite qu'il soit rogné par overflow:hidden. Pas de rang lettré (S/A/B/C) :
-  // abandonné (retour utilisateur du 2026-08-22) — le saut direct de B à S
-  // (79 -> 80) semblait arbitraire ; seul le score /100 reste affiché.
+  // Un badge discret suffit : le motif de l'exception reste lisible sans
+  // ouvrir l'analyse, sans rajouter de bandeau au-dessus des annonces.
   return `<article class="carte${options.prio ? " prio" : ""}${options.medaille === 0 ? " podium-1" : ""}${pepite ? " rang-s" : ""}"
       style="animation-delay:${(options.index || 0) * 45}ms">
     ${boutonMasquerHtml(a.id)}
@@ -2039,7 +2043,8 @@ function carteHtml(a, options) {
       <div class="carte-titre"><a href="${ech(a.url)}" target="_blank" rel="noopener">${ech(a.titre)}</a>
         </div>
       <div class="carte-lieu">${ech(a.ville)}${a.code_postal ? " (" + ech(a.code_postal) + ")" : ""}
-        <span class="badges">${badges[0] || ""}${a.decision?.diagnostic?.bloquant ? '<span class="badge badge-alerte">Chiffres à vérifier</span>' : ""}</span></div>
+        <span class="badges">${pepite ? '<span class="badge badge-pepite" title="Signal économique fondé sur les données de l’annonce. Bail, charges et disponibilité à vérifier.">Pépite à étudier</span>' : ""}${badges[0] || ""}${a.decision?.diagnostic?.bloquant ? '<span class="badge badge-alerte">Chiffres à vérifier</span>' : ""}</span></div>
+      ${exceptions.length ? `<div class="exception-recherche">Hors de vos préférences : ${exceptions.map(ech).join(" · ")}</div>` : ""}
       <div class="metriques">${metriques}</div>
       <details class="analyse-annonce"><summary>Voir l’analyse et les informations à vérifier <span aria-hidden="true">⌄</span></summary>
       <div class="analyse-contenu">
@@ -2212,6 +2217,7 @@ function filtres() {
     texte: document.getElementById("f-texte").value,
     signal: document.getElementById("f-signal").value,
     surface: document.getElementById("f-surface").value,
+    pepites: document.getElementById("f-pepites").checked,
     trajet: document.getElementById("f-trajet").value,
     tri: document.getElementById("f-tri").value,
     archives: document.getElementById("f-archives").checked,
@@ -2222,6 +2228,19 @@ function filtres() {
     nouv: document.getElementById("f-nouv").checked,
     cf: document.getElementById("f-cf").checked,
   };
+}
+
+function estPepite(a) {
+  return a.pepite === true && !a.peut_etre_retiree && !a.decision?.diagnostic?.bloquant;
+}
+
+function ecartsPreferences(a, f) {
+  const ecarts = [];
+  if (f.surface && !(a.surface_m2 > 0 && a.surface_m2 < Number(f.surface)))
+    ecarts.push(`${a.surface_m2 == null ? "surface inconnue" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²"} (souhait : < ${f.surface} m²)`);
+  if (f.trajet && !(a.temps_trajet_min != null && a.temps_trajet_min <= Number(f.trajet)))
+    ecarts.push(`${a.temps_trajet_min == null ? "trajet inconnu" : "≈ " + a.temps_trajet_min + " min"} (souhait : ${f.trajet} min max)`);
+  return ecarts;
 }
 
 function appliquer(a, f) {
@@ -2236,8 +2255,8 @@ function appliquer(a, f) {
   if (f.signal === "coherent" && a.decision?.diagnostic?.bloquant) return false;
   if (f.signal === "prudent" && !(a.decision?.cashflow_prudent != null && a.decision.cashflow_prudent >= 0)) return false;
   if (!f.archives && a.peut_etre_retiree) return false;
-  if (f.surface && !(a.surface_m2 > 0 && a.surface_m2 < Number(f.surface))) return false;
-  if (f.trajet && !(a.temps_trajet_min != null && a.temps_trajet_min <= Number(f.trajet))) return false;
+  const exception = f.pepites && estPepite(a) && !estAbandonnee(a.id);
+  if (!exception && ecartsPreferences(a, f).length) return false;
   if (f.type !== "tous" && a.type_murs !== f.type) return false;
   // secteurs cochés : union — le bien passe s'il est dans L'UN d'eux
   if (f.dep.length && !f.dep.some(v =>
@@ -2264,7 +2283,9 @@ function rendre() {
   majResumeSecteurs(f);
   const visibles = D.retenues.filter(a => appliquer(a, f));
   const tris = {
-    recherche: (a, b) => (b.recherche?.score || 0) - (a.recherche?.score || 0) || (b.score || 0) - (a.score || 0),
+    recherche: (a, b) => Number(estPepite(b)) - Number(estPepite(a))
+      || ((estPepite(a) && estPepite(b)) ? (b.score || 0) - (a.score || 0) : 0)
+      || (b.recherche?.score || 0) - (a.recherche?.score || 0) || (b.score || 0) - (a.score || 0),
     score: (a, b) => (b.score || 0) - (a.score || 0),
     prix: (a, b) => (a.prix ?? Infinity) - (b.prix ?? Infinity),
     trajet: (a, b) => (a.temps_trajet_min ?? Infinity) - (b.temps_trajet_min ?? Infinity),
@@ -2274,6 +2295,7 @@ function rendre() {
   const resume = [];
   if (f.surface) resume.push(`< ${f.surface} m²`);
   if (f.trajet) resume.push(`${f.trajet} min max`);
+  if (f.pepites && (f.surface || f.trajet)) resume.push("+ pépites hors critères");
   document.getElementById("resume-filtres").textContent = resume.join(" · ");
   // Une annonce écartée à la main OU plus revue en ligne depuis longtemps
   // (probablement vendue/retirée) descend dans le reste du tableau de chasse.
@@ -2289,6 +2311,7 @@ function rendre() {
   const opts = a => ({
     prio: (a.score ?? 0) >= D.seuils.vert,
     medaille: podium.indexOf(a.id) >= 0 ? podium.indexOf(a.id) : null,
+    exceptions: f.pepites && estPepite(a) ? ecartsPreferences(a, f) : [],
   });
 
   let index = 0;
@@ -3123,7 +3146,7 @@ function initialiser() {
     document.getElementById("f-rdt").value = "";
     document.getElementById("f-score").value = "";
     document.getElementById("f-nouv").checked = false;
-    const idsPepites = D.retenues.filter(a => (a.score ?? 0) >= D.seuils.pepite).map(a => a.id);
+    const idsPepites = D.retenues.filter(estPepite).map(a => a.id);
     masquees = masquees.filter(id => !idsPepites.includes(id));
     localStorage.setItem(CLE_MASQUEES, JSON.stringify(masquees));
     rendre();
@@ -3187,6 +3210,7 @@ function initialiser() {
     document.getElementById("f-texte").value = memo.texte || "";
     document.getElementById("f-signal").value = memo.signal || "tous";
     document.getElementById("f-surface").value = memo.surface ?? D.recherche.surface_max_m2;
+    document.getElementById("f-pepites").checked = memo.pepites !== false;
     document.getElementById("f-trajet").value = memo.trajet ?? "";
     document.getElementById("f-tri").value = memo.tri || "recherche";
     document.getElementById("f-archives").checked = !!memo.archives;
@@ -3204,7 +3228,7 @@ function initialiser() {
     document.getElementById("f-cf").checked = !!memo.cf;
   } catch (e) { /* filtres mémorisés illisibles : on repart à zéro */ }
 
-  for (const id of ["f-type", "f-rdt", "f-score", "f-nouv", "f-cf", "f-surface", "f-trajet", "f-tri", "f-archives", "f-texte", "f-signal"])
+  for (const id of ["f-type", "f-rdt", "f-score", "f-nouv", "f-cf", "f-surface", "f-pepites", "f-trajet", "f-tri", "f-archives", "f-texte", "f-signal"])
     document.getElementById(id).addEventListener("input", rendre);
   listeDep.addEventListener("input", rendre);
 
@@ -3283,6 +3307,7 @@ function initialiser() {
     document.getElementById("f-signal").value = "tous";
     localStorage.removeItem(CLE_FILTRES);
     document.getElementById("f-surface").value = "";
+    document.getElementById("f-pepites").checked = true;
     document.getElementById("f-trajet").value = "";
     document.getElementById("f-tri").value = "recherche";
     document.getElementById("f-archives").checked = false;
