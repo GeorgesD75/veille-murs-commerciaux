@@ -1017,7 +1017,7 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
       <div class="filtre"><label for="f-trajet">Trajet max estimé (min)</label>
         <input id="f-trajet" type="number" min="1" step="5" placeholder="Sans limite"></div>
       <div class="filtre"><label for="f-tri">Classer par</label><select id="f-tri">
-        <option value="recherche">Mes critères</option><option value="score">Score économique</option>
+        <option value="recherche">Score puis mes critères</option><option value="score">Score économique</option>
         <option value="prix">Prix croissant</option><option value="trajet">Proximité</option>
         <option value="recent">Dernière détection</option></select></div>
       <div class="filtre"><label for="f-archives">Disponibilité</label>
@@ -2051,7 +2051,7 @@ function carteHtml(a, options) {
         <span class="badges">${pepite ? '<span class="badge badge-pepite" title="Signal économique fondé sur les données de l’annonce. Bail, charges et disponibilité à vérifier.">Pépite à étudier</span>' : estPotentiel(a) ? '<span class="badge badge-pepite">Potentiel à négocier</span>' : ""}${badges[0] || ""}${a.decision?.diagnostic?.bloquant ? '<span class="badge badge-alerte">Chiffres à vérifier</span>' : ""}</span></div>
       ${exceptions.length ? `<div class="exception-recherche">Hors de vos préférences : ${exceptions.map(ech).join(" · ")}</div>` : ""}
       <div class="metriques">${metriques}</div>
-      ${a.negociation?.prix_plafond != null ? `<div class="offre-cible"><span>${a.negociation.statut === "deja_cible" ? "Prix déjà dans la cible" : "Prix à viser"} : <b>${fmtEuros(a.negociation.prix_plafond)}</b>${a.negociation.remise_pct > 0 ? ` (−${fmtPct(a.negociation.remise_pct)})` : ""}${a.negociation.taxe_estimee ? " · taxe provisionnée" : ""}</span><button type="button" data-offre="${ech(a.id)}">Étudier la proposition</button></div>` : ""}
+      ${a.negociation?.prix_plafond != null ? `<div class="offre-cible"><span>${a.negociation.statut === "deja_cible" ? "Simulation au prix affiché" : "Si négocié à"} <b>${fmtEuros(a.negociation.prix_plafond)}</b> : <b>${a.negociation.score_cible}/100 simulés</b>${a.negociation.remise_pct > 0 ? ` (−${fmtPct(a.negociation.remise_pct)})` : ""}${a.negociation.taxe_estimee ? " · taxe provisionnée" : ""}</span><button type="button" data-offre="${ech(a.id)}">Étudier la proposition</button></div>` : ""}
       <details class="analyse-annonce"><summary>Voir l’analyse et les informations à vérifier <span aria-hidden="true">⌄</span></summary>
       <div class="analyse-contenu">
       <p class="provenance-annonce">${ech(a.source || "source non renseignée")} · détectée le ${fmtDate(a.date_premiere_vue)}${joursMarcheHtml(a.date_premiere_vue)}${liens}</p>
@@ -2072,7 +2072,7 @@ function carteHtml(a, options) {
     </div>
     <div class="carte-score">
       <div class="score ${classeScore(a.score)}">${a.score ?? "—"}</div>
-      <div class="score-libelle">économie /100</div>
+      <div class="score-libelle">actuel /100</div>
       <button type="button" class="btn-outil btn-outil--primaire" data-contact="${ech(a.id)}"
         title="Génère un message personnalisé à copier-coller pour contacter le vendeur : visite, offre, documents manquants.">${IC.enveloppe} Contacter</button>
       <button type="button" class="btn-outil" data-sim="${ech(a.id)}">${IC.calc} Financer</button>
@@ -2295,11 +2295,8 @@ function rendre() {
   majResumeSecteurs(f);
   const visibles = D.retenues.filter(a => appliquer(a, f));
   const tris = {
-    recherche: (a, b) => Number(estPepite(b)) - Number(estPepite(a))
-      || ((estPepite(a) && estPepite(b)) ? (b.score || 0) - (a.score || 0) : 0)
-      || Number(estPotentiel(b)) - Number(estPotentiel(a))
-      || ((estPotentiel(a) && estPotentiel(b)) ? a.negociation.remise_pct - b.negociation.remise_pct : 0)
-      || (b.recherche?.score || 0) - (a.recherche?.score || 0) || (b.score || 0) - (a.score || 0),
+    recherche: (a, b) => (b.score ?? -1) - (a.score ?? -1)
+      || (b.recherche?.score || 0) - (a.recherche?.score || 0),
     score: (a, b) => (b.score || 0) - (a.score || 0),
     prix: (a, b) => (a.prix ?? Infinity) - (b.prix ?? Infinity),
     trajet: (a, b) => (a.temps_trajet_min ?? Infinity) - (b.temps_trajet_min ?? Infinity),
@@ -2316,9 +2313,11 @@ function rendre() {
   const relegue = a => estAbandonnee(a.id) || a.peut_etre_retiree;
   const incoherente = a => !!a.decision?.diagnostic?.bloquant;
   const verifier = visibles.filter(a => incoherente(a) && !relegue(a));
-  const prio = visibles.filter(a => ((a.score ?? 0) >= D.seuils.vert || estPotentiel(a)) && !relegue(a) && !incoherente(a));
+  // Le classement reflète le prix affiché ; le potentiel négocié reste une
+  // simulation sur la fiche, jamais une promotion vers le groupe supérieur.
+  const prio = visibles.filter(a => (a.score ?? 0) >= D.seuils.vert && !relegue(a) && !incoherente(a));
   const etudier = visibles.filter(a =>
-    (a.score ?? 0) >= D.seuils.affichage && (a.score ?? 0) < D.seuils.vert && !estPotentiel(a) && !relegue(a) && !incoherente(a));
+    ((a.score ?? 0) >= D.seuils.affichage || estPotentiel(a)) && (a.score ?? 0) < D.seuils.vert && !relegue(a) && !incoherente(a));
   const reste = visibles.filter(a => ((a.score ?? 0) < D.seuils.affichage && !incoherente(a) && !estPotentiel(a)) || relegue(a));
 
   const podium = [...prio, ...etudier].slice(0, 3).map(a => a.id);
@@ -2329,22 +2328,24 @@ function rendre() {
   });
 
   let index = 0;
-  // Seules les meilleures occasions (score enchère ≥ seuil, plafonnées) montent
+  // Les enchères ont leur propre score d'intérêt : elles sont présentées
+  // après le classement des annonces classiques, sous un intitulé distinct.
   const occasions = (D.encheres || []).filter(e => e.haut_panier && !estAbandonnee(e.id)
     && (!f.surface || (e.surface_m2 > 0 && e.surface_m2 < Number(f.surface)))
     && (!f.trajet || (e.temps_trajet_min != null && e.temps_trajet_min <= Number(f.trajet))));
+  const titreSelection = f.signal === "negociation" ? "Potentiels à négocier" : "Les meilleures annonces";
   document.getElementById("bloc-prio").innerHTML =
-    (prio.length || occasions.length)
-      ? `<h2 class="section">Les meilleures annonces</h2>` +
-        prio.map(a => carteHtml(a, {...opts(a), index: index++})).join("") +
-        occasions.map((e, i) => enchereHtml(e, index + i)).join("")
+    prio.length
+      ? `<h2 class="section">${titreSelection}</h2>` +
+        prio.map(a => carteHtml(a, {...opts(a), index: index++})).join("")
       : "";
-  index += occasions.length;
 
   document.getElementById("bloc-etudier").innerHTML =
-    `<h2 class="section">${prio.length || occasions.length ? "À étudier aussi" : "Les meilleures annonces"}</h2>` +
+    `<h2 class="section">${prio.length ? "À étudier aussi" : titreSelection}</h2>` +
     (etudier.length ? etudier.map(a => carteHtml(a, {...opts(a), index: index++})).join("")
-      : '<div class="note-vide">Rien dans cette tranche avec ces filtres.</div>');
+      : '<div class="note-vide">Rien dans cette tranche avec ces filtres.</div>') +
+    (occasions.length ? '<h2 class="section">Occasions aux enchères <span class="nb">score d’intérêt distinct</span></h2>' +
+      occasions.map((e, i) => enchereHtml(e, index + i)).join("") : "");
 
   const bloc = document.getElementById("bloc-reste");
   bloc.querySelector("summary").textContent =

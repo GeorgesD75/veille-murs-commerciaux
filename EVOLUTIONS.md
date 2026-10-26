@@ -1,5 +1,17 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Un classement cohérent avec le score affiché (26 octobre)
+
+- Les potentiels après négociation ne passent plus dans le groupe des scores
+  élevés sur la seule base de leur simulation. Le tri par défaut classe les
+  scores actuels décroissants, puis l’adéquation personnelle à égalité.
+- Le badge du score indique « actuel /100 ». La ligne d’offre affiche
+  explicitement le score simulé et le prix négocié nécessaire pour l’atteindre.
+- Les potentiels restent visibles, y compris hors surface/trajet souhaités
+  lorsque l’option est active, et accessibles via le filtre de négociation.
+- Les occasions aux enchères suivent le classement classique sous un intitulé
+  distinct, leur score d’intérêt n’étant pas comparable au score économique.
+
 ## Un bouton visible pour les filtres (26 octobre)
 
 - Déclencheur présenté comme un bouton vert avec une icône de réglages dorée,

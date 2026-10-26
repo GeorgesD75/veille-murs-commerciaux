@@ -40,12 +40,18 @@ def verifier_exceptions_pepites(browser):
         marge_ouverture_pct:3,hypotheses:{apport_pct:20,taux_pct:3.9,duree_ans:20,vacance_pct:8,charges_pct:10},
         message:'Bonjour, seriez-vous ouverts à une discussion autour de 174 000 € ?'};
       D.retenues.push(potentiel);
+      const mieuxNote=creer('mieux-note',79,30,15,false);
+      mieuxNote.recherche.score=1; // le score actuel prime sur l'adéquation
+      D.retenues.push(mieuxNote);
       D.encheres=[];
     }""")
     page.locator("#volet-filtres > summary").click()
     page.locator("#f-surface").fill("40")
     page.locator("#f-trajet").fill("30")
-    assert page.locator(".carte-img").evaluate_all("els=>els.map(e=>e.dataset.id)") == ["grande", "limite", "potentiel", "petite"]
+    assert page.locator(".carte-img").evaluate_all("els=>els.map(e=>e.dataset.id)") == ["grande", "limite", "mieux-note", "petite", "potentiel"]
+    assert page.locator("#bloc-prio .carte-img").evaluate_all("els=>els.map(e=>e.dataset.id)") == ["grande", "limite"]
+    assert page.locator("#bloc-etudier .carte-img").evaluate_all("els=>els.map(e=>e.dataset.id)") == ["mieux-note", "petite", "potentiel"]
+    assert "82/100" in page.locator('.carte:has([data-offre="potentiel"]) .offre-cible').inner_text()
     assert page.locator(".exception-recherche").count() == 3
     assert "65 m²" in page.locator(".exception-recherche").first.inner_text()
     assert "45 min" in page.locator(".exception-recherche").first.inner_text()
@@ -78,7 +84,7 @@ def verifier_exceptions_pepites(browser):
         page.set_viewport_size({"width":largeur,"height":844})
         assert not page.evaluate("document.documentElement.scrollWidth > innerWidth")
     page.locator("#f-pepites").uncheck()
-    assert page.locator(".carte-img").evaluate_all("els=>els.map(e=>e.dataset.id)") == ["petite"]
+    assert page.locator(".carte-img").evaluate_all("els=>els.map(e=>e.dataset.id)") == ["mieux-note", "petite"]
     page.reload(wait_until="domcontentloaded")
     assert not page.locator("#f-pepites").is_checked()
     assert page.locator("#f-surface").input_value() == "40"
