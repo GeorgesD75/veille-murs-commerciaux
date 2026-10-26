@@ -22,7 +22,7 @@ from pathlib import Path
 RACINE = Path(__file__).resolve().parent.parent
 CIBLE = RACINE / "docs" / "index.html"
 CAPTURE = RACINE / "_apercu_header.png"
-HAUTEUR_MIN, HAUTEUR_MAX = 40, 100  # bandeau compact : les annonces doivent apparaître rapidement
+HAUTEUR_MIN, HAUTEUR_MAX = 70, 115  # enseigne restaurée, sans bloc d'introduction
 
 
 def _navigateur() -> str | None:

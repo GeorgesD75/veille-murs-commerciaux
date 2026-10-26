@@ -8,7 +8,7 @@ La préparation des données (tri, badge nouveau < 48 h, exclues < 7 jours,
 hors-zone agrégé, lecture du prix) est faite en Python pour être testable ;
 le JavaScript ne fait que filtrer/afficher.
 
-Identité « Les Murs. » : bandeau compact, pictogrammes SVG et annonces dès
+Identité « Les Murs. » : enseigne verte et dorée, devanture et annonces dès
 le premier écran. Filtres et analyse repliés ; signal discret pour les pépites,
 y compris hors des préférences de surface/trajet. Animations coupées si
 prefers-reduced-motion.
@@ -875,26 +875,23 @@ footer { margin-top: 34px; border-top: 1px solid var(--filet); padding-top: 14px
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
-/* Lecture compacte : les annonces d'abord, les explications à la demande. */
-.masthead { background:var(--surface); color:var(--encre-1); border-top:0;
-  border-bottom:1px solid var(--filet); box-shadow:none; }
-.masthead-inner { min-height:60px; padding:12px 24px; }
-.enseigne { gap:10px; }
-.enseigne svg.devanture { width:28px; height:28px; color:var(--encre-2); }
-.wordmark { font-size:29px; text-shadow:none; letter-spacing:0; }
-.wordmark .point { color:var(--marque); }
-.wordmark .trait { display:none; }
+/* L'enseigne retrouve son caractère ; la recherche reste au premier écran. */
+.masthead-inner { min-height:84px; padding:16px 24px; }
+.enseigne { gap:14px; }
+.enseigne svg.devanture { width:44px; height:44px; }
+.wordmark { font-size:40px; }
+.wordmark .trait { width:184px; height:8px; }
 .page { padding-top:0; }
 .onglets { margin:0 0 10px; }
-.onglet { font-family:inherit; font-size:14px; font-weight:500; padding:14px 18px; }
-.onglet.actif { font-weight:650; border-bottom-color:var(--marque); }
+.onglet { font-family:Fraunces, Georgia, serif; font-size:16px; font-weight:600; padding:12px 18px; }
+.onglet.actif { font-weight:700; border-bottom-color:var(--or-vif); }
 .volet-filtres { border:0; border-bottom:1px solid var(--filet); }
 .volet-filtres > summary { display:flex; align-items:center; gap:16px; padding:10px 2px;
   font-size:13px; font-weight:600; list-style:none; }
 #resume-filtres { color:var(--encre-2); font-size:12px; font-weight:400; }
 .filtre-chevron { margin-left:auto; font-size:18px; color:var(--encre-2); }
 .volet-filtres[open] .filtre-chevron { transform:rotate(180deg); }
-h2.section { font-family:inherit; font-size:18px; font-weight:650; margin:20px 0 14px; }
+h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:600; margin:18px 0 14px; }
 .carte { grid-template-columns:160px minmax(0,1fr) 116px; padding:20px; gap:22px;
   border-radius:10px; margin-bottom:14px; animation:none; transition:none; }
 .carte:hover { transform:none; box-shadow:none; border-color:var(--encre-3); }
@@ -936,10 +933,12 @@ h2.section { font-family:inherit; font-size:18px; font-weight:650; margin:20px 0
 .infos-veille .hud { margin:12px 0; }
 .infos-veille .hud-texte { text-align:left; background:none; border:none; box-shadow:none; padding:0; }
 @media(max-width:760px) {
-  .masthead-inner { min-height:54px; padding:12px 16px; }
-  .wordmark { font-size:26px; }
-  .enseigne svg.devanture { width:24px; height:24px; }
-  .onglet { padding:13px 12px; }
+  .masthead-inner { min-height:72px; padding:12px 16px; }
+  .wordmark { font-size:34px; }
+  .wordmark .trait { width:156px; height:7px; }
+  .enseigne svg.devanture { width:36px; height:36px; }
+  .onglet { font-size:15px; padding:12px; }
+  h2.section { font-size:21px; }
   .carte { grid-template-columns:76px minmax(0,1fr); padding:14px; gap:14px; }
   .carte-img { grid-column:auto; height:94px; }
   .carte-titre { font-size:15px; }
@@ -968,6 +967,7 @@ h2.section { font-family:inherit; font-size:18px; font-weight:650; margin:20px 0
     </div>
   </div>
 </header>
+<div class="auvent" aria-hidden="true"></div>
 <div class="page">
 
   <nav class="onglets" id="onglets">

@@ -101,7 +101,7 @@ def main():
         page.route("**/*", lambda route: route.abort() if route.request.resource_type == "image" else route.continue_())
         page.goto((RACINE / "docs/index.html").as_uri(), wait_until="domcontentloaded")
         assert not page.locator("#volet-filtres").evaluate("e=>e.open")
-        assert page.locator(".carte").first.bounding_box()["y"] < 250
+        assert page.locator(".carte").first.bounding_box()["y"] < 290
         assert not page.locator(".analyse-annonce").first.evaluate("e=>e.open")
         page.locator(".analyse-annonce > summary").first.click()
         assert page.locator(".analyse-contenu").first.is_visible()
@@ -152,7 +152,7 @@ def main():
         page.set_viewport_size({"width":390,"height":844})
         page.locator("#volet-filtres").evaluate("e=>e.open=false")
         page.evaluate("scrollTo(0,0)")
-        assert page.locator(".carte").first.bounding_box()["y"] < 260
+        assert page.locator(".carte").first.bounding_box()["y"] < 280
         assert not erreurs, erreurs
         verifier_exceptions_pepites(browser)
         browser.close()

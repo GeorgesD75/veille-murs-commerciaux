@@ -1,5 +1,14 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Retrouver l’identité de l’enseigne (26 octobre)
+
+- Retour du header vert profond, du filet et du soulignement dorés, du logo
+  plus généreux et du store de devanture. Typographie de caractère pour les
+  onglets et les titres de section.
+- Hauteur contenue sur ordinateur et mobile : filtres toujours repliés et
+  premières annonces au premier écran. L’introduction et les compteurs restent
+  retirés ; les informations de collecte restent accessibles en pied de page.
+
 ## Prix cible pour une pépite à négocier (26 octobre)
 
 - Nouveau calcul de négociation : recherche du prix maximal sur une grille de
