@@ -1,5 +1,32 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Acheter les murs, sans confusion avec le fonds (26 octobre)
+
+- Qualification commune de la transaction : murs, fonds, droit au bail, offre
+  groupée, location ou nature à confirmer. Une catégorie « local commercial »,
+  un bail et un type libre/occupé inféré ne prouvent plus la vente immobilière.
+- Détection des prix de cession, FDC/DAB, murs en option ou non compris et des
+  lots « murs et fonds ». Les mentions « hors fonds » et un fonds exploité par
+  le locataire sont distingués d'une cession de l'activité elle-même.
+- Les critères de recherche, l'adresse de réception et le pied d'un email ne
+  comptent plus comme déclarations du vendeur. Les blocs globaux ou regroupant
+  plusieurs annonces ne fournissent plus leur prix/nature à un lien individuel.
+- Champs propres aux annonces BureauxLocaux et Point de Vente conservés avec
+  provenance ; absence de booléen distincte de « false ». Une preuve structurée
+  reste liée à l’URL de l’offre ; les contradictions restent bloquantes. Une
+  annonce ambiguë ne récupère plus la preuve immobilière d’une autre offre
+  par simple photo commune, même à prix/surface semblables.
+- Dossiers ambigus hors recommandations, alertes, prix d'offre, comparables de
+  loyers et exports bancaires. Ils restent consultables dans le volet à confirmer.
+- Titres/descriptions rafraîchis même lorsqu'ils raccourcissent ; changement de
+  nature déclenchant une nouvelle lecture de fiche. Un fonds et des murs ne se
+  fusionnent plus sur leur seul prix/surface/secteur.
+- Nettoyage du stock existant, sans suppression des annonces ni notification.
+  Collecte ciblée bornée pour rafraîchir les déclarations des sources.
+- Contrôle réel : 94 annonces reçues de trois sources, 10 nouvelles fiches,
+  4 pages détaillées lues et 2 annonces retirées identifiées. Deux refus d’accès
+  sont conservés comme tels, sans être interprétés comme une vente du bien.
+
 ## Un classement cohérent avec le score affiché (26 octobre)
 
 - Les potentiels après négociation ne passent plus dans le groupe des scores

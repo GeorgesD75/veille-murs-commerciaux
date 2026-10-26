@@ -540,7 +540,8 @@ def test_annonce_d_alerte_ne_peut_pas_declencher_l_email_pepite(config):
     a.temps_trajet_min = 10
     scorer(a, config)
     assert "texte_partiel_alerte" in a.flags
-    assert a.score == config.scoring["seuils"]["pepite"] - 1
+    assert "nature_transaction_a_confirmer" in a.flags
+    assert a.score < config.scoring["seuils"]["affichage"]
 
 
 def test_alerte_qui_dit_murs_reste_eligible(config):

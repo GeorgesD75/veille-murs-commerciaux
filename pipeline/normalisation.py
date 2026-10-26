@@ -49,6 +49,7 @@ def normaliser(brute: AnnonceBrute, quand: str | None = None) -> Annonce:
         images=images,
         description=_nettoyer(brute.description),
         loyer_origine=brute.loyer_origine,
+        nature_transaction_source=brute.nature_transaction_source,
         loyer_estime=brute.loyer_origine == "rendement",
         date_premiere_vue=quand,
         date_derniere_vue=quand,
@@ -56,4 +57,6 @@ def normaliser(brute: AnnonceBrute, quand: str | None = None) -> Annonce:
     for champ in ["prix", "surface_m2", "loyer_mensuel", "code_postal"]:
         if (valeur := getattr(a, champ)) is not None and valeur != "":
             noter_preuve(a, champ, valeur, "source:" + a.source, quand)
+    if a.nature_transaction_source:
+        noter_preuve(a, "nature_transaction", a.nature_transaction_source, "source:" + a.source, quand)
     return a

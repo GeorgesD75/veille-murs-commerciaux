@@ -7,6 +7,7 @@ from pipeline.geo import categorie_emplacement
 from pipeline.modeles import Annonce
 from pipeline.fiabilite import diagnostiquer
 from pipeline.texte import cle_commune, normaliser_texte
+from pipeline.transaction import qualifier_transaction
 
 # Enveloppe des bonus/malus (le poste vaut « 5 pts » dans la formule).
 BONUS_MIN = -3.0
@@ -244,7 +245,7 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
         cfg["seuils"].get("pepite_exige_texte_complet")
         and annonce.source.startswith("alerte_")
         and not annonce.texte_detail
-        and "murs" not in normaliser_texte(annonce.texte_complet())
+        and qualifier_transaction(annonce)["nature"] != "murs"
     ):
         plafond_teaser = int(cfg["seuils"]["pepite"]) - 1
         if annonce.score > plafond_teaser:

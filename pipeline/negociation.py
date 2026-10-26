@@ -44,7 +44,9 @@ def plan_negociation(a: Annonce, config: Config, maintenant: datetime) -> dict:
     """
     diagnostic = diagnostiquer(a)
     raisons = []
-    if a.exclue or diagnostic["bloquant"]:
+    if diagnostic["transaction"]["nature"] != "murs":
+        raisons.append("Confirmer la vente et le prix des murs seuls avant toute proposition immobilière.")
+    elif a.exclue or diagnostic["bloquant"]:
         raisons.append("Résoudre les exclusions ou contradictions de la fiche.")
     if datetime.fromisoformat(a.date_derniere_vue) < maintenant - timedelta(days=14):
         raisons.append("Disponibilité et prix à actualiser : annonce non revue depuis plus de 14 jours.")

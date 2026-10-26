@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from pipeline.modeles import Annonce, TypeMurs
+from pipeline.transaction import qualifier_transaction
 
 MIN_COMPARABLES = 2  # en dessous, pas assez solide pour remplacer le référentiel de zone
 
@@ -38,6 +39,7 @@ class LoyersComparables:
                 and not a.conflits_donnees
                 and a.etat_detail not in {"retiree", "redirection_liste"}
                 and not a.exclue
+                and qualifier_transaction(a)["nature"] == "murs"
                 and a.loyer_mensuel
                 and a.surface_m2
                 and a.code_postal

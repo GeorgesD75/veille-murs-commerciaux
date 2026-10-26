@@ -14,6 +14,12 @@ Trois fois par jour (7 h, 15 h, 23 h), ce système :
 
 Zéro serveur, zéro abonnement : GitHub exécute et héberge tout gratuitement.
 
+Les recommandations exigent une vente des **murs** annoncée explicitement,
+ou un champ structuré propre à l'annonce. Fonds de commerce, droits au bail,
+locations et prix groupant murs et fonds sont écartés. Les intitulés génériques
+et les extraits d'email restent dans les dossiers à confirmer, sans alerte
+pépite ni proposition de prix, tant que la vente immobilière n'est pas établie.
+
 Les fiches « Potentiel à négocier » indiquent aussi un prix cible : au plus
 25 % sous le prix affiché pour rester dans la sélection, avec le seuil pépite
 du barème et une trésorerie prudente à l’équilibre. Le classement par défaut

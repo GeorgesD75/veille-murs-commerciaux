@@ -41,7 +41,9 @@ def messages_contact(a: Annonce) -> dict[str, str]:
     else:
         essentiels.append("Le local sera-t-il vendu libre ou occupé ? S’il est loué, quel est le loyer annuel actuel HT/HC et la prochaine échéance du bail ?")
     essentiels.extend(["Quel est le prix total honoraires inclus, et quel budget annuel reste au propriétaire (charges, taxe foncière, travaux votés) ?"])
-    if d["bloquant"]:
+    if d["transaction"]["nature"] != "murs":
+        essentiels.insert(1, "Le prix affiché achète-t-il les murs en pleine propriété, ou uniquement un fonds de commerce / droit au bail ? Si les murs sont proposés séparément, quel est leur prix immobilier seul ?")
+    elif d["bloquant"]:
         essentiels.insert(1, "J’ai relevé des informations à rapprocher : pouvez-vous confirmer les chiffres de la fiche et de l’annonce (prix, surface et localisation) ?")
     signature = ["", "Merci par avance pour votre retour.", "Cordialement,", "[Votre nom]", "[Votre téléphone]"]
     court = "\n".join(intro + ["Avant d’envisager une visite, pourriez-vous me préciser ces points ?", ""] +

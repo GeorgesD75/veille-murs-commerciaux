@@ -118,6 +118,7 @@ class SourcePointDeVente(SourceHtml):
             ville=ville,
             code_postal=code_postal,
             type_murs=type_murs,
+            nature_transaction_source="murs",  # libellé MURS LIBRES/OCCUPÉS de cette carte
             prix=extraire_nombre(_texte(carte.select_one(".text-price .pull-left"))),
             surface_m2=surface,
             loyer_mensuel=loyer,

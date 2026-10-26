@@ -36,6 +36,7 @@ class AnnonceBrute:
     images: list[str] = field(default_factory=list)  # toutes les photos connues
     description: str = ""
     loyer_origine: str = "annonce"
+    nature_transaction_source: str | None = None  # seulement un champ explicite propre à l'annonce
 
 
 @dataclass
@@ -116,6 +117,7 @@ class Annonce:
     preuves: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     conflits_donnees: list[str] = field(default_factory=list)
     loyer_origine: str = "annonce"
+    nature_transaction_source: str | None = None
 
     # Exclusion
     exclue: bool = False
@@ -134,6 +136,9 @@ class Annonce:
             del d["etat_detail"]
         if d["loyer_origine"] == "annonce":
             del d["loyer_origine"]
+        for cle in ["nature_transaction_source", "marche_prix_m2_median"]:
+            if d[cle] is None:
+                del d[cle]
         return d
 
     @classmethod

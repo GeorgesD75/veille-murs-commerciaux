@@ -23,6 +23,7 @@ import re
 import unicodedata
 from datetime import date
 from pathlib import Path
+from pipeline.transaction import qualifier_transaction
 from typing import Any
 
 from openpyxl import Workbook
@@ -509,7 +510,7 @@ def generer_dossiers(
         ancien.unlink()
     resultats: dict[str, str] = {}
     for a in annonces.values():
-        if a.exclue or a.prix is None or (a.score or 0) < seuil:
+        if a.exclue or a.prix is None or (a.score or 0) < seuil or qualifier_transaction(a)["nature"] != "murs":
             continue
         nom = f"dossier-{_slug(a.ville)}-{a.id[:8]}.xlsx"
         generer_dossier(a, config, dossier / nom)

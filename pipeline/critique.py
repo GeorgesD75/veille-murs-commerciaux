@@ -26,6 +26,7 @@ from typing import Any
 
 from pipeline.config import Config
 from pipeline.modeles import Annonce, TypeMurs
+from pipeline.transaction import qualifier_transaction
 
 log = logging.getLogger("collecteur.critique")
 
@@ -148,6 +149,7 @@ def generer_critiques(annonces: dict[str, Annonce], config: "Config") -> None:
         (
             a for a in annonces.values()
             if not a.exclue and (a.score or 0) >= seuil
+            and qualifier_transaction(a)["nature"] == "murs"
             and (a.critique_ia is None or _critique_perimee(a))
         ),
         key=lambda a: a.score or 0, reverse=True,

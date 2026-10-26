@@ -30,6 +30,7 @@ from pipeline.notifications import notifier, notifier_sante_sources
 from pipeline.rue import evaluer_annonces
 from pipeline.sante import mettre_a_jour as mettre_a_jour_sante
 from pipeline.scoring import scorer
+from pipeline.transaction import qualifier_transaction
 from pipeline.stockage import Stockage
 from pipeline.taux_marche import taux_credit_estime
 from sources import sources_actives
@@ -82,13 +83,17 @@ def integrer(
                     )
                 existante.historique_prix.append({"date": quand, "prix": a.prix})
             # Un champ temporairement absent d'une page ne doit pas effacer le stock.
-            changement = a.prix is not None and a.prix != existante.prix
+            nouvelle_nature = qualifier_transaction(a)["nature"]
+            changement_nature = nouvelle_nature != "a_confirmer" and nouvelle_nature != qualifier_transaction(existante)["nature"]
+            changement = (a.prix is not None and a.prix != existante.prix) or changement_nature
             if a.prix is not None:
                 existante.prix = a.prix
             if a.surface_m2 is not None:
                 changement = changement or a.surface_m2 != existante.surface_m2
                 existante.surface_m2 = a.surface_m2
             existante.type_murs = a.type_murs
+            if a.nature_transaction_source:
+                existante.nature_transaction_source = a.nature_transaction_source
             existante.honoraires = a.honoraires if a.honoraires is not None else existante.honoraires
             if changement:
                 existante.approfondie = False  # relire le détail après un changement matériel
@@ -107,7 +112,9 @@ def integrer(
             # par l'agence, description étoffée…)
             existante.images = a.images or existante.images
             existante.image_url = a.image_url or existante.image_url
-            if len(a.description) > len(existante.description):
+            if a.titre:
+                existante.titre = a.titre
+            if a.description:
                 existante.description = a.description
         else:
             similaire = trouver_similaire(a, annonces.values(), config)

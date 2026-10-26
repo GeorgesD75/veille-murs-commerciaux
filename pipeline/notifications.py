@@ -24,6 +24,7 @@ import requests
 from pipeline.config import Config
 from pipeline.modeles import Annonce
 from pipeline.sante import sources_en_panne
+from pipeline.transaction import qualifier_transaction
 
 log = logging.getLogger("collecteur.notifications")
 
@@ -155,12 +156,13 @@ def notifier(
     deja_notifiees = set(meta.get("pepites_notifiees", []))
     pepites = [
         a for a in annonces.values()
-        if not a.exclue and (a.score or 0) >= seuil_pepite and a.id not in deja_notifiees
+        if not a.exclue and qualifier_transaction(a)["nature"] == "murs"
+        and (a.score or 0) >= seuil_pepite and a.id not in deja_notifiees
     ]
     nouvelles = sorted(
         (
             annonces[i] for i in nouvelles_ids
-            if i in annonces and not annonces[i].exclue
+            if i in annonces and not annonces[i].exclue and qualifier_transaction(annonces[i])["nature"] == "murs"
         ),
         key=lambda a: a.score or 0,
         reverse=True,

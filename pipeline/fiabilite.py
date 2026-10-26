@@ -6,6 +6,7 @@ import re
 
 from pipeline.modeles import Annonce
 from pipeline.texte import normaliser_texte
+from pipeline.transaction import qualifier_transaction
 
 
 def nombre_positif(valeur) -> float | None:
@@ -30,6 +31,9 @@ def noter_preuve(a: Annonce, champ: str, valeur, origine: str, quand: str, extra
 def diagnostiquer(a: Annonce) -> dict:
     texte = normaliser_texte(a.texte_complet())
     alertes = []
+    transaction = qualifier_transaction(a)
+    if transaction["nature"] != "murs":
+        alertes.append({"code": "nature_transaction_a_confirmer", "niveau": "fort", "texte": transaction["motif"]})
     if a.loyer_origine == "rendement":
         alertes.append({"code": "loyer_deduit", "niveau": "attention", "texte": "Loyer reconstitué à partir du rendement annoncé : montant et base de calcul à obtenir."})
     if a.etat_detail == "retiree":
@@ -63,7 +67,7 @@ def diagnostiquer(a: Annonce) -> dict:
         alertes.append({"code": "unite_loyer", "niveau": "attention", "texte": "Un loyer au m² figure dans le texte : confirmer le loyer annuel global HT/HC."})
     forts = sum(e["niveau"] == "fort" for e in alertes)
     # Ce compteur décrit la cohérence des données, pas une probabilité d'achat sûr.
-    return {"alertes": alertes, "bloquant": forts > 0, "occupation": statut,
+    return {"alertes": alertes, "bloquant": forts > 0, "occupation": statut, "transaction": transaction,
             "coherence": max(0, 100 - forts * 30 - (len(alertes) - forts) * 8),
             "preuves": a.preuves, "etat_detail": a.etat_detail,
             "date_detail_vue": a.date_detail_vue}

@@ -22,6 +22,8 @@ recherche:
 
 filtres:
   # Piège n°1 : fonds de commerce / droit au bail déguisés en vente de murs.
+  # Le qualificateur partagé analyse d'abord l'objet vendu et les négations
+  # (« hors fonds ») ; ces mots servent de repli sans vente des murs établie.
   mots_toujours_eliminatoires:
     - "fonds de commerce"
     - "fond de commerce"     # faute courante dans les annonces réelles (constatée

@@ -5,19 +5,22 @@ from pipeline.config import Config
 from pipeline.geo import GRANDE_COURONNE, ILE_DE_FRANCE, PETITE_COURONNE, Trajets
 from pipeline.modeles import Annonce
 from pipeline.texte import normaliser_texte
-
-
-def _mentionne_murs(texte_normalise: str) -> bool:
-    return "murs" in texte_normalise
+from pipeline.transaction import qualifier_transaction
 
 
 def detecter_fonds_de_commerce(annonce: Annonce, config: Config) -> str | None:
     """Piège n°1 du secteur : fonds de commerce ou droit au bail déguisé en murs."""
+    transaction = qualifier_transaction(annonce)
+    if transaction["nature"] in {"fonds", "bail", "mixte", "location"}:
+        return "nature non immobilière : " + transaction["motif"]
     texte = normaliser_texte(annonce.texte_complet())
-    murs = _mentionne_murs(texte)
-    for mot in config.filtres["mots_toujours_eliminatoires"]:
-        if normaliser_texte(mot) in texte:
-            return f"mot-clé éliminatoire « {mot} »"
+    murs = transaction["nature"] == "murs"
+    # Les mentions explicites « hors fonds » et les fonds exploités par le
+    # locataire sont traités en contexte par le qualificateur partagé.
+    if not murs:
+        for mot in config.filtres["mots_toujours_eliminatoires"]:
+            if normaliser_texte(mot) in texte:
+                return f"mot-clé éliminatoire « {mot} »"
     for mot in config.filtres["mots_eliminatoires_sauf_murs"]:
         if normaliser_texte(mot) in texte and not murs:
             return f"mot-clé « {mot} » sans mention explicite des murs"
@@ -50,7 +53,7 @@ def controle_coherence_prix(annonce: Annonce, config: Config) -> str | None:
     if plancher is None:
         return None
     prix_m2 = annonce.prix / annonce.surface_m2
-    if prix_m2 < plancher and not _mentionne_murs(normaliser_texte(annonce.texte_complet())):
+    if prix_m2 < plancher and qualifier_transaction(annonce)["nature"] != "murs":
         return (
             f"suspect_fonds : {prix_m2:.0f} €/m² sous le plancher de {plancher} €/m² "
             "sans mention explicite des murs"

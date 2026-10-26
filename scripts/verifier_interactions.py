@@ -108,6 +108,8 @@ def main():
         page.goto((RACINE / "docs/index.html").as_uri(), wait_until="domcontentloaded")
         assert not page.locator("#volet-filtres").evaluate("e=>e.open")
         assert page.locator(".carte").first.bounding_box()["y"] < 290
+        assert page.locator("#bloc-prio .carte .carte-img, #bloc-etudier .carte .carte-img").evaluate_all(
+            "els=>els.every(e=>D.retenues.find(a=>a.id===e.dataset.id).decision.diagnostic.transaction.nature==='murs')")
         assert not page.locator(".analyse-annonce").first.evaluate("e=>e.open")
         page.locator(".analyse-annonce > summary").first.click()
         assert page.locator(".analyse-contenu").first.is_visible()

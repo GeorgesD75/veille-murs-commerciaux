@@ -43,6 +43,7 @@ from bs4.element import Tag
 from pipeline.modeles import AnnonceBrute
 from sources.base import Source
 from sources.extraction import (
+    LIMITE_DESCRIPTION,
     deviner_type_murs,
     extraire_nombre,
     extraire_surface,
@@ -275,6 +276,12 @@ def extraire_annonces_html(
             continue
 
         bloc = _bloc_annonce(lien)
+        if bloc.name in ("body", "html"):
+            continue  # l'en-tête ou une autre annonce ne doivent pas fournir les chiffres/la nature
+        ids_du_bloc = {m.group(1) for voisin in bloc.find_all("a", href=True)
+                       if (m := portail.motif_lien.search(unquote(str(voisin["href"]))))}
+        if len(ids_du_bloc) > 1:
+            continue  # impossible d'attribuer le texte à cette seule annonce
         texte = bloc.get_text(" ", strip=True)
 
         prix_candidats = [extraire_nombre(m.group(1)) for m in _PRIX_EURO.finditer(texte)]
@@ -312,7 +319,7 @@ def extraire_annonces_html(
             surface_m2=extraire_surface(texte),
             loyer_mensuel=loyer_mensuel_depuis_texte(texte, prix),
             image_url=str(image["src"]) if image is not None else None,
-            description=texte[:400],
+            description=texte[:LIMITE_DESCRIPTION],
         )
     return list(annonces.values())
 

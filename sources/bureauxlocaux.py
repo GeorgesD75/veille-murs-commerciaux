@@ -167,6 +167,8 @@ class SourceBureauxLocaux(SourceHtml):
             ville=_texte_propre(item.get("city")),
             code_postal=_texte_propre(item.get("zip_code")),
             type_murs=type_murs,
+            nature_transaction_source=("fonds" if caract.get("is_sale_of_business_assets") is True else
+                                       "murs" if caract.get("is_sale_of_business_assets") is False else None),
             prix=prix,
             surface_m2=surface,
             loyer_mensuel=loyer_mensuel_depuis_texte(description, prix),

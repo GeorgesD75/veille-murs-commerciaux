@@ -52,6 +52,8 @@ def analyser_decision(a: Annonce, config: Config) -> dict:
     diagnostic = diagnostiquer(a)
     loyer = a.loyer_mensuel or a.loyer_mensuel_estime
     manquants = []
+    if diagnostic["transaction"]["nature"] != "murs":
+        manquants.append("Confirmation écrite de la vente des murs seuls et du prix immobilier, hors fonds et droit au bail")
     if not a.surface_m2:
         manquants.append("Surface privative et surface de vente en rez-de-chaussée")
     if not a.texte_detail:

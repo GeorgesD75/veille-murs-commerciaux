@@ -85,6 +85,7 @@ def preparer_payload(
         reverse=True,
     ):
         negociation = plan_negociation(a, config, maintenant)
+        decision = analyser_decision(a, config)
         if negociation["prix_plafond"] is not None:
             negociation["message"] = message_negociation(a, negociation)
         retenues.append(
@@ -92,7 +93,7 @@ def preparer_payload(
                 "id": a.id,
                 "pepite": est_pepite(a, config) and _iso(a.date_derniere_vue) >= seuil_retiree,
                 "recherche": priorite_recherche(a, config),
-                "decision": analyser_decision(a, config),
+                "decision": decision,
                 "negociation": negociation,
                 "modeles_contact": contact_compact(a),
                 "etat_detail": a.etat_detail,
@@ -150,7 +151,7 @@ def preparer_payload(
                 "peut_etre_retiree": a.etat_detail == "retiree" or (_iso(a.date_derniere_vue) < seuil_retiree
                                      and not _source_en_panne(a.source)),
                 # classeur Excel « dossier banque », si généré pour ce bien
-                "dossier": f"dossiers/{dossiers[a.id]}" if dossiers and a.id in dossiers else None,
+                "dossier": f"dossiers/{dossiers[a.id]}" if dossiers and a.id in dossiers and not decision["diagnostic"]["bloquant"] else None,
             }
         )
 
@@ -160,7 +161,7 @@ def preparer_payload(
     # occuperait la 1re place fausserait toute la comparaison.
     rang = 0
     for a in retenues:
-        if a["peut_etre_retiree"]:
+        if a["peut_etre_retiree"] or a["decision"]["diagnostic"]["transaction"]["nature"] != "murs":
             a["rang_score"] = None
         else:
             rang += 1
@@ -170,9 +171,10 @@ def preparer_payload(
     # peu de comparables = valorisation plus incertaine, à dire honnêtement.
     compte_secteur: dict[str, int] = {}
     for a in retenues:
-        compte_secteur[a["code_postal"]] = compte_secteur.get(a["code_postal"], 0) + 1
+        if a["decision"]["diagnostic"]["transaction"]["nature"] == "murs":
+            compte_secteur[a["code_postal"]] = compte_secteur.get(a["code_postal"], 0) + 1
     for a in retenues:
-        a["nb_comparables_secteur"] = compte_secteur[a["code_postal"]] - 1  # hors soi-même
+        a["nb_comparables_secteur"] = max(0, compte_secteur.get(a["code_postal"], 0) - int(a["decision"]["diagnostic"]["transaction"]["nature"] == "murs"))
 
     # Exclusions récentes : le hors-zone est compté mais pas détaillé — seules
     # les exclusions instructives (prix, fonds déguisé, trajet) ont une ligne.
@@ -217,7 +219,7 @@ def preparer_payload(
             # classement affiché (« se classe Xᵉ sur Y ») — les annonces
             # probablement retirées n'y comptent pas.
             "retenues": rang,
-            "nouvelles": sum(1 for a in retenues if a["est_nouvelle"] and not a["peut_etre_retiree"]),
+            "nouvelles": sum(1 for a in retenues if a["est_nouvelle"] and not a["peut_etre_retiree"] and a["decision"]["diagnostic"]["transaction"]["nature"] == "murs"),
             "pepites": sum(1 for a in retenues if a["pepite"]),
             "analysees": len(retenues) + len(exclues_recentes),
             "exclues_recentes": len(exclues_recentes),
@@ -1107,6 +1109,9 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
   <details class="repli">
     <summary>La méthode Les Murs. — que vérifier avant de faire une offre</summary>
     <div class="methode">
+      <p>La recherche porte sur l’achat immobilier des murs. Un fonds de commerce ou un droit au bail n’achète pas le local.
+        Les offres sans preuve de vente des murs restent à confirmer, hors recommandations.
+        <a href="https://bpifrance-creation.fr/encyclopedie/reprendre-entreprise-etapes/choisir-montage-juridique-fiscal/achat-dun-fonds-commerce" target="_blank" rel="noopener">Comprendre la distinction</a>.</p>
       <h4>Le bail (le vrai produit que vous achetez)</h4>
       <ul>
         <li>Date de signature et prochaine échéance triennale — un bail récent sécurise, un bail en fin de période se renégocie.</li>
@@ -1845,12 +1850,12 @@ function decisionHtml(a) {
   if (!d || !r) return "";
   const cf = d.cashflow_prudent;
   const diagnostic = d.diagnostic || {alertes:[], preuves:{}};
-  const action = diagnostic.bloquant ? "Vérifier les chiffres avant d’avancer" :
+  const action = diagnostic.transaction && diagnostic.transaction.nature !== "murs" ? "Faire confirmer la vente des murs seuls" : diagnostic.bloquant ? "Vérifier les chiffres avant d’avancer" :
     d.loyer_estime ? "Confirmer le revenu locatif" : cf != null && cf < 0 ? "Étudier le prix et l’effort d’épargne" : "Demander les pièces pour qualifier le dossier";
   const montant = v => v == null ? "—" : `${v >= 0 ? "+" : "−"}${fmtEuros(Math.abs(v))}`;
-  const NOMS = {prix:"Prix",surface_m2:"Surface",loyer_mensuel:"Loyer mensuel",code_postal:"Code postal"};
+  const NOMS = {prix:"Prix",surface_m2:"Surface",loyer_mensuel:"Loyer mensuel",code_postal:"Code postal",nature_transaction:"Nature de la vente"};
   const preuves = Object.entries(diagnostic.preuves || {}).flatMap(([champ, entrees]) => entrees.map(e =>
-    `<tr><th scope="row">${NOMS[champ] || ech(champ)}</th><td>${ech(String(e.valeur))}${champ === "surface_m2" ? " m²" : champ === "code_postal" ? "" : " €"}</td>
+    `<tr><th scope="row">${NOMS[champ] || ech(champ)}</th><td>${ech(String(e.valeur))}${champ === "surface_m2" ? " m²" : ["prix","loyer_mensuel"].includes(champ) ? " €" : ""}</td>
       <td>${ech(e.origine)}<br>${fmtDate(e.observe_le)}</td></tr>`)).join("");
   return `<div class="decision">
     <div class="decision-action">${action}</div>
@@ -1873,6 +1878,7 @@ function decisionHtml(a) {
        *Net des provisions, avant financement et impôt. ${d.loyer_estime ? "Loyer estimé" : "Loyer annoncé"}, à justifier.
        Hypothèses de prudence, à remplacer par les montants réels ; ce prix n’est pas une estimation de valeur.</small></details>`}
     <details><summary>Origine des chiffres et points de vigilance</summary>
+      ${diagnostic.transaction ? `<p><b>Nature de l’offre :</b> ${ech(diagnostic.transaction.motif)}${diagnostic.transaction.extrait ? ` — ${ech(diagnostic.transaction.origine)} : « ${ech(diagnostic.transaction.extrait)} »` : ""}</p>` : ""}
       ${diagnostic.alertes.map(e => `<p class="alerte-donnee ${e.niveau}">${ech(e.texte)}</p>`).join("")}
       <p>Fiche : ${a.etat_detail === "lu" ? "lue le " + fmtDate(a.date_detail_vue) : a.etat_detail === "retiree" ? "retirée ou introuvable" : a.etat_detail === "refuse" ? "accès refusé par le site" : a.etat_detail === "temporaire" ? "temporairement indisponible" : a.etat_detail === "pauvre" ? "contenu insuffisant" : "pas de lecture complète tracée"}.</p>
       ${preuves ? `<table class="preuves-table"><thead><tr><th>Repère</th><th>Valeur déclarée</th><th>Origine et date</th></tr></thead><tbody>${preuves}</tbody></table>` : "<p>Valeurs issues du stock historique : provenance détaillée non enregistrée avant cette mise à jour.</p>"}
@@ -1892,6 +1898,8 @@ function carteHtml(a, options) {
   const prixSuspect = (a.flags || []).includes("prix_m2_anormalement_bas") || a.decision?.diagnostic?.bloquant;
   const badges = [];
   badges.push(`<span class="badge badge-type">${a.decision?.diagnostic?.occupation === "a_confirmer" ? "Occupation à confirmer" : a.type_murs === "murs_occupes" ? "Murs occupés" : "Murs libres"}</span>`);
+  if (a.decision?.diagnostic?.transaction && a.decision.diagnostic.transaction.nature !== "murs")
+    badges[0] = '<span class="badge badge-alerte">Vente des murs à confirmer</span>';
   if ((a.decote_pct ?? 0) >= 15 && !suspect && !prixSuspect) {
     // La confiance de la décote dépend de sa source : des ventes réelles DVF
     // valent bien plus qu'un référentiel écrit à la main — un écart qu'on
@@ -2352,7 +2360,7 @@ function rendre() {
     `Le reste du tableau de chasse (${reste.length}) — score sous ${D.seuils.affichage}`;
   document.getElementById("reste-liste").innerHTML = reste.map(ligneCompacteHtml).join("");
   document.getElementById("bloc-verifier").style.display = verifier.length ? "" : "none";
-  document.querySelector("#bloc-verifier > summary").textContent = `${verifier.length} annonce(s) avec des chiffres à vérifier — écartées des recommandations`;
+  document.querySelector("#bloc-verifier > summary").textContent = `${verifier.length} dossier(s) à confirmer : nature de la vente ou chiffres — hors recommandations`;
   document.getElementById("verifier-liste").innerHTML = verifier.map(ligneCompacteHtml).join("");
 
   document.getElementById("compteur").textContent =

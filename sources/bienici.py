@@ -71,7 +71,7 @@ class SourceBienici(SourceHtml):
     def convertir(self, donnees: dict[str, Any]) -> list[AnnonceBrute]:
         annonces: list[AnnonceBrute] = []
         for a in donnees.get("realEstateAds", []):
-            if a.get("adType") != "buy":  # cessions de fonds : hors sujet
+            if a.get("adType") != "buy":  # écarte la location ; « buy » ne prouve pas l'achat des murs
                 continue
             identifiant = str(a.get("id", "")).strip()
             if not identifiant:
