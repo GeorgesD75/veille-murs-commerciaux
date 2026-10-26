@@ -10,6 +10,7 @@ from pipeline.decision import analyser_decision, est_pepite
 from pipeline.enrichissement import position_vs_fourchette
 from pipeline.fiabilite import diagnostiquer, nombre_positif
 from pipeline.filtres import plancher_prix_m2
+from pipeline.financement import hypotheses_exploitation
 from pipeline.modeles import Annonce
 from pipeline.scoring import scorer
 
@@ -67,11 +68,8 @@ def plan_negociation(a: Annonce, config: Config, maintenant: datetime) -> dict:
     cfg = config["analyse"].get("negociation", {})
     pas = max(1, int(cfg.get("pas_euros", 1000)))
     # Une taxe inconnue ne vaut pas zéro pour décider d'un prix d'achat.
-    base = deepcopy(a)
-    taxe_estimee = a.taxe_fonciere_annuelle is None
-    if taxe_estimee:
-        mois = config["analyse"].get("dossier_banque", {}).get("taxe_fonciere_mois_loyer", 1)
-        base.taxe_fonciere_annuelle = a.loyer_mensuel * mois
+    base = a
+    exploitation = hypotheses_exploitation(a, config)
     plafond_rdt = config.scoring["seuil_alerte_rendement_pct"]
     prix_min = max(a.loyer_mensuel * 1200 / plafond_rdt,
                    (plancher_prix_m2(a.departement, config) or 0) * a.surface_m2)
@@ -111,7 +109,7 @@ def plan_negociation(a: Annonce, config: Config, maintenant: datetime) -> dict:
                      "cashflow_cible": decision["cashflow_prudent"], "stress_cible": decision["cashflow_stress"],
                      "cout_total": round(plafond * 1.08 + (a.honoraires or 0)),
                      "apport_reference": round((plafond * 1.08 + (a.honoraires or 0)) * decision["apport_pct"] / 100),
-                     "taxe_estimee": taxe_estimee, "taxe_annuelle_retenue": base.taxe_fonciere_annuelle,
+                     "taxe_estimee": exploitation["taxe_estimee"], "taxe_annuelle_retenue": exploitation["taxe_annuelle_retenue"],
                      "pas_euros": pas, "marge_ouverture_pct": cfg.get("marge_ouverture_pct", 3),
                      "selection": plafond < a.prix and remise <= cfg.get("remise_selection_max_pct", 25),
                      "hypotheses": {k: decision[k] for k in ["apport_pct", "taux_pct", "duree_ans", "vacance_pct", "charges_pct"]}})

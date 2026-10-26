@@ -29,6 +29,14 @@ ouvre les hypothèses, le prix plafond et un brouillon de discussion à copier.
 Un prix calculé ne valide ni le bail ni l’accord du vendeur. Les données
 incomplètes ou contradictoires doivent être clarifiées avant de chiffrer.
 
+La trésorerie des cartes et du simulateur utilise votre profil de financement
+et déduit les provisions de vacance, charges et taxe foncière. Si la taxe est
+inconnue, l’équivalent d’un mois de loyer est provisionné pour l’année et signalé. Le score conserve
+un financement de référence commun. Le simulateur permet d’ajuster les revenus
+et charges et de tester directement un prix plafond, sans modifier l’annonce.
+Vos brouillons de contact sont conservés sur votre appareil, par annonce et par
+étape, y compris après fermeture ou rechargement ; aucun message n’est envoyé.
+
 ---
 
 ## Mise en route (~30 minutes, une seule fois)

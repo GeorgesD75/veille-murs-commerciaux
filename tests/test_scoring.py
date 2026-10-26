@@ -255,11 +255,17 @@ def test_financement_cash_flow_positif_plein(config):
 
 
 def test_financement_deficit_leger_score_partiel(config):
-    # Mensualité (≈ 1 764 €) légèrement au-dessus du loyer (1 700 €, défaut fabrique) :
-    # déficit < 10 % du loyer -> encore finançable de justesse (3 pts).
-    a = faire_annonce(prix=340_000.0, surface_m2=100.0)
+    # Le revenu après provisions couvre presque le crédit : déficit < 10 %
+    # du loyer annoncé, à distinguer du calcul optimiste sans charges.
+    a = faire_annonce(prix=260_000.0, surface_m2=100.0)
     scorer(a, config)
     assert a.detail_score["financement"] == 3.0
+
+
+def test_financement_deduit_les_provisions(config):
+    a = faire_annonce(prix=340_000.0, surface_m2=100.0)
+    scorer(a, config)
+    assert a.detail_score["financement"] == 0.0
 
 
 def test_financement_sans_loyer_zero(config):

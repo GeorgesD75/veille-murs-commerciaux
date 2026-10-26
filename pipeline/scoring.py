@@ -6,6 +6,7 @@ from pipeline.filtres import plancher_prix_m2
 from pipeline.geo import categorie_emplacement
 from pipeline.modeles import Annonce
 from pipeline.fiabilite import diagnostiquer
+from pipeline.financement import hypotheses_exploitation, mensualite_credit
 from pipeline.texte import cle_commune, normaliser_texte
 from pipeline.transaction import qualifier_transaction
 
@@ -121,14 +122,8 @@ def _points_financement(annonce: Annonce, cfg: dict, config: Config) -> float:
     apport_pct = float(fcfg.get("apport_reference_pct", 20)) / 100
     cout_acte_en_main = annonce.prix * 1.08 + (annonce.honoraires or 0)
     emprunt = cout_acte_en_main * (1 - apport_pct)
-    if emprunt <= 0:
-        cash_flow = loyer
-    else:
-        t = float(financement["taux_pct"]) / 100 / 12
-        n = int(financement["duree_ans"]) * 12
-        mensualite = emprunt * t / (1 - (1 + t) ** -n) if t else emprunt / n
-        cash_flow = loyer - mensualite
-    cash_flow -= (annonce.taxe_fonciere_annuelle or 0) / 12
+    mensualite = mensualite_credit(emprunt, float(financement["taux_pct"]), int(financement["duree_ans"]))
+    cash_flow = hypotheses_exploitation(annonce, config)["revenu_prudent"] - mensualite
     if cash_flow >= 0:
         return plein
     # Léger déficit (< 10 % du loyer, par défaut) : encore finançable de justesse.

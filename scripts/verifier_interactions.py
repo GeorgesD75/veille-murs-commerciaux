@@ -115,6 +115,95 @@ def verifier_exceptions_pepites(browser):
     page.close()
 
 
+def verifier_financement_et_brouillons(browser):
+    page = browser.new_page(viewport={"width": 1440, "height": 1000})
+    erreurs = []
+    page.on("pageerror", lambda e: erreurs.append(str(e)))
+    page.route("**/*", lambda r: r.abort() if r.request.resource_type == "image" else r.continue_())
+    page.goto((RACINE / "docs/index.html").as_uri(), wait_until="domcontentloaded")
+    identifiant = page.evaluate("D.retenues[0].id")
+    page.evaluate("id=>ouvrirContact(id)", identifiant)
+    modele = page.locator("#contact-texte").input_value()
+    personnalise = "Bonjour,\nMon créneau : vendredi à 14 h. <Texte personnel>"
+    page.locator("#contact-texte").fill(personnalise)
+    page.locator("[data-contact-mode=dossier]").click()
+    page.locator("#contact-texte").fill("Merci de joindre le bail et le plan coté.")
+    page.locator("[data-contact-mode=court]").click()
+    assert page.locator("#contact-texte").input_value() == personnalise
+    page.keyboard.press("Escape")
+    page.reload(wait_until="domcontentloaded")
+    page.evaluate("id=>ouvrirContact(id)", identifiant)
+    assert page.locator("#contact-texte").input_value() == personnalise
+    assert page.locator("[data-contact-mode=court]").get_attribute("aria-pressed") == "true"
+    page.evaluate("ouvrirContact(D.retenues[1].id)")
+    assert page.locator("#contact-texte").input_value() != personnalise
+    page.evaluate("id=>ouvrirContact(id)", identifiant)
+    page.locator("#contact-modele").click()
+    assert page.locator("#contact-texte").input_value() == modele
+    page.locator("[data-contact-mode=dossier]").click()
+    assert page.locator("#contact-texte").input_value() == "Merci de joindre le bail et le plan coté."
+    page.locator("#contact-texte").fill("")
+    page.keyboard.press("Escape")
+    page.evaluate("id=>ouvrirContact(id)", identifiant)
+    assert page.locator("#contact-texte").input_value() == ""
+    assert page.evaluate("Object.keys(suivi).length===0")  # écrire/copier n'est pas envoyer
+    page.keyboard.press("Escape")
+
+    # Confrontation des deux moteurs sur les données réelles, sans arrondi caché.
+    assert page.evaluate("""() => D.retenues.filter(a=>a.decision.revenu_prudent!=null).every(a=>{
+      const e=exploitation(a), d=a.decision;
+      return Math.abs(e.revenu-d.revenu_prudent)<1e-6 && Math.abs(e.stress-d.revenu_stress)<1e-6
+        && Math.abs(e.taxe-d.taxe_annuelle_retenue)<1e-6;
+    })""")
+    page.evaluate("""() => {
+      const a=structuredClone(D.retenues[0]);
+      Object.assign(a,{id:'finance-test',prix:200000,honoraires:10000,loyer_mensuel:1500,
+        loyer_mensuel_estime:null,loyer_estime:false,taxe_fonciere_annuelle:null,
+        surface_m2:30,temps_trajet_min:15,score:65,pepite:false,peut_etre_retiree:false});
+      a.decision.diagnostic.bloquant=false;
+      a.negociation={prix_plafond:180000,message:'Bonjour, échangeons sur le prix.'};
+      D.retenues=[a];
+      Object.assign(profil,{apportMode:'pct',apport:20,taux:0,duree:20});
+      ouvrirSimulateur(a.id);
+    }""")
+    assert page.evaluate("cashflowMensuel(D.retenues[0])") == 352
+    assert "352" in page.locator(".sim-bilan").inner_text()
+    assert "NaN" not in page.locator("#outil-contenu").inner_text()
+    page.locator("#sim-hypotheses > summary").click()
+    page.locator('[data-sim-champ="taxe"]').fill("0")
+    page.locator('[data-sim-champ="taxe"]').press("Tab")
+    assert page.locator("#sim-hypotheses").evaluate("e=>e.open")
+    assert "477" in page.locator(".sim-bilan").inner_text()
+    page.locator('[data-sim-champ="loyer"]').fill("0")
+    page.locator('[data-sim-champ="loyer"]').press("Tab")
+    assert page.evaluate("simEtat.loyer") == 0
+    page.locator('[data-sim-champ="charges"]').fill("99")
+    page.locator('[data-sim-champ="charges"]').press("Tab")
+    assert page.evaluate("simEtat.charges") == 10
+    page.locator('[data-sim-champ="charges"]').fill("10")
+    page.locator('[data-sim-champ="charges"]').press("Tab")
+    assert page.evaluate("D.retenues[0].loyer_mensuel===1500 && D.retenues[0].taxe_fonciere_annuelle===null && D.retenues[0].score===65")
+    for largeur in [320, 390, 768, 1440]:
+        page.set_viewport_size({"width": largeur, "height": 844})
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth")
+    page.evaluate("ouvrirSimulateur('finance-test',180000)")
+    assert page.locator('[data-sim-champ="prix"]').input_value() == "180000"
+    # Le brouillon chiffré reste distinct des étapes de prise de contact.
+    page.evaluate("""() => {
+      const a=D.retenues[0];
+      a.negociation.hypotheses={apport_pct:20,duree_ans:20,taux_pct:0,vacance_pct:8,charges_pct:10};
+      ouvrirProposition(a.id);
+    }""")
+    page.locator("#contact-texte").fill("Ma discussion personnalisée à 180 000 euros.")
+    page.keyboard.press("Escape")
+    page.evaluate("ouvrirProposition('finance-test')")
+    assert page.locator("#contact-texte").input_value() == "Ma discussion personnalisée à 180 000 euros."
+    page.locator('[data-sim-prix="180000"]').click()
+    assert page.locator('[data-sim-champ="prix"]').input_value() == "180000"
+    assert not erreurs, erreurs
+    page.close()
+
+
 def main():
     candidats = [shutil.which("google-chrome"), shutil.which("chromium"),
                  r"C:\Program Files\Google\Chrome\Application\chrome.exe"]
@@ -186,6 +275,7 @@ def main():
         assert page.locator(".carte").first.bounding_box()["y"] < 280
         assert not erreurs, erreurs
         verifier_exceptions_pepites(browser)
+        verifier_financement_et_brouillons(browser)
         browser.close()
     print("Interactions, persistance, simulateur et responsive 320–1440 px : OK")
 

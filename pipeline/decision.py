@@ -4,6 +4,7 @@ from __future__ import annotations
 from pipeline.config import Config
 from pipeline.modeles import Annonce, TypeMurs
 from pipeline.fiabilite import diagnostiquer
+from pipeline.financement import hypotheses_exploitation, mensualite_credit
 
 
 def est_pepite(a: Annonce, config: Config) -> bool:
@@ -48,7 +49,6 @@ def priorite_recherche(a: Annonce, config: Config) -> dict:
 
 def analyser_decision(a: Annonce, config: Config) -> dict:
     """Chiffres avant impôt ; provisions explicites, aucune donnée manquante inventée."""
-    cfg = config.donnees.get("recherche", {})
     diagnostic = diagnostiquer(a)
     loyer = a.loyer_mensuel or a.loyer_mensuel_estime
     manquants = []
@@ -79,25 +79,19 @@ def analyser_decision(a: Annonce, config: Config) -> dict:
     resultat = {"documentation": documente * 20, "questions": manquants, "diagnostic": diagnostic,
                 "risques": risques, "loyer_estime": bool(a.loyer_estime or not a.loyer_mensuel),
                 "cashflow_prudent": None, "prix_equilibre": None}
+    exploitation = hypotheses_exploitation(a, config)
+    resultat.update(exploitation)
     if diagnostic["bloquant"] or not loyer or not a.prix:
         return resultat
     f = config["analyse"]["financement"]
     apport = float(config.scoring.get("financement", {}).get("apport_reference_pct", 20)) / 100
-    n = int(f["duree_ans"]) * 12
-    t = float(f["taux_pct"]) / 1200
-    coefficient = t / (1 - (1 + t) ** -n) if t else 1 / n
-    vacance = float(cfg.get("vacance_prudente_pct", 8)) / 100
-    charges = float(cfg.get("provision_charges_pct", 10)) / 100
-    # Taxe déduite par prudence même si refacturation annoncée : à vérifier au bail.
-    taxe = (a.taxe_fonciere_annuelle or 0) / 12
-    revenu = loyer * (1 - vacance - charges) - taxe
+    coefficient = mensualite_credit(1, float(f["taux_pct"]), int(f["duree_ans"]))
+    revenu = exploitation["revenu_prudent"]
     cout_total = a.prix * 1.08 + (a.honoraires or 0)
     mensualite = cout_total * (1-apport) * coefficient
-    # Stress explicite : loyer -10 %, deux mois de vacance, mêmes charges en %.
-    stress = loyer * .9 * (10/12 - charges) - taxe
+    stress = exploitation["revenu_stress"]
     resultat.update({"cashflow_prudent": round(revenu - mensualite),
                      "prix_equilibre": round(max(0, (revenu / ((1-apport)*coefficient) - (a.honoraires or 0)) / 1.08)),
-                     "vacance_pct": vacance * 100, "charges_pct": charges * 100,
                      "apport_pct": apport * 100, "taux_pct": f["taux_pct"], "duree_ans": f["duree_ans"],
                      "cashflow_stress": round(stress - mensualite),
                      "rendement_net_prudent": round(revenu * 12 / cout_total * 100, 2),

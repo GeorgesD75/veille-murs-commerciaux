@@ -1,5 +1,25 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Financement cohérent et brouillons conservés (26 octobre)
+
+- Même exploitation prudente pour le financement du score, l’analyse et les
+  prix cibles : vacance et charges provisionnées, taxe foncière annoncée ou
+  provision d’un mois de loyer si inconnue. Zéro déclaré reste distinct d’une
+  donnée absente ; la provision ne remplace jamais la valeur vendeur en stock.
+- La trésorerie visible sur les cartes suit désormais le profil personnel,
+  comme le filtre de trésorerie positive, le comparateur et le simulateur.
+  Le score et le prix plafond gardent leur financement de référence explicite.
+- Simulateur : résultat prudent et dégradé mis en avant, détail du crédit
+  repliable, loyer/taxe/vacance/charges ajustables sans modifier le stock.
+  Passage direct du prix plafond à un essai avec son propre financement.
+- Taux zéro pris en charge ; hypothèses invalides refusées. Le stress reste
+  plus défavorable si la vacance prudente dépasse déjà deux mois par an.
+- Brouillons enregistrés localement par annonce et étape, y compris la
+  négociation. Réouverture, changement d’étape et rechargement préservent les
+  textes ; retour au modèle limité à l’étape active, sans marquer un envoi.
+- Validation : 478 tests Python et contrôles navigateur des calculs Python/JS,
+  profils, brouillons et écrans de 320 à 1 440 px.
+
 ## Déplier les pépites à contacter en priorité (26 octobre)
 
 - Analyse ouverte automatiquement pour les pépites détectées depuis moins de

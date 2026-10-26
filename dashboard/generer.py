@@ -653,6 +653,9 @@ a.btn-outil:hover { text-decoration: none; border-color: var(--marque); }
 .sim-champs input { background: var(--plan); color: var(--encre-1); border: 1px solid var(--bord);
   border-radius: 7px; padding: 6px 8px; font: inherit; width: 110px; }
 .sim-resultats { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 6px; }
+.sim-bilan { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:16px 0; }
+.sim-bilan .metrique { padding:14px; border:1px solid var(--filet); border-radius:10px; background:var(--plan); }
+.sim-bilan .valeur { margin-top:5px; font-size:23px; }
 .check-groupe h4 { font-family: Fraunces, Georgia, serif; margin: 14px 0 6px; font-size: 15px; }
 .check-item { display: flex; gap: 9px; align-items: baseline; padding: 4px 0; font-size: 14px; }
 .check-item .auto { font-size: 11.5px; color: var(--vert-texte); background: var(--vert-fond);
@@ -661,6 +664,8 @@ a.btn-outil:hover { text-decoration: none; border-color: var(--marque); }
 .contact-texte { width: 100%; box-sizing: border-box; background: var(--plan); color: var(--encre-1);
   border: 1px solid var(--bord); border-radius: 9px; padding: 12px; font: 13.5px/1.55 system-ui, sans-serif;
   resize: vertical; margin-top: 10px; }
+.contact-actions { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px; }
+.contact-brouillon { display:block; font-size:12px; color:var(--encre-2); margin-top:8px; }
 .critique-texte { background: var(--plan); border-left: 3px solid var(--marque); border-radius: 0 9px 9px 0;
   padding: 14px 16px; font-size: 14px; line-height: 1.6; color: var(--encre-1); white-space: pre-wrap; }
 .critique-note { font-size: 12.5px; color: var(--encre-3); margin-top: 10px; }
@@ -1427,11 +1432,24 @@ function jaugeMarcheHtml(a) {
   </div>`;
 }
 
-// Taxe foncière mensualisée, SEULEMENT quand l'annonce donne un montant —
-// sinon 0, comme avant (jamais devinée). Un cash-flow qui l'ignore reste
-// optimiste par rapport à la réalité ; autant le corriger quand on le sait.
-function taxeFonciereMensuelle(a) {
-  return (a.taxe_fonciere_annuelle ?? 0) / 12;
+// Mêmes hypothèses prudentes que le score et le prix de négociation Python.
+function exploitation(a, scenario = {}) {
+  const loyer = scenario.loyer ?? a.loyer_mensuel ?? a.loyer_mensuel_estime;
+  const vacance = scenario.vacance ?? D.recherche.vacance_prudente_pct ?? 8;
+  const charges = scenario.charges ?? D.recherche.provision_charges_pct ?? 10;
+  const taxeConnue = Number.isFinite(a.taxe_fonciere_annuelle) && a.taxe_fonciere_annuelle >= 0;
+  const moisTaxe = D.analyse.dossier_banque?.taxe_fonciere_mois_loyer ?? 1;
+  const taxe = scenario.taxe ?? (taxeConnue ? a.taxe_fonciere_annuelle : (loyer == null ? null : loyer * moisTaxe));
+  return {loyer, vacance, charges, taxe,
+    taxeEstimee: scenario.taxeEstimee ?? !taxeConnue,
+    revenu: loyer == null ? null : loyer * (1 - (vacance + charges) / 100) - taxe / 12,
+    stress: loyer == null ? null : loyer * .9 * (1 - Math.max(2/12, vacance/100) - charges/100) - taxe / 12};
+}
+
+function taxeFonciereTexte(a) {
+  const e = exploitation(a);
+  return e.taxe == null ? "Taxe foncière à préciser" :
+    `Taxe foncière ${e.taxeEstimee ? "provisionnée" : "annoncée"} : ${fmtEuros(e.taxe)}/an`;
 }
 
 // --- Apport : pourcentage du coût, ou somme fixe en € (cf. PROFIL_DEFAUT) ---
@@ -1452,17 +1470,11 @@ function apportLibelle() {  // « 20 % apport » / « 80 000 € apport »
 }
 
 function cashflowMensuel(a) {
-  // Coût acte en main (prix × 1,08) financé selon le PROFIL de l'utilisateur
-  // (apport, taux, durée) — hors assurance et gestion dans tous les cas ;
-  // hors taxe foncière SEULEMENT si l'annonce ne la précise pas.
-  const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
-  if (loyer == null || a.prix == null) return null;
+  const e = exploitation(a);
+  if (e.revenu == null || a.prix == null || a.decision?.diagnostic?.bloquant) return null;
   const cout = a.prix * 1.08 + (a.honoraires || 0);
   const emprunt = cout - apportEurosPour(cout);
-  if (emprunt <= 0) return Math.round(loyer - taxeFonciereMensuelle(a));
-  const t = profil.taux / 100 / 12, n = profil.duree * 12;
-  const m = emprunt * t / (1 - Math.pow(1 + t, -n));
-  return Math.round(loyer - m - taxeFonciereMensuelle(a));
+  return Math.round(e.revenu - (emprunt > 0 ? mensualite(emprunt, profil.taux, profil.duree) : 0));
 }
 
 function apportMinimalCashflowPositif(a) {
@@ -1472,14 +1484,14 @@ function apportMinimalCashflowPositif(a) {
   // répond à la question personnelle « avec MES conditions, il me faut combien ? »
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   if (loyer == null || a.prix == null) return null;
-  const taxe = taxeFonciereMensuelle(a);
+  const revenu = exploitation(a).revenu;
   const cout = a.prix * 1.08 + (a.honoraires || 0);
   for (const apport of [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]) {
     const emprunt = cout * (1 - apport / 100);
     const m = emprunt > 0 ? mensualite(emprunt, profil.taux, profil.duree) : 0;
     // Le seuil est cherché en %, mais rendu AUSSI en € : c'est la somme que
     // l'acheteur doit réellement sortir, la seule qui se compare à son épargne.
-    if (loyer - m - taxe >= 0) return {pct: apport, euros: Math.round(cout * apport / 100)};
+    if (revenu - m >= 0) return {pct: apport, euros: Math.round(cout * apport / 100)};
   }
   return null;  // jamais positif, même à 90 % d'apport
 }
@@ -1574,7 +1586,9 @@ function enClairHtml(a) {
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   const cf = cashflowMensuel(a);
   const suspect = (a.flags || []).includes("rendement_anormalement_eleve");
-  if (cf == null) {
+  if (a.decision?.diagnostic?.bloquant) {
+    phrases.push("Les données présentent une contradiction ou une information essentielle à confirmer. Clarifiez les alertes avec le vendeur avant de retenir une rentabilité.");
+  } else if (cf == null) {
     phrases.push("Ni loyer ni estimation fiable : impossible de dire ce que ce bien rapporte sans creuser l'annonce.");
   } else if (suspect) {
     phrases.push(`Le vendeur promet ${fmtEuros(loyer)}/mois de loyer — un niveau anormalement élevé. À prouver par un bail signé avant d'y croire.`);
@@ -1584,7 +1598,7 @@ function enClairHtml(a) {
       : "estimé au référentiel du secteur — plus incertain";
     phrases.push(`Local vide : aucun loyer tant qu'un commerçant n'est pas trouvé. Au loyer ${base} (${fmtEuros(loyer)}/mois), financé ${finTxt()}, il ${cf >= 0 ? `laisserait ≈ ${fmtEuros(cf)}/mois` : `demanderait ≈ ${fmtEuros(-cf)}/mois de votre poche`}.`);
   } else if (cf >= 0) {
-    phrases.push(`Financé ${finTxt()}, le loyer en place paie le crédit et laisse ≈ ${fmtEuros(cf)}/mois, avant taxe foncière et impôts.`);
+    phrases.push(`Financé ${finTxt()}, il resterait ≈ ${fmtEuros(cf)}/mois après crédit, provisions de vacance et charges, taxe foncière annoncée ou provisionnée ; avant impôt et assurance emprunteur.`);
   } else {
     phrases.push(`Financé ${finTxt()}, le loyer en place ne couvre pas tout : ≈ ${fmtEuros(-cf)}/mois à sortir de votre poche${apportEstNul() ? " — un apport ou une négociation réduit cet effort" : ""}.`);
   }
@@ -1645,24 +1659,44 @@ function messageContact(a, mode = "court") {
   return ["Bonjour,", "", a.url, "", "Ce bien est-il toujours disponible ?", "", "Cordialement,"].join(String.fromCharCode(10));
 }
 
+const CLE_BROUILLONS = "veille-murs-brouillons-v1";
+let brouillonsContact = {};
+try { brouillonsContact = JSON.parse(localStorage.getItem(CLE_BROUILLONS) || "{}") || {}; } catch (e) {}
+
+function texteContact(a, mode) {
+  const sauvegarde = brouillonsContact[a.id]?.textes?.[mode];
+  if (typeof sauvegarde === "string") return sauvegarde;
+  return mode === "negociation" ? (a.negociation?.message || "") : messageContact(a, mode);
+}
+
+function enregistrerBrouillons() {
+  try { localStorage.setItem(CLE_BROUILLONS, JSON.stringify(brouillonsContact)); return true; }
+  catch (e) { return false; }
+}
+
+function actionsContactHtml() {
+  return `<div class="contact-actions">
+    <button type="button" class="btn-outil" id="contact-copier">${IC.coche} Copier le message</button>
+    <button type="button" class="btn-outil" id="contact-modele">Revenir au modèle</button>
+    <span id="contact-copie-ok" role="status" style="display:none">Copié ✓</span>
+  </div><span id="contact-brouillon" class="contact-brouillon" role="status">Vos modifications sont conservées sur cet appareil, par annonce et par étape. Aucun envoi automatique.</span>`;
+}
+
 function ouvrirContact(id) {
   const a = D.retenues.find(x => x.id === id);
   if (!a) return;
+  const precedent = brouillonsContact[id]?.mode;
+  const mode = ["court", "dossier", "relance"].includes(precedent) ? precedent : "court";
   document.getElementById("outil-contenu").innerHTML = `
     <h3>${IC.enveloppe} Contacter le vendeur — ${ech(a.titre)}</h3>
     <p style="font-size:13px;color:var(--encre-2)">Choisissez l’étape de votre démarche. Le message tient compte de l’occupation annoncée et des informations manquantes.
     Relisez-le avant de le copier ; aucun message n’est envoyé par l’application.</p>
     <div class="contact-modes" role="group" aria-label="Étape de contact">
-      <button type="button" class="btn-outil actif" data-contact-mode="court" data-contact-id="${ech(id)}">1. Premier contact</button>
-      <button type="button" class="btn-outil" data-contact-mode="dossier" data-contact-id="${ech(id)}">2. Demander les pièces</button>
-      <button type="button" class="btn-outil" data-contact-mode="relance" data-contact-id="${ech(id)}">3. Relancer</button>
+      ${[["court", "1. Premier contact"], ["dossier", "2. Demander les pièces"], ["relance", "3. Relancer"]].map(([cle, label]) => `<button type="button" class="btn-outil${cle === mode ? " actif" : ""}" aria-pressed="${cle === mode}" data-contact-mode="${cle}" data-contact-id="${ech(id)}">${label}</button>`).join("")}
     </div>
     <label for="contact-texte">Message à personnaliser</label>
-    <textarea id="contact-texte" class="contact-texte" rows="15">${ech(messageContact(a))}</textarea>
-    <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
-      <button type="button" class="btn-outil" id="contact-copier">${IC.coche} Copier le message</button>
-      <span id="contact-copie-ok" style="font-size:13px;color:var(--vert-texte);display:none">Copié ✓</span>
-    </div>`;
+    <textarea id="contact-texte" class="contact-texte" data-contact-id="${ech(id)}" data-mode="${mode}" rows="15">${ech(texteContact(a, mode))}</textarea>
+    ${actionsContactHtml()}`;
   document.getElementById("outil-fond").style.display = "block";
 }
 
@@ -1684,6 +1718,7 @@ function ouvrirProposition(id) {
       rendement brut ${fmtPct(n.rendement_cible_pct)}, trésorerie prudente <b>${signe(n.cashflow_cible)}</b>,
       scénario dégradé ${signe(n.stress_cible)}.</p>
     <p class="offre-note">Référence du modèle : ${h.apport_pct} % d’apport, ${h.duree_ans} ans à ${h.taux_pct} % ; avant impôt et assurance emprunteur.</p>
+    <button type="button" class="btn-outil" data-sim="${ech(a.id)}" data-sim-prix="${n.prix_plafond}">Tester ce prix avec mon financement</button>
     <details><summary>Comprendre le calcul et ses limites</summary>
       <p>Le plafond est le prix maximal trouvé sur une grille de ${fmtEuros(n.pas_euros)}, avec le seuil pépite et une trésorerie prudente ≥ 0.
       Le loyer reste constant ; une baisse de prix ne résout pas un défaut du bien.
@@ -1699,9 +1734,8 @@ function ouvrirProposition(id) {
     <p class="offre-note">Brouillon de discussion à personnaliser. Une offre d’achat formelle peut vous engager :
       <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F2753" target="_blank" rel="noopener">vérifier les conditions</a> avec votre notaire. Aucun envoi depuis l’application.</p>
     <label for="contact-texte">Message à personnaliser</label>
-    <textarea id="contact-texte" class="contact-texte" rows="13">${ech(n.message || "")}</textarea>
-    <button type="button" class="btn-outil" id="contact-copier">${IC.coche} Copier le message</button>
-    <span id="contact-copie-ok" style="display:none">Copié ✓</span>`;
+    <textarea id="contact-texte" class="contact-texte" data-contact-id="${ech(id)}" data-mode="negociation" rows="13">${ech(texteContact(a, "negociation"))}</textarea>
+    ${actionsContactHtml()}`;
   document.getElementById("outil-fond").style.display = "block";
 }
 
@@ -1734,7 +1768,7 @@ const EXPLICATIONS = {
   },
   prix_m2_vs_benchmark: "Est-ce cher pour le quartier ? On compare le prix au m² à ce qui se vend autour — aux VENTES RÉELLES enregistrées chez le notaire (DVF) quand la commune en compte assez, sinon au référentiel interne. Nettement moins cher que le marché (−20 %) = 18 pts. Dans les prix = 8. Plus cher = 0.",
   financement: a => {
-    let base = "Le bien s'autofinance-t-il à un apport et un taux DE RÉFÉRENCE fixes (20 % d'apport, le taux de marché du jour) — pas votre profil personnel réglable plus haut, pour que ce chiffre reste comparable d'une annonce à l'autre. Cash-flow positif = 5 pts ; léger déficit (< 10 % du loyer) = 3 pts ; déficit important = 0.";
+    let base = "Trésorerie prudente à un apport et un taux de référence fixes (20 % d'apport, taux du modèle), pour comparer les biens. Vacance, charges et taxe foncière annoncée ou provisionnée sont déduites. Trésorerie positive = 5 pts ; déficit inférieur à 10 % du loyer = 3 pts ; au-delà = 0. Votre profil personnel agit sur vos simulations, sans changer le score.";
     return base;
   },
   fiscalite: "Signaux fiscaux repérés dans l'annonce : TVA récupérable ou zone à avantage fiscal (+1,5 pt chacun), taxe foncière signalée élevée (−1,5 pt). Rien de mentionné = 2,5/5, neutre — une information absente n'est pas une mauvaise nouvelle en soi.",
@@ -1873,8 +1907,8 @@ function decisionHtml(a) {
        <p>Prix d’équilibre simulé : <b>${fmtEuros(d.prix_equilibre)}</b> ; couverture de la dette : ${d.couverture_dette ?? "—"}× (1× = revenus nets égaux au crédit).
        Scénario dégradé : loyer −10 %, deux mois sans loyer par an ; effort d’épargne : ${fmtEuros(d.effort_annuel_stress)}/an.</p>
        <small>Référence fixe : ${d.apport_pct} % d’apport, ${d.duree_ans} ans à ${d.taux_pct} %, frais d’achat 8 %, plus honoraires séparés renseignés.
-       Provisions : vacance ${d.vacance_pct} % et charges ${d.charges_pct} % du loyer ; taxe foncière connue déduite.
-       Avant impôt, assurance emprunteur et travaux exceptionnels${a.taxe_fonciere_annuelle == null ? "; taxe foncière inconnue, non déduite" : ""}.
+       Provisions : vacance ${d.vacance_pct} % et charges ${d.charges_pct} % du loyer ; ${ech(taxeFonciereTexte(a))}, déduite.
+       Avant impôt, assurance emprunteur et travaux exceptionnels.
        *Net des provisions, avant financement et impôt. ${d.loyer_estime ? "Loyer estimé" : "Loyer annoncé"}, à justifier.
        Hypothèses de prudence, à remplacer par les montants réels ; ce prix n’est pas une estimation de valeur.</small></details>`}
     <details><summary>Origine des chiffres et points de vigilance</summary>
@@ -1928,11 +1962,9 @@ function carteHtml(a, options) {
     badges.push(`<span class="badge badge-type" title="Le score de ce bien reposait sur un loyer ESTIMÉ à partir d'une moyenne de zone (ou d'un loyer annoncé par le vendeur sur des murs libres) — jamais un bail signé. C'est assez solide pour bien le classer, pas pour déclencher une alerte « pépite » : son score est donc plafonné juste sous ce seuil. Faites confirmer le loyer réellement praticable, et ce bien peut redevenir un dossier de tête.">score plafonné · loyer à confirmer</span>`);
   if (cf != null && cf >= 0 && !suspect) {
     const reel = a.loyer_mensuel != null && !a.loyer_estime;
-    const taxeTxt = a.taxe_fonciere_annuelle != null
-      ? `, taxe foncière déduite (${fmtEuros(a.taxe_fonciere_annuelle)}/an)` : ", hors taxe foncière";
     badges.push(`<span class="badge badge-autofinance" title="${reel
-      ? `Le loyer du bail en place couvre la mensualité (financement ${finTxt()}${taxeTxt}, hors gestion) : le bien se paie tout seul.`
-      : `Au loyer ESTIMÉ, le bien couvrirait son crédit (${finTxt()}) — à prouver par un bail.`}">${IC.etincelle} ${reel ? "s'autofinance" : "s'autofinancerait"}</span>`);
+      ? `Avec votre financement (${finTxt()}), le loyer annoncé couvrirait le crédit, les provisions de vacance et charges et la taxe foncière. ${taxeFonciereTexte(a)}. Avant impôt et assurance ; pièces à vérifier.`
+      : `Au loyer estimé, le scénario prudent serait à l'équilibre (${finTxt()}). Revenu et charges à confirmer.`}">${IC.etincelle} ${reel ? "équilibre prudent" : "équilibre estimé"}</span>`);
   }
   // Contrepartie honnête du badge ci-dessus. Le score juge le BIEN (rendement
   // 37 pts, emplacement 25, prix vs marché 18 — le financement n'en pèse que
@@ -2019,8 +2051,7 @@ function carteHtml(a, options) {
     (suspect ? `<span title="Calculé sur le loyer PROMIS par le vendeur — un tel niveau est
       presque toujours irréaliste : à prouver par un bail avant d'y croire."> ⚠</span>` : "") +
     `<span class="info-i" data-sim="${ech(a.id)}"
-      title="Loyer − mensualité du coût acte en main (prix × 1,08) financé selon VOTRE profil : ${finTxt()}${a.taxe_fonciere_annuelle != null
-        ? ` − taxe foncière (${fmtEuros(a.taxe_fonciere_annuelle)}/an, donnée par l'annonce)` : " — hors taxe foncière (non précisée par l'annonce)"}, hors assurance et gestion. Réglable dans « Filtres & réglages » ou en cliquant ici.">i</span>`;
+      title="Scénario prudent avec votre profil : ${finTxt()}. Loyer moins crédit, vacance et charges provisionnées. ${ech(taxeFonciereTexte(a))}, déduite. Avant impôt et assurance. Cliquez pour simuler.">i</span>`;
   const fiscal = rendementNetImpot(a);
   const fiscalHtml = fiscal == null ? "" : fmtPct(fiscal.pct) +
     ` <span class="info-i" title="Estimation grossière pour COMPARER deux régimes, pas un calcul fiscal officiel — ` +
@@ -2034,8 +2065,8 @@ function carteHtml(a, options) {
     ["Surface", a.surface_m2 == null ? "—" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²", ""],
     ["Loyer/mois", loyer == null ? "—" : fmtEuros(loyer) + est + loyerInfo, ""],
     ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "") + rdtBrutInfo, "cle"],
-    ["Trésorerie prudente", a.decision?.cashflow_prudent == null ? "—" :
-      `${a.decision.cashflow_prudent >= 0 ? "+" : "−"}${fmtEuros(Math.abs(a.decision.cashflow_prudent))}/mois`, "cle"],
+    ["Prudent · mon profil", cf == null ? "—" :
+      `${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois`, "cle"],
     ["Trajet", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min", ""],
   ].map(([l, v, rang]) =>
     `<div class="metrique${rang ? " metrique--" + rang : ""}"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
@@ -2504,43 +2535,46 @@ let simId = null;
 let simEtat = {prix: 0, apport: profil.apport, apportMode: profil.apportMode,
                apportEuros: profil.apportEuros, taux: profil.taux, duree: profil.duree};
 
-function ouvrirSimulateur(id) {
+function ouvrirSimulateur(id, prix = null) {
   const a = D.retenues.find(x => x.id === id);
   if (!a || a.prix == null) return;
   simId = id;
-  simEtat = {prix: Math.round(a.prix), apport: profil.apport,
+  const e = exploitation(a);
+  simEtat = {prix: prix ?? a.prix, apport: profil.apport,
              apportMode: profil.apportMode, apportEuros: profil.apportEuros,
-             taux: profil.taux, duree: profil.duree};
+             taux: profil.taux, duree: profil.duree, loyer:e.loyer,
+             taxe:e.taxe, taxeEstimee:e.taxeEstimee, vacance:e.vacance, charges:e.charges};
   rendreSimulateur();
   document.getElementById("outil-fond").style.display = "block";
 }
 
 function rendreSimulateur() {
   const a = D.retenues.find(x => x.id === simId);
-  const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
-  const taxe = taxeFonciereMensuelle(a);
+  const e = exploitation(a, simEtat), loyer = e.loyer;
+  const hypothesesOuvertes = document.getElementById("sim-hypotheses")?.open;
   const cout = simEtat.prix * 1.08 + (a.honoraires || 0);
   const apportEuros = simEtat.apportMode === "euros"
-    ? Math.round(Math.max(0, Math.min(simEtat.apportEuros, cout)))  // jamais plus que le bien
-    : Math.round(cout * simEtat.apport / 100);
+    ? Math.max(0, Math.min(simEtat.apportEuros, cout))
+    : cout * simEtat.apport / 100;
   const emprunt = Math.max(0, cout - apportEuros);
   const m = emprunt > 0 ? mensualite(emprunt, simEtat.taux, simEtat.duree) : 0;
-  const cf = loyer != null ? Math.round(loyer - m - taxe) : null;
+  const cf = e.revenu == null ? null : Math.round(e.revenu - m);
+  const stress = e.stress == null ? null : Math.round(e.stress - m);
   const interets = Math.round(m * simEtat.duree * 12 - emprunt);
   const coc = (loyer != null && apportEuros > 0)
-    ? ((loyer - m - taxe) * 12 / apportEuros * 100) : null;
+    ? ((e.revenu - m) * 12 / apportEuros * 100) : null;
 
   // Grille de scénarios : le triangle apport × durée
   const apports = [10, 20, 30], durees = [15, 20, 25];
   let meilleurCf = -Infinity;
   const cellules = durees.map(d => apports.map(ap => {
     const e2 = cout * (1 - ap / 100);
-    const cf2 = loyer != null ? Math.round(loyer - mensualite(e2, simEtat.taux, d) - taxe) : null;
+    const cf2 = e.revenu == null ? null : Math.round(e.revenu - mensualite(e2, simEtat.taux, d));
     if (cf2 != null && cf2 > meilleurCf) meilleurCf = cf2;
     return cf2;
   }));
   const grille = loyer == null ? "" : `
-    <p style="margin:14px 0 4px;font-weight:600">Cash-flow mensuel selon apport et durée
+    <p style="margin:14px 0 4px;font-weight:600">Trésorerie prudente selon apport et durée
       <span style="color:var(--encre-3);font-weight:400">(taux ${simEtat.taux} %)</span></p>
     <table class="sim-grille"><tr><th></th>${apports.map(ap => `<th>apport ${ap} %</th>`).join("")}</tr>
     ${durees.map((d, i) => `<tr><th>${d} ans</th>${cellules[i].map(v =>
@@ -2554,27 +2588,43 @@ function rendreSimulateur() {
   document.getElementById("outil-contenu").innerHTML = `
     <h3>${IC.calc} Financer — ${ech(a.titre)}</h3>
     <div class="sim-champs">
-      <label>Prix négocié (€)<input type="number" step="5000" min="0" value="${simEtat.prix}" data-sim-champ="prix"></label>
+      <label>Prix négocié (€)<input type="number" step="any" min="1" value="${simEtat.prix}" data-sim-champ="prix"></label>
       ${simEtat.apportMode === "euros"
-        ? `<label>Apport (€) — 0 = crédit 100 %<input type="number" step="1000" min="0" value="${simEtat.apportEuros}" data-sim-champ="apportEuros"></label>`
-        : `<label>Apport (%) — 0 = crédit 100 %<input type="number" step="5" min="0" max="100" value="${simEtat.apport}" data-sim-champ="apport"></label>`}
-      <label>Taux (%)<input type="number" step="0.1" min="0.5" max="8" value="${simEtat.taux}" data-sim-champ="taux"></label>
+        ? `<label>Apport (€) — 0 = crédit 100 %<input type="number" step="any" min="0" value="${simEtat.apportEuros}" data-sim-champ="apportEuros"></label>`
+        : `<label>Apport (%) — 0 = crédit 100 %<input type="number" step="any" min="0" max="100" value="${simEtat.apport}" data-sim-champ="apport"></label>`}
+      <label>Taux (%)<input type="number" step="any" min="0" max="20" value="${simEtat.taux}" data-sim-champ="taux"></label>
       <label>Durée (ans)<input type="number" step="1" min="5" max="27" value="${simEtat.duree}" data-sim-champ="duree"></label>
     </div>
+    <details id="sim-hypotheses"${hypothesesOuvertes ? " open" : ""}>
+      <summary>Ajuster les revenus et charges</summary>
+      <div class="sim-champs">
+        <label>Loyer mensuel HT/HC (€)<input type="number" step="any" min="0" value="${simEtat.loyer ?? ""}" data-sim-champ="loyer"></label>
+        <label>Taxe foncière annuelle (€)<input type="number" step="any" min="0" value="${simEtat.taxe ?? ""}" data-sim-champ="taxe"></label>
+        <label>Vacance (% du loyer)<input type="number" step="any" min="0" max="99" value="${simEtat.vacance}" data-sim-champ="vacance"></label>
+        <label>Charges à votre charge (%)<input type="number" step="any" min="0" max="99" value="${simEtat.charges}" data-sim-champ="charges"></label>
+      </div>
+      <small>Charges : provision pour entretien, gestion et charges non récupérables, hors taxe foncière. Vos essais modifient cette simulation uniquement ; les données et le score de l’annonce restent identiques.</small>
+    </details>
+    <p class="offre-note">${loyer == null ? "Revenu manquant : renseignez-le pour calculer. " : a.loyer_estime ? "Revenu estimé, à confirmer par une mise en location. " : "Loyer déclaré, à justifier par le bail et les quittances. "}${e.taxe == null ? "Taxe foncière à renseigner." : e.taxeEstimee ? "Taxe inconnue : provision de " + fmtEuros(e.taxe) + "/an, remplaçable ci-dessus." : "Taxe retenue : " + fmtEuros(e.taxe) + "/an."}</p>
+    ${a.decision?.diagnostic?.bloquant ? '<p class="alerte-donnee fort">Simulation exploratoire : résolvez les alertes sur les données avant de retenir ce résultat.</p>' : ""}
+    <div class="sim-bilan">
+      <div class="metrique"><div class="libelle">Chaque mois · prudent</div><div class="valeur" style="color:${cf >= 0 ? "var(--vert-texte)" : "var(--alerte-texte)"}">${cf == null ? "—" : (cf >= 0 ? "+" : "−") + fmtEuros(Math.abs(cf))}</div></div>
+      <div class="metrique"><div class="libelle">Scénario dégradé · par mois</div><div class="valeur">${stress == null ? "—" : (stress >= 0 ? "+" : "−") + fmtEuros(Math.abs(stress))}</div></div>
+    </div>
+    <details><summary>Coût, apport et crédit · ${fmtEuros(Math.round(m))}/mois de mensualité</summary>
     <div class="sim-resultats">
       <div class="metrique"><div class="libelle">Coût acte en main</div><div class="valeur">${fmtEuros(Math.round(cout))}</div></div>
       <div class="metrique"><div class="libelle">Apport</div><div class="valeur">${fmtEuros(apportEuros)}</div></div>
       <div class="metrique"><div class="libelle">Emprunt</div><div class="valeur">${fmtEuros(Math.round(emprunt))}</div></div>
       <div class="metrique"><div class="libelle">Mensualité</div><div class="valeur">${fmtEuros(Math.round(m))}</div></div>
-      <div class="metrique"><div class="libelle">Cash-flow/mois</div><div class="valeur" style="color:${cf >= 0 ? "var(--vert-texte)" : "var(--alerte-texte)"}">${cf == null ? "—" : (cf >= 0 ? "+" : "−") + fmtEuros(Math.abs(cf))}</div></div>
       <div class="metrique"><div class="libelle">Rdt des fonds propres</div><div class="valeur">${coc == null ? "—" : fmtPct(coc)}</div></div>
       <div class="metrique"><div class="libelle">Intérêts totaux</div><div class="valeur">${fmtEuros(interets)}</div></div>
-    </div>
+    </div></details>
     ${grille}
     <p style="font-size:12px;color:var(--encre-3);margin-top:10px">Calcul : coût acte en main = prix × 1,08
-    (droits ~7,5 % + frais), plus honoraires séparés renseignés ; mensualité = annuité classique ; cash-flow = loyer − mensualité${taxe > 0
-      ? ` − taxe foncière (${fmtEuros(a.taxe_fonciere_annuelle)}/an, donnée par l'annonce)` : ""}.
-    Hors assurance emprunteur (~0,2-0,4 %/an) et gestion${taxe > 0 ? "" : " ; taxe foncière non précisée par l'annonce, donc pas déduite"}.
+    (hypothèse de frais), plus honoraires séparés renseignés ; trésorerie = loyer − crédit − vacance (${e.vacance} %) − charges (${e.charges} %) − taxe (${fmtEuros(e.taxe)}/an).
+    Scénario dégradé : loyer −10 %, au moins deux mois de vacance par an, mêmes charges en pourcentage et même taxe.
+    Avant impôt, assurance emprunteur et travaux exceptionnels.
     Le taux par défaut est une moyenne de marché à ajuster avec votre banque — aucune donnée
     bancaire en direct ici, par honnêteté.</p>`;
 }
@@ -2665,8 +2715,16 @@ document.addEventListener("change", ev => {
     // saisie LÉGITIME et explicitement proposée (« 0 = crédit 100 % ») — elle
     // revenait silencieusement à l'ancienne valeur. Seul un champ vide ou
     // illisible (NaN) doit être ignoré.
-    const v = parseFloat(champ.value);
-    if (!isNaN(v)) simEtat[champ.dataset.simChamp] = v;
+    champ.setCustomValidity("");
+    const v = champ.valueAsNumber, cle = champ.dataset.simChamp;
+    if (!Number.isFinite(v) || !champ.reportValidity()) return;
+    if ((cle === "vacance" && v + simEtat.charges >= 100) ||
+        (cle === "charges" && v + simEtat.vacance >= 100)) {
+      champ.setCustomValidity("La vacance et les charges doivent totaliser moins de 100 % du loyer.");
+      champ.reportValidity(); return;
+    }
+    simEtat[cle] = v;
+    if (cle === "taxe") simEtat.taxeEstimee = false;
     rendreSimulateur();
     return;
   }
@@ -2754,10 +2812,26 @@ document.addEventListener("click", ev => {
     const a = D.retenues.find(x => x.id === modeContact.dataset.contactId);
     if (!a) return;
     const champ = document.getElementById("contact-texte");
-    if (champ.dataset.modifie === "oui" && !confirm("Remplacer le texte que vous avez personnalisé par ce modèle ?")) return;
-    champ.value = messageContact(a, modeContact.dataset.contactMode);
-    champ.dataset.modifie = "non";
-    document.querySelectorAll("[data-contact-mode]").forEach(b => b.classList.toggle("actif", b === modeContact));
+    const mode = modeContact.dataset.contactMode;
+    champ.value = texteContact(a, mode);
+    champ.dataset.mode = mode;
+    const dossier = brouillonsContact[a.id] ||= {textes:{}};
+    dossier.mode = mode;
+    enregistrerBrouillons();
+    document.querySelectorAll("[data-contact-mode]").forEach(b => {
+      b.classList.toggle("actif", b === modeContact);
+      b.setAttribute("aria-pressed", String(b === modeContact));
+    });
+    return;
+  }
+  if (ev.target.closest("#contact-modele")) {
+    const champ = document.getElementById("contact-texte");
+    const a = D.retenues.find(x => x.id === champ.dataset.contactId), mode = champ.dataset.mode;
+    if (!a) return;
+    if (brouillonsContact[a.id]?.textes) delete brouillonsContact[a.id].textes[mode];
+    champ.value = texteContact(a, mode);
+    const ok = enregistrerBrouillons();
+    document.getElementById("contact-brouillon").textContent = ok ? "Modèle rétabli pour cette étape." : "Modèle rétabli en mémoire ; le stockage local est indisponible.";
     return;
   }
   // Carrousel photo
@@ -2784,7 +2858,7 @@ document.addEventListener("click", ev => {
     return;
   }
   const sim = ev.target.closest("[data-sim]");
-  if (sim) { ouvrirSimulateur(sim.dataset.sim); return; }
+  if (sim) { ouvrirSimulateur(sim.dataset.sim, sim.dataset.simPrix == null ? null : Number(sim.dataset.simPrix)); return; }
   const chk = ev.target.closest("[data-check]");
   if (chk) { ouvrirChecklist(chk.dataset.check); return; }
   const contact = ev.target.closest("[data-contact]");
@@ -2793,7 +2867,7 @@ document.addEventListener("click", ev => {
   if (offre) { ouvrirProposition(offre.dataset.offre); return; }
   const critique = ev.target.closest("[data-critique]");
   if (critique) { ouvrirCritique(critique.dataset.critique); return; }
-  if (ev.target.id === "contact-copier") {
+  if (ev.target.closest("#contact-copier")) {
     const champ = document.getElementById("contact-texte");
     const confirmer = () => {
       const ok = document.getElementById("contact-copie-ok");
@@ -2815,7 +2889,15 @@ document.addEventListener("click", ev => {
   }
 });
 document.addEventListener("input", ev => {
-  if (ev.target.id === "contact-texte") ev.target.dataset.modifie = "oui";
+  if (ev.target.id !== "contact-texte") return;
+  const champ = ev.target, id = champ.dataset.contactId, mode = champ.dataset.mode;
+  if (!id || !mode) return;
+  const dossier = brouillonsContact[id] ||= {textes:{}};
+  dossier.textes[mode] = champ.value;
+  dossier.mode = mode;
+  const ok = enregistrerBrouillons();
+  document.getElementById("contact-brouillon").textContent = ok
+    ? "Brouillon enregistré sur cet appareil." : "Brouillon conservé en mémoire ; le stockage local est indisponible.";
 });
 
 /* ---- Onglet « Le marché » : le paysage derrière les annonces ----
