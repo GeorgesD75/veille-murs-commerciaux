@@ -51,6 +51,29 @@ def verifier_exceptions_pepites(browser):
     assert page.locator(".carte-img").evaluate_all("els=>els.map(e=>e.dataset.id)") == ["grande", "limite", "mieux-note", "petite", "potentiel"]
     assert page.locator("#bloc-prio .carte-img").evaluate_all("els=>els.map(e=>e.dataset.id)") == ["grande", "limite"]
     assert page.locator("#bloc-etudier .carte-img").evaluate_all("els=>els.map(e=>e.dataset.id)") == ["mieux-note", "petite", "potentiel"]
+    # Le même signal commande l'urgence et le dépliage. Scénarios temporaires,
+    # sans modifier le stock publié ni les scénarios de filtrage ci-dessous.
+    page.evaluate("D.retenues.forEach(a=>a.est_nouvelle=true); rendre()")
+    urgente = page.locator('.carte:has(.carte-img[data-id="grande"])')
+    assert urgente.locator(".analyse-annonce").evaluate("e=>e.open")
+    assert "Contact prioritaire" in urgente.locator(".analyse-annonce > summary").inner_text()
+    assert "Contactez le vendeur en priorité" in urgente.locator(".questions-reponses").text_content()
+    assert not page.locator('.carte:has(.carte-img[data-id="potentiel"]) .analyse-annonce').evaluate("e=>e.open")
+    assert not page.locator('.carte:has(.carte-img[data-id="mieux-note"]) .analyse-annonce').evaluate("e=>e.open")
+    assert page.evaluate("['retiree','contradictoire'].every(id=>!contactPrioritaire(D.retenues.find(a=>a.id===id)))")
+    urgente.locator(".analyse-annonce > summary").click()
+    assert not urgente.locator(".analyse-annonce").evaluate("e=>e.open")
+    urgente.locator(".analyse-annonce > summary").click()
+    assert urgente.locator(".analyse-contenu").is_visible()
+    for statut in ["contactee", "visite_prevue", "visitee", "offre_faite", "abandonnee"]:
+        page.evaluate("statut=>{suivi.grande={statut}; rendre()}", statut)
+        assert page.evaluate("!contactPrioritaire(D.retenues.find(a=>a.id==='grande'))")
+        if statut != "abandonnee":
+            assert not urgente.locator(".analyse-annonce").evaluate("e=>e.open")
+    page.evaluate("suivi.grande={statut:'suivie'}; rendre()")
+    assert urgente.locator(".analyse-annonce").evaluate("e=>e.open")
+    page.evaluate("delete suivi.grande; D.retenues.forEach(a=>a.est_nouvelle=false); rendre()")
+    assert not urgente.locator(".analyse-annonce").evaluate("e=>e.open")
     assert "82/100" in page.locator('.carte:has([data-offre="potentiel"]) .offre-cible').inner_text()
     assert page.locator(".exception-recherche").count() == 3
     assert "65 m²" in page.locator(".exception-recherche").first.inner_text()
@@ -110,8 +133,8 @@ def main():
         assert page.locator(".carte").first.bounding_box()["y"] < 290
         assert page.locator("#bloc-prio .carte .carte-img, #bloc-etudier .carte .carte-img").evaluate_all(
             "els=>els.every(e=>D.retenues.find(a=>a.id===e.dataset.id).decision.diagnostic.transaction.nature==='murs')")
-        assert not page.locator(".analyse-annonce").first.evaluate("e=>e.open")
-        page.locator(".analyse-annonce > summary").first.click()
+        assert page.locator(".carte").first.evaluate("e=>e.querySelector('.analyse-annonce').open === contactPrioritaire(D.retenues.find(a=>a.id===e.querySelector('.carte-img').dataset.id))")
+        page.locator(".analyse-annonce").first.evaluate("e=>e.open=true")
         assert page.locator(".analyse-contenu").first.is_visible()
         page.locator(".analyse-annonce > summary").first.click()
         page.locator(".outils-annonce > summary").first.click()

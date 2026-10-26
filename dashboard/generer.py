@@ -1543,8 +1543,8 @@ function questionsReponsesHtml(a) {
 
   let urgence;
   if (suspect) urgence = "Non — vérifiez d'abord le bail et le loyer réel avant toute démarche.";
-  else if (a.est_nouvelle && (a.score ?? 0) >= D.seuils.vert)
-    urgence = "Pas de quoi signer sans visite, mais contactez vite : annonce fraîche et bien notée, elle peut partir.";
+  else if (contactPrioritaire(a))
+    urgence = "Contactez le vendeur en priorité : pépite récemment détectée. Confirmez la disponibilité et demandez les pièces avant toute offre.";
   else urgence = "Aucune urgence particulière détectée — prenez le temps de visiter et de vérifier.";
   lignes.push(["Dois-je faire une offre aujourd'hui ?", urgence]);
 
@@ -2043,6 +2043,7 @@ function carteHtml(a, options) {
   const tampon = options.medaille != null
     ? `<div><span class="tampon">${TAMPONS[options.medaille]}</span></div>` : "";
   const pepite = estPepite(a);
+  const prioriteContact = contactPrioritaire(a);
   const exceptions = options.exceptions || [];
   const dansComp = comparaison.includes(a.id);
 
@@ -2060,7 +2061,7 @@ function carteHtml(a, options) {
       ${exceptions.length ? `<div class="exception-recherche">Hors de vos préférences : ${exceptions.map(ech).join(" · ")}</div>` : ""}
       <div class="metriques">${metriques}</div>
       ${a.negociation?.prix_plafond != null ? `<div class="offre-cible"><span>${a.negociation.statut === "deja_cible" ? "Simulation au prix affiché" : "Si négocié à"} <b>${fmtEuros(a.negociation.prix_plafond)}</b> : <b>${a.negociation.score_cible}/100 simulés</b>${a.negociation.remise_pct > 0 ? ` (−${fmtPct(a.negociation.remise_pct)})` : ""}${a.negociation.taxe_estimee ? " · taxe provisionnée" : ""}</span><button type="button" data-offre="${ech(a.id)}">Étudier la proposition</button></div>` : ""}
-      <details class="analyse-annonce"><summary>Voir l’analyse et les informations à vérifier <span aria-hidden="true">⌄</span></summary>
+      <details class="analyse-annonce"${prioriteContact ? " open" : ""}><summary>${prioriteContact ? "Contact prioritaire · analyse et vérifications" : "Voir l’analyse et les informations à vérifier"} <span aria-hidden="true">⌄</span></summary>
       <div class="analyse-contenu">
       <p class="provenance-annonce">${ech(a.source || "source non renseignée")} · détectée le ${fmtDate(a.date_premiere_vue)}${joursMarcheHtml(a.date_premiere_vue)}${liens}</p>
       <div class="badges">${badges.slice(1).join("")}</div>
@@ -2247,6 +2248,16 @@ function filtres() {
 
 function estPepite(a) {
   return a.pepite === true && !a.peut_etre_retiree && !a.decision?.diagnostic?.bloquant;
+}
+
+function contactPrioritaire(a) {
+  // Même signal pour l'ouverture de la fiche et le conseil de contact.
+  // Une simulation de négociation ne suffit pas ; une démarche déjà engagée
+  // n'a plus besoin d'une invitation au premier contact.
+  const statut = (suivi[a.id] || {}).statut;
+  return estPepite(a) && a.est_nouvelle === true && !estAbandonnee(a.id)
+    && (!statut || statut === "suivie")
+    && !(a.flags || []).includes("rendement_anormalement_eleve");
 }
 
 function estPotentiel(a) {

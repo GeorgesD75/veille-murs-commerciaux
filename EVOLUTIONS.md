@@ -1,5 +1,13 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Déplier les pépites à contacter en priorité (26 octobre)
+
+- Analyse ouverte automatiquement pour les pépites détectées depuis moins de
+  48 heures, sans alerte bloquante, tant que le premier contact reste à faire.
+- Même règle pour le conseil de contact et le dépliage ; les scores simulés
+  après négociation, annonces retirées ou abandonnées ne créent pas d'urgence.
+- Le dépliage reste contrôlable manuellement. Les autres analyses restent fermées.
+
 ## Acheter les murs, sans confusion avec le fonds (26 octobre)
 
 - Qualification commune de la transaction : murs, fonds, droit au bail, offre
