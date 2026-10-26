@@ -7,6 +7,36 @@ from pipeline.fiabilite import diagnostiquer
 from pipeline.financement import hypotheses_exploitation, mensualite_credit
 
 
+def analyser_relocation(a: Annonce) -> dict:
+    """Indices locaux, sans transformer une note de commune en demande locative.
+
+    Les comptages OSM sont incomplets : absence de signal n'est pas absence de
+    risque, et des commerces voisins ne prouvent aucun délai de relocation.
+    """
+    favorables, vigilances = [], []
+    if a.rue_categorie in {"commercante", "tres_commercante"}:
+        favorables.append("Rue commerçante d’après les commerces recensés à proximité")
+    elif a.rue_categorie == "peu_commercante":
+        vigilances.append("Peu de commerces recensés autour de l’adresse détectée")
+    if a.rue_nb_vacants is not None and a.rue_nb_vacants >= 3:
+        vigilances.append(f"{a.rue_nb_vacants} locaux signalés vacants ou fermés à proximité")
+    if a.emplacement_numero == "3":
+        vigilances.append("Emplacement secondaire annoncé par le vendeur")
+    if "echeance_bail_proche" in a.bonus_detectes:
+        vigilances.append("Départ ou échéance proche du locataire signalé : vérifier le congé et le bail")
+    if a.rue_distance_metro_m is not None and a.rue_distance_metro_m <= 600:
+        favorables.append(f"Station recensée à environ {a.rue_distance_metro_m} m à vol d’oiseau")
+    niveau = "vigilance" if vigilances else "favorable" if a.rue_categorie in {"commercante", "tres_commercante"} else "a_verifier"
+    return {"niveau": niveau,
+            "libelle": {"vigilance": "Vigilance sur la relocation", "favorable": "Signaux de rue favorables",
+                        "a_verifier": "Facilité à relouer à vérifier"}[niveau],
+            "favorables": favorables, "vigilances": vigilances,
+            "a_confirmer": ["Adresse exacte, passage et vacance constatés sur place",
+                            "Destination du bail, activités autorisées et restrictions de copropriété",
+                            "Loyer de relocation réaliste et délai de commercialisation comparables",
+                            "État du local, travaux et coût de remise en location"]}
+
+
 def est_pepite(a: Annonce, config: Config) -> bool:
     """Signal économique d'annonce, jamais une validation des pièces du vendeur.
 
@@ -28,6 +58,8 @@ def est_pepite(a: Annonce, config: Config) -> bool:
             "rendement_anormalement_eleve", "prix_m2_anormalement_bas",
             "texte_partiel_alerte", "localisation_incoherente",
         })
+        and (analyser_decision(a, config)["cashflow_prudent"] or 0)
+            >= max(1, float(config["analyse"].get("negociation", {}).get("cashflow_cible_mensuel", 100)))
     )
 
 
@@ -78,7 +110,8 @@ def analyser_decision(a: Annonce, config: Config) -> dict:
               "rendement_anormalement_eleve", "prix_m2_anormalement_bas", "texte_partiel_alerte"}]
     resultat = {"documentation": documente * 20, "questions": manquants, "diagnostic": diagnostic,
                 "risques": risques, "loyer_estime": bool(a.loyer_estime or not a.loyer_mensuel),
-                "cashflow_prudent": None, "prix_equilibre": None}
+                "cashflow_prudent": None, "prix_equilibre": None,
+                "relocation": analyser_relocation(a)}
     exploitation = hypotheses_exploitation(a, config)
     resultat.update(exploitation)
     if diagnostic["bloquant"] or not loyer or not a.prix:

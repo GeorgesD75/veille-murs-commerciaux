@@ -1,7 +1,8 @@
 """Notifications email via Resend (free tier).
 
 Deux emails, envoyés UNIQUEMENT quand il y a matière :
-- « 🔥 Pépite » immédiat pour toute NOUVELLE annonce à score ≥ seuil pépite,
+- « 🔥 Pépite » pour les dossiers au seuil pépite, avec marge de trésorerie
+  cible et sans signal de vigilance sur la relocation,
   avec anti-doublon persistant (une pépite n'est notifiée qu'une fois) ;
 - récapitulatif quotidien : top des nouvelles annonces retenues du run.
 
@@ -22,6 +23,7 @@ from typing import Any
 import requests
 
 from pipeline.config import Config
+from pipeline.decision import analyser_relocation, est_pepite
 from pipeline.modeles import Annonce
 from pipeline.sante import sources_en_panne
 from pipeline.transaction import qualifier_transaction
@@ -150,14 +152,13 @@ def notifier(
     parametres = config["notifications"]
     cle_api = os.environ.get("RESEND_API_KEY")
     destinataire = os.environ.get("EMAIL_TO")
-    seuil_pepite = config.scoring["seuils"]["pepite"]
     url_dashboard = parametres.get("url_dashboard", "") or ""
 
     deja_notifiees = set(meta.get("pepites_notifiees", []))
     pepites = [
         a for a in annonces.values()
-        if not a.exclue and qualifier_transaction(a)["nature"] == "murs"
-        and (a.score or 0) >= seuil_pepite and a.id not in deja_notifiees
+        if est_pepite(a, config) and analyser_relocation(a)["niveau"] != "vigilance"
+        and a.id not in deja_notifiees
     ]
     nouvelles = sorted(
         (

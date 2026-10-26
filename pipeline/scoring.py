@@ -5,7 +5,7 @@ from pipeline.config import Config
 from pipeline.filtres import plancher_prix_m2
 from pipeline.geo import categorie_emplacement
 from pipeline.modeles import Annonce
-from pipeline.fiabilite import diagnostiquer
+from pipeline.fiabilite import diagnostiquer, nombre_positif
 from pipeline.financement import hypotheses_exploitation, mensualite_credit
 from pipeline.texte import cle_commune, normaliser_texte
 from pipeline.transaction import qualifier_transaction
@@ -148,7 +148,7 @@ def _points_fiscalite(annonce: Annonce, cfg: dict) -> tuple[float, list[str]]:
     return max(0.0, min(plein, total)), detectes
 
 
-def scorer(annonce: Annonce, config: Config) -> Annonce:
+def scorer(annonce: Annonce, config: Config, *, reference_prix: Annonce | None = None) -> Annonce:
     cfg = config.scoring
     categorie = categorie_emplacement(
         annonce.ville, annonce.departement, annonce.texte_complet(), cfg["communes_dynamiques"]
@@ -187,9 +187,22 @@ def scorer(annonce: Annonce, config: Config) -> Annonce:
         # « Trop beau pour être vrai » : souvent une cession de bail ou un fonds
         # déguisé. Signalé ⚠️ ET plafonné sous le seuil d'affichage, pour qu'un
         # piège ne trône jamais en haut du panier ni ne déclenche l'email pépite.
-        annonce.flags.append("rendement_anormalement_eleve")
-        plafond = int(cfg["seuils"].get("affichage", cfg["seuils"]["orange"])) - 1
-        annonce.score = min(annonce.score, plafond)
+        # Une baisse du prix PROPOSÉ augmente mécaniquement le rendement.
+        # Ce contexte n'est admis que pour une copie du même dossier, au même
+        # loyer déclaré, lorsque la donnée observée ne présentait pas l'anomalie.
+        r = reference_prix
+        prix_negocie = bool(r is not None and r is not annonce and r.id == annonce.id
+            and nombre_positif(r.prix) and nombre_positif(r.loyer_mensuel)
+            and r.loyer_mensuel == annonce.loyer_mensuel and r.surface_m2 == annonce.surface_m2
+            and annonce.prix <= r.prix and not r.loyer_estime and r.loyer_origine != "rendement"
+            and r.loyer_mensuel * 1200 / r.prix <= cfg["seuil_alerte_rendement_pct"]
+            and "rendement_anormalement_eleve" not in r.flags and not diagnostiquer(r)["bloquant"])
+        if prix_negocie:
+            annonce.flags.append("rendement_eleve_si_negocie")
+        else:
+            annonce.flags.append("rendement_anormalement_eleve")
+            plafond = int(cfg["seuils"].get("affichage", cfg["seuils"]["orange"])) - 1
+            annonce.score = min(annonce.score, plafond)
 
     # Même garde-fou que ci-dessus, pour le prix/m² plutôt que le rendement :
     # constaté en pratique le 2026-08-24 sur bureauxlocaux — une annonce dont

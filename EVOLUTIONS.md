@@ -1,5 +1,34 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Un prix d’achat explicite et une relocation à qualifier (26 octobre)
+
+- Les annonces indiquent un prix maximal d’achat, le cash-flow prudent à ce
+  prix, le score simulé et le score actuel, avec les hypothèses de financement.
+  Objectif configurable fixé à +100 €/mois après provisions : un gain de
+  quelques euros correspondait à l’équilibre, pas à une marge d’achat utile.
+- Si le cash-flow cible est calculable mais les critères pépite ne sont pas
+  réunis, affichage d’un « seuil financier seul », avec score simulé plafonné
+  et bouton de simulation. Ce repère ne déclenche ni promotion ni alerte.
+- Rendement élevé distingué selon le contexte : anomalie au prix observé
+  toujours bloquante, hausse mécanique due à un prix proposé plus bas signalée
+  dans la simulation. Loyer constant, origine du dossier contrôlée, planchers
+  de prix et contrôle absolu de cohérence conservés ; score réel inchangé.
+- Les potentiels négociés peuvent remonter dans la sélection si leur prix
+  cible atteint aussi l’objectif au profil personnel. Sinon, l’écart est
+  signalé sur la carte ; le simulateur permet de tester le financement.
+  Plage de discussion élargie jusqu’à 35 % de baisse, explicitement affichée
+  comme une baisse à obtenir, sans estimation de probabilité d’acceptation.
+- Diagnostic de relocation distinct du score : signaux de rue favorables,
+  inconnus ou de vigilance, avec motifs et vérifications. Le métro et la note
+  d’une commune ne prouvent pas une demande locative. Les signaux défavorables
+  empêchent la promotion et les alertes pépite, sans effacer le scénario financier.
+- Sans loyer réel, occupation claire ou données cohérentes, aucun prix cible
+  d’achat n’est inventé : le motif à résoudre apparaît directement sur la fiche.
+- Messages vendeur complétés sur les activités autorisées, les restrictions,
+  les travaux et les éléments justifiant un loyer/délai de relocation.
+- Validation : tests des seuils de trésorerie, de la sélection négociée, des
+  risques de relocation et des alertes, plus contrôles navigateur sur mobile.
+
 ## Financement cohérent et brouillons conservés (26 octobre)
 
 - Même exploitation prudente pour le financement du score, l’analyse et les

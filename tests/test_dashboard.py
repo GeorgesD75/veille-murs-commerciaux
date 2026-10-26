@@ -55,7 +55,7 @@ def test_payload_trie_par_score_decroissant(config):
 
 def test_pepite_grande_surface_visible_mais_pas_une_ancienne_en_source_en_panne(config):
     recente = faire_annonce(id="grande", titre="Murs occupés", surface_m2=100,
-                           score=85, date_derniere_vue=MAINTENANT.isoformat())
+                           score=85, loyer_mensuel=2200, date_derniere_vue=MAINTENANT.isoformat())
     ancienne = faire_annonce(id="ancienne", titre="Murs occupés", score=90,
                             date_derniere_vue="2026-06-01T07:00:00+02:00")
     meta = {"sante_sources": {"test": {"statut": "erreur"}}}

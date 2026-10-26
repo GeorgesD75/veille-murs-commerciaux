@@ -312,9 +312,10 @@ encheres:                     # score d'INTÉRÊT dédié aux enchères (le prix
 
 analyse:
   negociation:
+    cashflow_cible_mensuel: 100 # marge mensuelle après provisions ; objectif, pas revenu garanti
     pas_euros: 1000             # prix testés par pas de 1 000 €, arrondis vers le bas
     marge_ouverture_pct: 3      # marge de discussion sous le prix plafond du modèle
-    remise_selection_max_pct: 25  # au-delà : scénario consultable, sans promotion en tête
+    remise_selection_max_pct: 35  # négociation importante explicitée ; au-delà, sans promotion en tête
   rendement_cible_pct: 7      # plancher de rentabilité : loyer annuel ÷ cible
   financement:                # hypothèses du cash-flow indicatif (crédit 100 %)
     taux_pct: 3.9              # repli si le taux de marché (ci-dessous) est indisponible

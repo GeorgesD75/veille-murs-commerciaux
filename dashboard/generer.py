@@ -91,7 +91,8 @@ def preparer_payload(
         retenues.append(
             {
                 "id": a.id,
-                "pepite": est_pepite(a, config) and _iso(a.date_derniere_vue) >= seuil_retiree,
+                "pepite": est_pepite(a, config) and _iso(a.date_derniere_vue) >= seuil_retiree
+                    and decision["relocation"]["niveau"] != "vigilance",
                 "recherche": priorite_recherche(a, config),
                 "decision": decision,
                 "negociation": negociation,
@@ -918,7 +919,16 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
 .badge { font-size:10.5px; padding:2px 6px; font-weight:500; }
 .badge-pepite { background:var(--or-clair); color:var(--encre-1); }
 .exception-recherche { margin:-6px 0 14px; font-size:12px; color:var(--encre-2); }
-.offre-cible { display:flex; align-items:center; flex-wrap:wrap; gap:6px 12px; margin:0 0 12px; font-size:12px; }
+.offre-cible { margin:0 0 10px; padding:10px 12px; border-left:3px solid var(--or); background:var(--vert-fond); border-radius:0 8px 8px 0; font-size:12px; }
+.offre-cible.financiere-seule { background:var(--surface); border-left-color:var(--filet); }
+.offre-entete { display:flex; align-items:baseline; flex-wrap:wrap; gap:5px 12px; justify-content:space-between; }
+.offre-entete strong { font-size:14px; }
+.offre-cible p { margin:5px 0 0; }
+.offre-indisponible { font-size:12px; color:var(--encre-2); margin:0 0 8px; }
+.relocation-annonce { font-size:12px; margin:0 0 12px; }
+.relocation-annonce > summary { cursor:pointer; color:var(--encre-2); }
+.relocation-annonce.vigilance > summary { color:var(--alerte-texte); }
+.relocation-annonce ul { margin:6px 0; padding-left:18px; }
 .offre-cible button { color:var(--marque); border:0; background:none; padding:3px 0; font:inherit; text-decoration:underline; cursor:pointer; }
 .offre-chiffres { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin:18px 0; }
 .offre-chiffres span { display:block; font-size:12px; color:var(--encre-2); }
@@ -1512,9 +1522,9 @@ function faitsClesHtml(a) {
       : `Cash-flow positif dès un apport de ${apportMin.pct} % — ${fmtEuros(apportMin.euros)} (${finTxt()}).`]);
 
   if (a.rue_categorie === "tres_commercante")
-    faits.push(["plus", `Local situé dans une rue mesurée à forte fréquentation (${a.rue_nb_commerces} commerces actifs à 150 m).`]);
+    faits.push(["plus", `Rue avec ${a.rue_nb_commerces} commerces actifs recensés à 150 m ; passage et demande locative à vérifier sur place.`]);
   else if (a.rue_categorie === "peu_commercante")
-    faits.push(["moins", "Local situé dans une rue mesurée à faible fréquentation — vérifiez le passage sur place."]);
+    faits.push(["moins", "Peu de commerces recensés autour du local ; vérifiez le passage et la demande locative sur place."]);
 
   if ((a.fiscalite_detectes || []).includes("tva_recuperable"))
     faits.push(["plus", "TVA récupérable pour l'acquéreur, d'après l'annonce."]);
@@ -1605,9 +1615,9 @@ function enClairHtml(a) {
   // La rue MESURÉE (quand connue) prime sur le classement administratif : plus
   // précise, elle répond directement à « est-ce un coin sûr ou pas net ? ».
   if (a.rue_categorie === "peu_commercante")
-    phrases.push(`Rue mesurée peu commerçante (${a.rue_nb_commerces} commerce(s) actif(s) à 150 m) : malgré le secteur, le passage réel semble faible — visite impérative avant toute offre.`);
+    phrases.push(`Peu de commerces recensés (${a.rue_nb_commerces} à 150 m) : le passage réel et la demande locative restent à observer sur place.`);
   else if (a.rue_categorie === "tres_commercante")
-    phrases.push(`Rue mesurée très commerçante (${a.rue_nb_commerces} commerces actifs à 150 m) : un vrai passage, au-delà du classement administratif.`);
+    phrases.push(`Rue avec ${a.rue_nb_commerces} commerces actifs recensés à 150 m : indice local favorable, sans mesure du passage ni du délai de relocation.`);
   else {
     const emp = (a.detail_score || {}).emplacement ?? 0;
     if (emp >= 25) phrases.push("Paris intra-muros : la note de zone ne suffit pas à juger la rue, le passage et la demande locative.");
@@ -1704,23 +1714,26 @@ function ouvrirProposition(id) {
   const a = D.retenues.find(x => x.id === id), n = a?.negociation;
   if (!a || n?.prix_plafond == null) return;
   const h = n.hypotheses;
+  const remiseMax = D.analyse.negociation?.remise_selection_max_pct ?? 35;
   const signe = v => `${v >= 0 ? "+" : "−"}${fmtEuros(Math.abs(v))}/mois`;
   document.getElementById("outil-contenu").innerHTML = `
     <h3>Étudier une proposition — ${ech(a.titre)}</h3>
     <div class="offre-chiffres">
       <div><span>Prix affiché</span><b>${fmtEuros(a.prix)}</b></div>
-      <div><span>Plafond du modèle</span><b>${fmtEuros(n.prix_plafond)}</b></div>
+      <div><span>Prix d’achat cible · maximum</span><b>${fmtEuros(n.prix_plafond)}</b></div>
       <div><span>Point de départ de la discussion</span><b>${fmtEuros(n.prix_ouverture)}</b></div>
     </div>
-    <p>${n.remise_pct > 0 ? `Le plafond demande une baisse de ${fmtEuros(n.remise_euros)} (−${fmtPct(n.remise_pct)}). ${n.remise_pct > 25 ? "Écart très important : ce scénario n’est pas promu dans la sélection." : n.remise_pct > 15 ? "Écart important à argumenter." : "Écart à discuter avec le vendeur."}` : "Le prix affiché remplit déjà les conditions du modèle."}
+    <p>${n.remise_pct > 0 ? `Le plafond demande une baisse de ${fmtEuros(n.remise_euros)} (−${fmtPct(n.remise_pct)}). ${n.remise_pct > remiseMax ? "Écart très important : ce scénario n’est pas promu dans la sélection." : n.remise_pct > 15 ? "Baisse importante à obtenir et à argumenter." : "Écart à discuter avec le vendeur."}` : "Le prix affiché remplit déjà les conditions du modèle."}
       L’acceptation du vendeur reste inconnue.</p>
-    <p>Au plafond : score simulé <b>${n.score_cible}/100</b> (actuel : ${a.score ?? "—"}),
+    <p>Objectif : au moins ${fmtEuros(n.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100)}/mois de cash-flow prudent. Au plafond : score simulé <b>${n.score_cible}/100</b> (actuel : ${a.score ?? "—"}),
       rendement brut ${fmtPct(n.rendement_cible_pct)}, trésorerie prudente <b>${signe(n.cashflow_cible)}</b>,
       scénario dégradé ${signe(n.stress_cible)}.</p>
-    <p class="offre-note">Référence du modèle : ${h.apport_pct} % d’apport, ${h.duree_ans} ans à ${h.taux_pct} % ; avant impôt et assurance emprunteur.</p>
+    <p class="offre-note">Référence du modèle : ${h.apport_pct} % d’apport, ${h.duree_ans} ans à ${h.taux_pct} % ; avant impôt et assurance emprunteur. Ce prix cible est un plafond, pas un prix minimum à payer.</p>
+    ${n.rendement_simule_eleve ? '<p class="offre-note">Le rendement simulé élevé provient du prix proposé plus bas ; le loyer annoncé reste identique et doit être justifié par le bail et les quittances.</p>' : ""}
+    ${relocationHtml(a)}
     <button type="button" class="btn-outil" data-sim="${ech(a.id)}" data-sim-prix="${n.prix_plafond}">Tester ce prix avec mon financement</button>
     <details><summary>Comprendre le calcul et ses limites</summary>
-      <p>Le plafond est le prix maximal trouvé sur une grille de ${fmtEuros(n.pas_euros)}, avec le seuil pépite et une trésorerie prudente ≥ 0.
+      <p>Le plafond est le prix maximal trouvé sur une grille de ${fmtEuros(n.pas_euros)}, avec le seuil pépite et la marge mensuelle cible après provisions.
       Le loyer reste constant ; une baisse de prix ne résout pas un défaut du bien.
       Le point de départ ménage ${n.marge_ouverture_pct} % sous ce plafond, arrondis vers le bas, lorsque les contrôles restent satisfaits.
       Ce n’est ni une estimation de valeur, ni une prévision de négociation.</p>
@@ -1926,6 +1939,52 @@ function disponibiliteTexte(a) {
   return a.etat_detail === "retiree" ? "Fiche retirée ou introuvable" : `Non revue depuis ${a.jours_sans_vue} jours : disponibilité à confirmer`;
 }
 
+function cashflowAuPrix(a, prix) {
+  return cashflowMensuel({...a, prix});
+}
+
+function relocationHtml(a) {
+  const r = a.decision?.relocation || a.negociation?.relocation;
+  const niveau = r?.niveau || "a_verifier";
+  const libelle = {favorable:"indices de rue favorables", vigilance:"points de vigilance", a_verifier:"à vérifier"}[niveau];
+  return `<details class="relocation-annonce ${niveau}"><summary>Relocation : ${libelle}</summary>
+    ${r?.favorables?.length ? `<ul>${r.favorables.map(t=>`<li>${ech(t)}</li>`).join("")}</ul>` : ""}
+    ${r?.vigilances?.length ? `<ul>${r.vigilances.map(t=>`<li>${ech(t)}</li>`).join("")}</ul>` : ""}
+    <p>À confirmer : ${ech((r?.a_confirmer || ["Adresse exacte, passage, activités autorisées et loyer de relocation"]).join(" ; "))}.</p>
+    <small>Les recensements de commerces et de locaux vacants peuvent être incomplets. Ces indices ne prouvent ni la demande locative, ni le délai pour trouver un locataire.</small>
+  </details>`;
+}
+
+function prixCibleHtml(a) {
+  const n = a.negociation;
+  if (n?.prix_plafond == null) {
+    if (n?.prix_seuil_financier != null) {
+      const h = n.hypotheses;
+      return `<div class="offre-cible financiere-seule">
+        <div class="offre-entete"><strong>Pour viser +${fmtEuros(n.objectif_cashflow)}/mois : ${fmtEuros(n.prix_seuil_financier)} maximum</strong>
+          <button type="button" class="btn-outil" data-sim="${ech(a.id)}" data-sim-prix="${n.prix_seuil_financier}">Tester ce prix</button></div>
+        <p><b>Seuil financier seul, critères pépite non réunis.</b> Cash-flow prudent simulé : +${fmtEuros(n.cashflow_seuil_financier)}/mois · score ${n.score_seuil_financier}/100 simulés (actuel : ${a.score ?? "—"}/100).</p>
+        <p class="offre-note">Avec ${h.apport_pct} % d’apport, ${h.duree_ans} ans à ${h.taux_pct} % · vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt et assurance. Ce prix ne valide ni le loyer, ni l’emplacement, ni l’accord du vendeur.</p>
+      </div>`;
+    }
+    const raison = n?.raisons?.[0] || "Loyer, charges et disponibilité à confirmer.";
+    return `<p class="offre-indisponible">Prix d’achat cible à déterminer : ${ech(raison)}</p>`;
+  }
+  const h = n.hypotheses, cf = cashflowAuPrix(a, n.prix_plafond);
+  const signe = v => v == null ? "non calculable" : `${v >= 0 ? "+" : "−"}${fmtEuros(Math.abs(v))}/mois`;
+  const vigilance = (a.decision?.relocation || n.relocation)?.niveau === "vigilance";
+  const objectif = n.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100;
+  const adapte = cf != null && cf >= objectif;
+  return `<div class="offre-cible">
+    <div class="offre-entete"><strong>${vigilance || !adapte ? "Cible financière du modèle" : "Intéressant financièrement"} à ${fmtEuros(n.prix_plafond)} maximum</strong>
+      <button type="button" data-offre="${ech(a.id)}">Étudier la proposition</button></div>
+    <p>Cash-flow prudent <b>${signe(n.cashflow_cible)}</b> (objectif : +${fmtEuros(objectif)}/mois) · <b>${n.score_cible}/100 simulés</b> (actuel : ${a.score ?? "—"}/100)${n.remise_pct > 0 ? ` · baisse de ${fmtPct(n.remise_pct)} à obtenir` : " · au prix affiché"}.</p>
+    <p class="offre-note">Avec ${h.apport_pct} % d’apport, ${h.duree_ans} ans à ${h.taux_pct} % · vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt et assurance.</p>
+    ${!adapte ? `<p class="alerte-donnee fort">Avec votre financement à ce prix : ${signe(cf)}. Ce plafond ne suffit pas à votre objectif ; ajustez le prix ou le financement dans le simulateur.</p>` : ""}
+    ${vigilance ? '<p class="alerte-donnee fort">Emplacement à valider : une baisse de prix ne résout pas les risques de relocation.</p>' : ""}
+  </div>`;
+}
+
 function carteHtml(a, options) {
   const cf = cashflowMensuel(a);
   const suspect = (a.flags || []).includes("rendement_anormalement_eleve");
@@ -2091,7 +2150,8 @@ function carteHtml(a, options) {
         <span class="badges">${pepite ? '<span class="badge badge-pepite" title="Signal économique fondé sur les données de l’annonce. Bail, charges et disponibilité à vérifier.">Pépite à étudier</span>' : estPotentiel(a) ? '<span class="badge badge-pepite">Potentiel à négocier</span>' : ""}${badges[0] || ""}${a.decision?.diagnostic?.bloquant ? '<span class="badge badge-alerte">Chiffres à vérifier</span>' : ""}</span></div>
       ${exceptions.length ? `<div class="exception-recherche">Hors de vos préférences : ${exceptions.map(ech).join(" · ")}</div>` : ""}
       <div class="metriques">${metriques}</div>
-      ${a.negociation?.prix_plafond != null ? `<div class="offre-cible"><span>${a.negociation.statut === "deja_cible" ? "Simulation au prix affiché" : "Si négocié à"} <b>${fmtEuros(a.negociation.prix_plafond)}</b> : <b>${a.negociation.score_cible}/100 simulés</b>${a.negociation.remise_pct > 0 ? ` (−${fmtPct(a.negociation.remise_pct)})` : ""}${a.negociation.taxe_estimee ? " · taxe provisionnée" : ""}</span><button type="button" data-offre="${ech(a.id)}">Étudier la proposition</button></div>` : ""}
+      ${prixCibleHtml(a)}
+      ${relocationHtml(a)}
       <details class="analyse-annonce"${prioriteContact ? " open" : ""}><summary>${prioriteContact ? "Contact prioritaire · analyse et vérifications" : "Voir l’analyse et les informations à vérifier"} <span aria-hidden="true">⌄</span></summary>
       <div class="analyse-contenu">
       <p class="provenance-annonce">${ech(a.source || "source non renseignée")} · détectée le ${fmtDate(a.date_premiere_vue)}${joursMarcheHtml(a.date_premiere_vue)}${liens}</p>
@@ -2286,13 +2346,23 @@ function contactPrioritaire(a) {
   // Une simulation de négociation ne suffit pas ; une démarche déjà engagée
   // n'a plus besoin d'une invitation au premier contact.
   const statut = (suivi[a.id] || {}).statut;
-  return estPepite(a) && a.est_nouvelle === true && !estAbandonnee(a.id)
+  return estPepite(a) && estOpportunitePrioritaire(a) && a.est_nouvelle === true && !estAbandonnee(a.id)
     && (!statut || statut === "suivie")
     && !(a.flags || []).includes("rendement_anormalement_eleve");
 }
 
 function estPotentiel(a) {
-  return a.negociation?.selection === true && !a.peut_etre_retiree && !a.decision?.diagnostic?.bloquant;
+  return a.negociation?.selection === true && (a.negociation.cashflow_cible ?? 0)
+      >= (a.negociation.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100)
+    && (a.decision?.relocation || a.negociation.relocation)?.niveau !== "vigilance"
+    && !a.peut_etre_retiree && !a.decision?.diagnostic?.bloquant;
+}
+
+function estOpportunitePrioritaire(a) {
+  if (a.decision?.relocation?.niveau === "vigilance") return false;
+  const objectif = a.negociation?.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100;
+  if (estPepite(a)) return (cashflowMensuel(a) ?? 0) >= objectif;
+  return estPotentiel(a) && (cashflowAuPrix(a, a.negociation.prix_plafond) ?? 0) >= objectif;
 }
 
 function ecartsPreferences(a, f) {
@@ -2363,16 +2433,17 @@ function rendre() {
   const relegue = a => estAbandonnee(a.id) || a.peut_etre_retiree;
   const incoherente = a => !!a.decision?.diagnostic?.bloquant;
   const verifier = visibles.filter(a => incoherente(a) && !relegue(a));
-  // Le classement reflète le prix affiché ; le potentiel négocié reste une
-  // simulation sur la fiche, jamais une promotion vers le groupe supérieur.
-  const prio = visibles.filter(a => (a.score ?? 0) >= D.seuils.vert && !relegue(a) && !incoherente(a));
+  // Une opportunité négociée peut remonter, avec prix, score simulé et
+  // cash-flow affichés. L'objectif doit aussi fonctionner au profil personnel.
+  const prioritaire = a => f.tri === "recherche" && estOpportunitePrioritaire(a) && !relegue(a) && !incoherente(a);
+  const prio = visibles.filter(prioritaire);
   const etudier = visibles.filter(a =>
-    ((a.score ?? 0) >= D.seuils.affichage || estPotentiel(a)) && (a.score ?? 0) < D.seuils.vert && !relegue(a) && !incoherente(a));
+    ((a.score ?? 0) >= D.seuils.affichage || estPotentiel(a)) && !prioritaire(a) && !relegue(a) && !incoherente(a));
   const reste = visibles.filter(a => ((a.score ?? 0) < D.seuils.affichage && !incoherente(a) && !estPotentiel(a)) || relegue(a));
 
   const podium = [...prio, ...etudier].slice(0, 3).map(a => a.id);
   const opts = a => ({
-    prio: (a.score ?? 0) >= D.seuils.vert,
+    prio: prioritaire(a),
     medaille: podium.indexOf(a.id) >= 0 ? podium.indexOf(a.id) : null,
     exceptions: f.pepites && (estPepite(a) || estPotentiel(a)) ? ecartsPreferences(a, f) : [],
   });

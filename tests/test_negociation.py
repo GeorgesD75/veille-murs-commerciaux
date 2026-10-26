@@ -17,7 +17,7 @@ MAINTENANT = datetime.fromisoformat("2026-10-26T12:00:00+01:00")
 def candidat(config, benchmarks, **changements):
     valeurs = dict(titre="Murs occupés", description="Murs occupés, locataire en place.",
                    ville="Paris", code_postal="75018", departement="75", surface_m2=35,
-                   prix=250000, loyer_mensuel=1400, temps_trajet_min=20,
+                   prix=230000, loyer_mensuel=1400, temps_trajet_min=20,
                    date_derniere_vue=MAINTENANT.isoformat())
     valeurs.update(changements)
     a = faire_annonce(**valeurs)
@@ -38,10 +38,10 @@ def test_plafond_et_ouverture_satisfont_score_et_equilibre_sans_muter_le_stock(c
     for prix in [n["prix_plafond"], n["prix_ouverture"]]:
         s = simuler_prix(base, prix, config)
         assert est_pepite(s, config)
-        assert analyser_decision(s, config)["cashflow_prudent"] >= 0
+        assert analyser_decision(s, config)["cashflow_prudent"] >= n["objectif_cashflow"] == 100
     # Le cran supérieur échoue : il s'agit bien du plafond sur la grille.
     suivant = simuler_prix(base, n["prix_plafond"] + 1000, config)
-    assert not est_pepite(suivant, config) or analyser_decision(suivant, config)["cashflow_prudent"] < 0
+    assert not est_pepite(suivant, config) or analyser_decision(suivant, config)["cashflow_prudent"] <= 0
     assert a.to_dict() == avant
     assert a.score < config.scoring["seuils"]["pepite"]
 
@@ -82,14 +82,21 @@ def test_baisse_tres_importante_calculee_mais_non_promue(config, benchmarks):
     assert not n["selection"]
 
 
+def test_bon_prix_calcule_sans_promouvoir_un_emplacement_a_risque(config, benchmarks):
+    a = candidat(config, benchmarks, rue_categorie="tres_commercante", rue_nb_vacants=4)
+    n = plan_negociation(a, config, MAINTENANT)
+    assert n["prix_plafond"] is not None and n["cashflow_cible"] > 0
+    assert n["relocation"]["niveau"] == "vigilance"
+    assert not n["selection"]
+
+
 def test_prix_deja_dans_la_cible_et_marge_bornee_par_les_controles(config, benchmarks):
     a = candidat(config, benchmarks, prix=168000)
     n = plan_negociation(a, config, MAINTENANT)
     assert n["statut"] == "deja_cible" and not n["selection"]
     assert n["prix_plafond"] == a.prix
-    # Ici, -3 % ferait dépasser le rendement maximal plausible : le modèle
-    # conserve le prix validé plutôt que de contourner le garde-fou.
-    assert n["prix_ouverture"] == n["prix_plafond"]
+    assert 0 < n["prix_ouverture"] <= n["prix_plafond"]
+    assert est_pepite(simuler_prix(a, n["prix_ouverture"], config), config)
 
 
 def test_prix_affiche_non_arrondi_est_teste_et_taux_zero_supporte(config, benchmarks):
@@ -105,10 +112,32 @@ def test_la_baisse_ne_doit_pas_contourner_les_plafonds_anti_anomalies(config, be
     a = candidat(config, benchmarks, ville="Pantin", code_postal="93500", departement="93",
                   surface_m2=40, prix=200000, loyer_mensuel=1400)
     n = plan_negociation(a, config, MAINTENANT)
-    assert n["statut"] == "non_atteignable" and n["prix_plafond"] is None
-    trop_bas = simuler_prix(a, 100000, config)
+    assert not n["selection"]  # le prix nécessaire demande trop de baisse
+    assert n["prix_seuil_financier"] < a.prix
+    assert n["cashflow_seuil_financier"] >= n["objectif_cashflow"]
+    assert not n["selection"]
+    trop_bas = simuler_prix(a, 50000, config)
     assert not est_pepite(trop_bas, config)
-    assert "rendement_anormalement_eleve" in trop_bas.flags
+    assert "loyer_incoherent" in trop_bas.flags
+
+
+def test_un_rendement_accru_par_le_prix_propose_ne_degrade_pas_une_donnee_saine(config, benchmarks):
+    cfg = deepcopy(config)
+    cfg.donnees["analyse"]["financement"]["taux_pct"] = 5.34
+    a = candidat(cfg, benchmarks)
+    avant = deepcopy(a.to_dict())
+    n = plan_negociation(a, cfg, MAINTENANT)
+    assert n["rendement_cible_pct"] > cfg.scoring["seuil_alerte_rendement_pct"]
+    assert n["rendement_simule_eleve"]
+    assert n["score_cible"] >= cfg.scoring["seuils"]["pepite"]
+    assert n["cashflow_cible"] >= 100
+    assert a.to_dict() == avant
+    copie = simuler_prix(a, n["prix_plafond"], cfg)
+    assert "rendement_anormalement_eleve" not in copie.flags
+    # Le même rendement au prix réellement publié reste contrôlé normalement.
+    scorer(copie, cfg)
+    assert "rendement_anormalement_eleve" in copie.flags
+    assert not est_pepite(copie, cfg)
 
 
 def test_simulation_recalcule_la_decote_a_partir_de_la_mediane_exacte(config, benchmarks):

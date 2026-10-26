@@ -41,6 +41,7 @@ def messages_contact(a: Annonce) -> dict[str, str]:
     else:
         essentiels.append("Le local sera-t-il vendu libre ou occupé ? S’il est loué, quel est le loyer annuel actuel HT/HC et la prochaine échéance du bail ?")
     essentiels.extend(["Quel est le prix total honoraires inclus, et quel budget annuel reste au propriétaire (charges, taxe foncière, travaux votés) ?"])
+    essentiels.append("Quelles activités sont autorisées par le bail et la copropriété ? En cas de départ du locataire, quels travaux et quel délai de relocation seraient à prévoir ?")
     if d["transaction"]["nature"] != "murs":
         essentiels.insert(1, "Le prix affiché achète-t-il les murs en pleine propriété, ou uniquement un fonds de commerce / droit au bail ? Si les murs sont proposés séparément, quel est leur prix immobilier seul ?")
     elif d["bloquant"]:
@@ -53,6 +54,7 @@ def messages_contact(a: Annonce) -> dict[str, str]:
               "Dernier avis de taxe foncière, décompte annuel des charges et répartition bailleur/locataire.",
               "Trois derniers procès-verbaux d’AG, travaux votés ou envisagés et appels de fonds restant à payer.",
               "Diagnostics disponibles, état du local et travaux de mise en conformité identifiés."]
+    pieces.append("Activités autorisées et restrictions du bail ou de la copropriété ; éléments comparables justifiant le loyer de relocation et le délai de commercialisation, travaux de remise en location à prévoir.")
     if d["occupation"] == "libre":
         pieces.insert(1, "Dernier bail et dernier loyer encaissé, date et motif de libération, historique de commercialisation et travaux nécessaires avant relocation.")
     else:

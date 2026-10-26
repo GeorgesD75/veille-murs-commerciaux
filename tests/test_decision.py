@@ -12,7 +12,7 @@ from tests.fabriques import faire_annonce
 
 @pytest.mark.parametrize("surface,trajet", [(25, 15), (40, 35), (100, 55)])
 def test_pepite_independante_de_la_surface_et_du_trajet(config, surface, trajet):
-    a = faire_annonce(titre="Murs occupés", score=85, surface_m2=surface,
+    a = faire_annonce(titre="Murs occupés", score=85, surface_m2=surface, loyer_mensuel=2200,
                       temps_trajet_min=trajet)
     assert est_pepite(a, config)
 

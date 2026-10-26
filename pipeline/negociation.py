@@ -6,11 +6,11 @@ from datetime import datetime, timedelta
 import math
 
 from pipeline.config import Config
-from pipeline.decision import analyser_decision, est_pepite
+from pipeline.decision import analyser_decision, analyser_relocation, est_pepite
 from pipeline.enrichissement import position_vs_fourchette
 from pipeline.fiabilite import diagnostiquer, nombre_positif
 from pipeline.filtres import plancher_prix_m2
-from pipeline.financement import hypotheses_exploitation
+from pipeline.financement import hypotheses_exploitation, mensualite_credit
 from pipeline.modeles import Annonce
 from pipeline.scoring import scorer
 
@@ -33,7 +33,7 @@ def simuler_prix(a: Annonce, prix: float, config: Config) -> Annonce:
     else:
         copie.position_benchmark = "inconnu"
         copie.decote_pct = None
-    return scorer(copie, config)
+    return scorer(copie, config, reference_prix=a)
 
 
 def plan_negociation(a: Annonce, config: Config, maintenant: datetime) -> dict:
@@ -44,6 +44,7 @@ def plan_negociation(a: Annonce, config: Config, maintenant: datetime) -> dict:
     plausible, sans désactiver ces contrôles ni gonfler le loyer.
     """
     diagnostic = diagnostiquer(a)
+    objectif = max(1, float(config["analyse"].get("negociation", {}).get("cashflow_cible_mensuel", 100)))
     raisons = []
     if diagnostic["transaction"]["nature"] != "murs":
         raisons.append("Confirmer la vente et le prix des murs seuls avant toute proposition immobilière.")
@@ -60,8 +61,10 @@ def plan_negociation(a: Annonce, config: Config, maintenant: datetime) -> dict:
     if set(a.flags).intersection({"dette_copropriete", "localisation_incoherente",
                                 "prix_m2_anormalement_bas", "rendement_anormalement_eleve", "texte_partiel_alerte"}):
         raisons.append("Clarifier les risques signalés avant de fixer un prix.")
+    relocation = analyser_relocation(a)
     resultat = {"statut": "a_documenter", "raisons": raisons, "prix_plafond": None,
-                "prix_ouverture": None, "selection": False}
+                "prix_ouverture": None, "selection": False, "relocation": relocation,
+                "objectif_cashflow": objectif}
     if raisons:
         return resultat
 
@@ -70,15 +73,33 @@ def plan_negociation(a: Annonce, config: Config, maintenant: datetime) -> dict:
     # Une taxe inconnue ne vaut pas zéro pour décider d'un prix d'achat.
     base = a
     exploitation = hypotheses_exploitation(a, config)
-    plafond_rdt = config.scoring["seuil_alerte_rendement_pct"]
-    prix_min = max(a.loyer_mensuel * 1200 / plafond_rdt,
+    # Repère financier distinct de la qualification pépite. Il reste utile
+    # quand le score ou les contrôles de prix empêchent une recommandation.
+    f = config["analyse"]["financement"]
+    apport = float(config.scoring.get("financement", {}).get("apport_reference_pct", 20))
+    coefficient = mensualite_credit(1, float(f["taux_pct"]), int(f["duree_ans"]))
+    revenu_disponible = exploitation["revenu_prudent"] - objectif
+    if revenu_disponible > 0 and apport < 100:
+        seuil = ((revenu_disponible / ((1 - apport/100) * coefficient)) - (a.honoraires or 0)) / 1.08
+        seuil = math.floor(min(a.prix, seuil) / pas) * pas
+        if seuil > 0:
+            credit = mensualite_credit((seuil * 1.08 + (a.honoraires or 0)) * (1 - apport/100), float(f["taux_pct"]), int(f["duree_ans"]))
+            resultat.update({"prix_seuil_financier": seuil,
+                             "cashflow_seuil_financier": round(exploitation["revenu_prudent"] - credit),
+                             "score_seuil_financier": simuler_prix(a, seuil, config).score,
+                             "hypotheses": {"apport_pct": apport, "taux_pct": f["taux_pct"], "duree_ans": f["duree_ans"],
+                                            "vacance_pct": exploitation["vacance_pct"], "charges_pct": exploitation["charges_pct"]},
+                             "taxe_estimee": exploitation["taxe_estimee"], "taxe_annuelle_retenue": exploitation["taxe_annuelle_retenue"]})
+    # Le seuil de cohérence absolu reste celui de diagnostiquer (20 %).
+    # Le contrôle à 10 % s'applique au prix OBSERVÉ, pas au seul prix proposé.
+    prix_min = max(a.loyer_mensuel * 1200 / 20,
                    (plancher_prix_m2(a.departement, config) or 0) * a.surface_m2)
     minimum = math.ceil(prix_min / pas) * pas
 
     def evaluer(prix):
         simulee = simuler_prix(base, prix, config)
         decision = analyser_decision(simulee, config)
-        return simulee, decision, est_pepite(simulee, config) and decision["cashflow_prudent"] is not None and decision["cashflow_prudent"] >= 0
+        return simulee, decision, est_pepite(simulee, config) and (decision["cashflow_prudent"] or 0) > 0
 
     # Prix affiché exact d'abord, puis grille décroissante pour obtenir le
     # plafond sur la grille, y compris aux discontinuités du score marché.
@@ -93,7 +114,7 @@ def plan_negociation(a: Annonce, config: Config, maintenant: datetime) -> dict:
             break
     if retenue is None:
         resultat.update(statut="non_atteignable", raisons=[
-            "Une baisse du prix ne suffit pas à réunir le seuil pépite et l’équilibre prudent dans le domaine de prix plausible."])
+            f"Aucun prix plausible ne réunit le seuil pépite et l’objectif de {objectif:g} €/mois de cash-flow prudent."])
         return resultat
 
     plafond, simulee, decision = retenue
@@ -106,11 +127,13 @@ def plan_negociation(a: Annonce, config: Config, maintenant: datetime) -> dict:
                      "raisons": [], "prix_plafond": plafond, "prix_ouverture": ouverture,
                      "remise_pct": remise, "remise_euros": a.prix - plafond,
                      "score_cible": simulee.score, "rendement_cible_pct": simulee.rendement_brut_pct,
+                     "rendement_simule_eleve": "rendement_eleve_si_negocie" in simulee.flags,
                      "cashflow_cible": decision["cashflow_prudent"], "stress_cible": decision["cashflow_stress"],
                      "cout_total": round(plafond * 1.08 + (a.honoraires or 0)),
                      "apport_reference": round((plafond * 1.08 + (a.honoraires or 0)) * decision["apport_pct"] / 100),
                      "taxe_estimee": exploitation["taxe_estimee"], "taxe_annuelle_retenue": exploitation["taxe_annuelle_retenue"],
                      "pas_euros": pas, "marge_ouverture_pct": cfg.get("marge_ouverture_pct", 3),
-                     "selection": plafond < a.prix and remise <= cfg.get("remise_selection_max_pct", 25),
+                     "selection": plafond < a.prix and remise <= cfg.get("remise_selection_max_pct", 35)
+                        and relocation["niveau"] != "vigilance",
                      "hypotheses": {k: decision[k] for k in ["apport_pct", "taux_pct", "duree_ans", "vacance_pct", "charges_pct"]}})
     return resultat

@@ -698,7 +698,7 @@ def test_extraire_message_portail_identifie_mais_aucun_lien_reconnu():
 
 def _annonces_notification():
     pepite = faire_annonce(id="pep1", titre="Murs occupés en or", ville="Paris 18e",
-                           code_postal="75018")
+                           code_postal="75018", loyer_mensuel=2300)
     pepite.score = 85
     pepite.rendement_brut_pct = 9.2
     pepite.lecture_prix = "Décote lisible : des travaux sont signalés dans l'annonce."

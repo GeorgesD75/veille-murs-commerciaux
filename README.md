@@ -21,9 +21,14 @@ et les extraits d'email restent dans les dossiers à confirmer, sans alerte
 pépite ni proposition de prix, tant que la vente immobilière n'est pas établie.
 
 Les fiches « Potentiel à négocier » indiquent aussi un prix cible : au plus
-25 % sous le prix affiché pour rester dans la sélection, avec le seuil pépite
-du barème et une trésorerie prudente à l’équilibre. Le classement par défaut
-utilise le score au prix affiché ; le score simulé est indiqué à part.
+35 % sous le prix affiché pour rester dans la sélection, avec le seuil pépite
+du barème et un cash-flow prudent d’au moins 100 €/mois (objectif configurable).
+Un potentiel négocié peut remonter dans les meilleures annonces si la cible
+fonctionne aussi avec votre financement. Le prix maximal, le cash-flow, les
+hypothèses et les scores actuel/simulé sont alors explicitement affichés.
+Si seul le cash-flow cible est calculable, la fiche affiche un « seuil financier
+seul, critères pépite non réunis ». Ce prix reste testable, sans promotion ni
+alerte : il ne valide ni l’emplacement ni le loyer ni l’accord du vendeur.
 « Étudier la proposition »
 ouvre les hypothèses, le prix plafond et un brouillon de discussion à copier.
 Un prix calculé ne valide ni le bail ni l’accord du vendeur. Les données
@@ -36,6 +41,13 @@ un financement de référence commun. Le simulateur permet d’ajuster les reven
 et charges et de tester directement un prix plafond, sans modifier l’annonce.
 Vos brouillons de contact sont conservés sur votre appareil, par annonce et par
 étape, y compris après fermeture ou rechargement ; aucun message n’est envoyé.
+
+La facilité à relouer est évaluée séparément : indices de rue favorables,
+à vérifier ou points de vigilance. Une bonne commune ou un métro proche ne
+prouvent pas la demande locative. Une rue peu commerçante, plusieurs locaux
+vacants ou un départ de locataire signalé suspendent la promotion du dossier
+en pépite. Les activités autorisées, les travaux et le loyer de relocation
+restent à confirmer avec les pièces et une visite.
 
 ---
 
