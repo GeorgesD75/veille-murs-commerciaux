@@ -14,6 +14,13 @@ Trois fois par jour (7 h, 15 h, 23 h), ce système :
 
 Zéro serveur, zéro abonnement : GitHub exécute et héberge tout gratuitement.
 
+Les fiches « Potentiel à négocier » indiquent aussi un prix cible : au plus
+25 % sous le prix affiché pour remonter dans la sélection, avec le seuil pépite
+du barème et une trésorerie prudente à l’équilibre. « Étudier la proposition »
+ouvre les hypothèses, le prix plafond et un brouillon de discussion à copier.
+Un prix calculé ne valide ni le bail ni l’accord du vendeur. Les données
+incomplètes ou contradictoires doivent être clarifiées avant de chiffrer.
+
 ---
 
 ## Mise en route (~30 minutes, une seule fois)

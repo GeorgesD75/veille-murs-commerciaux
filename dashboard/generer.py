@@ -23,7 +23,8 @@ from typing import Any
 from dashboard.dossier_banque import generer_dossiers
 from pipeline.config import Config
 from pipeline.decision import analyser_decision, est_pepite, priorite_recherche
-from pipeline.contact import messages_contact
+from pipeline.contact import message_negociation, messages_contact
+from pipeline.negociation import plan_negociation
 from pipeline.modeles import Annonce
 
 HEURES_NOUVEAUTE = 48
@@ -83,12 +84,16 @@ def preparer_payload(
         key=lambda a: (a.score or 0),
         reverse=True,
     ):
+        negociation = plan_negociation(a, config, maintenant)
+        if negociation["prix_plafond"] is not None:
+            negociation["message"] = message_negociation(a, negociation)
         retenues.append(
             {
                 "id": a.id,
                 "pepite": est_pepite(a, config) and _iso(a.date_derniere_vue) >= seuil_retiree,
                 "recherche": priorite_recherche(a, config),
                 "decision": analyser_decision(a, config),
+                "negociation": negociation,
                 "modeles_contact": contact_compact(a),
                 "etat_detail": a.etat_detail,
                 "date_detail_vue": a.date_detail_vue,
@@ -119,6 +124,7 @@ def preparer_payload(
                 "caracteristiques": a.caracteristiques,
                 "decote_pct": a.decote_pct,
                 "marche_prix_m2_bas": a.marche_prix_m2_bas,
+                "marche_prix_m2_median": a.marche_prix_m2_median,
                 "marche_prix_m2_haut": a.marche_prix_m2_haut,
                 "benchmark_source": a.benchmark_source,
                 "dpe_classe": a.dpe_classe,
@@ -900,6 +906,12 @@ h2.section { font-family:inherit; font-size:18px; font-weight:650; margin:20px 0
 .badge { font-size:10.5px; padding:2px 6px; font-weight:500; }
 .badge-pepite { background:var(--or-clair); color:var(--encre-1); }
 .exception-recherche { margin:-6px 0 14px; font-size:12px; color:var(--encre-2); }
+.offre-cible { display:flex; align-items:center; flex-wrap:wrap; gap:6px 12px; margin:0 0 12px; font-size:12px; }
+.offre-cible button { color:var(--marque); border:0; background:none; padding:3px 0; font:inherit; text-decoration:underline; cursor:pointer; }
+.offre-chiffres { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin:18px 0; }
+.offre-chiffres span { display:block; font-size:12px; color:var(--encre-2); }
+.offre-chiffres b { font-size:20px; }
+.offre-note { font-size:13px; color:var(--encre-2); }
 .metriques { gap:16px 24px; margin-bottom:14px; }
 .metrique .libelle { font-size:11px; letter-spacing:0; text-transform:none; }
 .metrique .valeur,.metrique--cle .valeur { font-size:16px; line-height:1.45; font-weight:600; }
@@ -988,12 +1000,12 @@ h2.section { font-family:inherit; font-size:18px; font-weight:650; margin:20px 0
         <input id="f-texte" type="search" placeholder="ex. Saint-Ouen" style="max-width:200px"></div>
       <div class="filtre"><label for="f-signal">Signal recherché</label><select id="f-signal">
         <option value="tous">Tous</option><option value="baisses">Prix en baisse</option>
-        <option value="completer">Données à compléter</option><option value="coherent">Sans contradiction détectée</option>
+        <option value="negociation">Pépites à négocier</option><option value="completer">Données à compléter</option><option value="coherent">Sans contradiction détectée</option>
         <option value="prudent">Trésorerie prudente positive</option></select></div>
       <div class="filtre"><label for="f-surface">Surface souhaitée : moins de (m²)</label>
         <input id="f-surface" type="number" min="1" step="1" value="40" placeholder="Toutes"></div>
       <div class="filtre"><label for="f-pepites">Opportunités hors critères</label>
-        <label><input id="f-pepites" type="checkbox" checked> Inclure les pépites plus grandes ou plus loin</label></div>
+        <label><input id="f-pepites" type="checkbox" checked> Inclure les pépites et potentiels à négocier plus grands ou plus loin</label></div>
       <div class="filtre"><label for="f-trajet">Trajet max estimé (min)</label>
         <input id="f-trajet" type="number" min="1" step="5" placeholder="Sans limite"></div>
       <div class="filtre"><label for="f-tri">Classer par</label><select id="f-tri">
@@ -1373,59 +1385,17 @@ function verdictMarche(a) {
 function jaugeMarcheHtml(a) {
   if (a.prix_m2 == null || a.marche_prix_m2_bas == null) return "";
   const bas = a.marche_prix_m2_bas, haut = a.marche_prix_m2_haut;
-  const med = (bas + haut) / 2;
-  // Deux repères d'offre distincts — on négocie TOUJOURS :
-  // - rouge : le PLANCHER de rentabilité (prix qui atteint l'objectif de
-  //   rendement) quand le prix affiché ne l'atteint pas ;
-  // - vert : la première offre D'USAGE (−7 %) quand l'objectif est déjà
-  //   atteint — bon rendement n'a jamais voulu dire payer le prix demandé.
-  let cibleM2 = null, usageM2 = null, offreUsage = null;
-  if (a.prix_cible_rendement && a.surface_m2 && a.prix) {
-    if (a.prix_cible_rendement < a.prix)
-      cibleM2 = a.prix_cible_rendement / a.surface_m2;
-    else {
-      offreUsage = Math.round(a.prix * (1 - D.analyse.negociation_usage_pct / 100));
-      usageM2 = offreUsage / a.surface_m2;
-    }
-  }
-  const min = Math.min(bas, a.prix_m2, cibleM2 ?? Infinity, usageM2 ?? Infinity) * 0.85,
+  const med = a.marche_prix_m2_median ?? (bas + haut) / 2;
+  const cibleM2 = a.negociation?.prix_plafond && a.surface_m2 ? a.negociation.prix_plafond / a.surface_m2 : null;
+  const min = Math.min(bas, a.prix_m2, cibleM2 ?? Infinity) * 0.85,
         max = Math.max(haut, a.prix_m2) * 1.1;
   const pos = v => Math.max(0, Math.min(100, (v - min) / (max - min) * 100));
   const cible = cibleM2 != null
     ? `<div class="cible" style="left:calc(${pos(cibleM2)}% - 5px)"
-         title="Votre offre maximum : ${fmtEuros(Math.round(cibleM2))}/m². Au-dessus de ce prix, le bien ne rapporte plus vos ${D.analyse.rendement_cible_pct} % par an — on n'achète pas."></div>`
-    : (usageM2 != null
-      ? `<div class="cible usage" style="left:calc(${pos(usageM2)}% - 5px)"
-           title="Première offre conseillée : ${fmtEuros(Math.round(usageM2))}/m² (−${D.analyse.negociation_usage_pct} % du prix affiché). Le prix demandé se négocie toujours."></div>`
-      : "");
+         title="Plafond simulé pour le seuil pépite et l’équilibre prudent : ${fmtEuros(Math.round(cibleM2))}/m². Voir les hypothèses de la proposition."></div>` : "";
   const cibleTxt = cibleM2 != null
-    ? ` <span class="cible-txt">▲ plancher ${D.analyse.rendement_cible_pct} % : ${fmtEuros(Math.round(cibleM2))}/m²</span>`
-    : (usageM2 != null
-      ? ` <span class="cible-txt usage">▲ 1ʳᵉ offre : ${fmtEuros(Math.round(usageM2))}/m²</span>` : "");
+    ? ` <span class="cible-txt">▲ plafond simulé : ${fmtEuros(Math.round(cibleM2))}/m²</span>` : "";
   const lecture = a.lecture_prix ? `<div class="lecture">${ech(a.lecture_prix)}</div>` : "";
-  // Stratégie d'offre : on négocie TOUJOURS, mais l'ancre change de nature.
-  let nego = "";
-  if (a.prix_cible_rendement && a.prix) {
-    const cible = D.analyse.rendement_cible_pct;
-    // Honnêteté : une ancre de négociation calculée sur un loyer ESTIMÉ doit
-    // le dire — sinon elle a l'air aussi solide qu'un bail signé.
-    const surEstime = a.loyer_estime
-      ? ` <span style="color:var(--encre-3)">(calculé sur le loyer estimé — à confirmer par le bail)</span>` : "";
-    if (a.prix_cible_rendement >= a.prix) {
-      // Le rendement cible est atteint au prix affiché : ce n'est PAS une
-      // raison de le payer — première offre d'usage, gain chiffré à l'appui.
-      const f = D.analyse.financement, t = f.taux_pct / 100 / 12, n = f.duree_ans * 12;
-      const gain10k = Math.round(10_800 * t / (1 - Math.pow(1 + t, -n)));
-      nego = `<div class="lecture nego">Objectif ${cible} % atteint au prix affiché — <b>négociez quand même</b> :
-        première offre d'usage ≈ <b>${fmtEuros(offreUsage)}</b> (−${D.analyse.negociation_usage_pct} %).
-        Chaque 10 000 € gagnés ≈ +${gain10k} €/mois de cash-flow.${surEstime}</div>`;
-    } else {
-      const remise = Math.round((1 - a.prix_cible_rendement / a.prix) * 100);
-      nego = `<div class="lecture nego">Plancher de rentabilité (${cible} % brut) : <b>${fmtEuros(a.prix_cible_rendement)}</b>
-        — au-dessus, le bien ne tient pas votre objectif. Négociation nécessaire : −${remise} %
-        (${remise <= 10 ? "jouable" : remise <= 20 ? "ambitieux mais tentable" : "peu réaliste, sauf défaut à faire valoir"}).${surEstime}</div>`;
-    }
-  }
   return `<div class="marche">
     <div><span class="marche-legende-bien">●</span> ce bien : <b>${fmtEuros(a.prix_m2)}/m²</b> — ${verdictMarche(a)}
       <span style="color:var(--encre-3)" title="écart à la médiane locale">(${a.decote_pct >= 0 ? "-" : "+"}${fmtPct(Math.abs(a.decote_pct))} vs médiane)</span>${cibleTxt}</div>
@@ -1441,7 +1411,6 @@ function jaugeMarcheHtml(a) {
       ? ` <span class="info-i" title="DVF (« demandes de valeurs foncières », data.gouv.fr) : les prix effectivement payés chez le notaire pour des locaux commerciaux de cette commune, publiés en open data avec ~6 mois de retard. Fourchette = moitié centrale des ventes (P25-P75), comparaison à la médiane. Un garde-fou factuel, pas une expertise : l'état, l'emplacement précis et le bail de chaque local diffèrent.">i</span>`
       : ` <span class="info-i" title="Aucune vente réelle en nombre suffisant dans cette commune (source DVF) : la fourchette vient du référentiel interne de l'outil, rédigé à la main par grands secteurs — moins précis qu'un historique de ventes.">i</span>`}</div>` : ""}
     ${lecture}
-    ${nego}
   </div>`;
 }
 
@@ -1475,7 +1444,7 @@ function cashflowMensuel(a) {
   // hors taxe foncière SEULEMENT si l'annonce ne la précise pas.
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   if (loyer == null || a.prix == null) return null;
-  const cout = a.prix * 1.08;
+  const cout = a.prix * 1.08 + (a.honoraires || 0);
   const emprunt = cout - apportEurosPour(cout);
   if (emprunt <= 0) return Math.round(loyer - taxeFonciereMensuelle(a));
   const t = profil.taux / 100 / 12, n = profil.duree * 12;
@@ -1491,7 +1460,7 @@ function apportMinimalCashflowPositif(a) {
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   if (loyer == null || a.prix == null) return null;
   const taxe = taxeFonciereMensuelle(a);
-  const cout = a.prix * 1.08;
+  const cout = a.prix * 1.08 + (a.honoraires || 0);
   for (const apport of [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]) {
     const emprunt = cout * (1 - apport / 100);
     const m = emprunt > 0 ? mensualite(emprunt, profil.taux, profil.duree) : 0;
@@ -1569,22 +1538,11 @@ function questionsReponsesHtml(a) {
   lignes.push(["Le prix est-il cohérent ?",
     a.lecture_prix || "Pas assez de données de marché sur ce secteur pour se prononcer."]);
 
-  let negociation;
-  if (a.prix_cible_rendement != null && a.prix) {
-    if (a.prix_cible_rendement >= a.prix) {
-      negociation = "Le rendement cible est déjà atteint au prix affiché — négocier reste utile pour le cash-flow, mais n'est pas nécessaire pour rentabiliser.";
-    } else {
-      const remise = Math.round((1 - a.prix_cible_rendement / a.prix) * 100);
-      if (remise <= 10) negociation = `Oui, plutôt jouable : ${remise} % suffiraient déjà à atteindre le plancher de rentabilité.`;
-      else if (remise <= 20) negociation = `Peut-être : il faudrait ${remise} % pour atteindre le plancher de rentabilité — ambitieux mais tentable.`;
-      else negociation = `Peu probable sans argument fort : il faudrait ${remise} % pour rentabiliser, un écart important.`;
-    }
-  } else {
-    negociation = "Pas assez de données (loyer inconnu) pour chiffrer une marge de négociation.";
-  }
-  if (a.loyer_estime && a.prix_cible_rendement != null)
-    negociation += " (Base : loyer estimé, pas un bail signé — à confirmer.)";
-  lignes.push(["Puis-je négocier 10 % ?", negociation]);
+  const n = a.negociation;
+  const negociation = n?.prix_plafond != null
+    ? `Plafond simulé : ${fmtEuros(n.prix_plafond)} (${fmtPct(n.remise_pct)} sous le prix affiché), pour un score de ${n.score_cible}/100 et une trésorerie prudente à l’équilibre. Le vendeur peut refuser ; les pièces restent à vérifier.`
+    : (n?.raisons || ["Pas assez de données pour chiffrer une proposition."]).join(" ");
+  lignes.push(["À quel prix le dossier devient-il intéressant ?", negociation]);
 
   if (a.rang_score != null && D.stats.retenues) {
     lignes.push(["Est-ce mieux que les autres annonces du moment ?",
@@ -1692,6 +1650,45 @@ function ouvrirContact(id) {
       <button type="button" class="btn-outil" id="contact-copier">${IC.coche} Copier le message</button>
       <span id="contact-copie-ok" style="font-size:13px;color:var(--vert-texte);display:none">Copié ✓</span>
     </div>`;
+  document.getElementById("outil-fond").style.display = "block";
+}
+
+function ouvrirProposition(id) {
+  const a = D.retenues.find(x => x.id === id), n = a?.negociation;
+  if (!a || n?.prix_plafond == null) return;
+  const h = n.hypotheses;
+  const signe = v => `${v >= 0 ? "+" : "−"}${fmtEuros(Math.abs(v))}/mois`;
+  document.getElementById("outil-contenu").innerHTML = `
+    <h3>Étudier une proposition — ${ech(a.titre)}</h3>
+    <div class="offre-chiffres">
+      <div><span>Prix affiché</span><b>${fmtEuros(a.prix)}</b></div>
+      <div><span>Plafond du modèle</span><b>${fmtEuros(n.prix_plafond)}</b></div>
+      <div><span>Point de départ de la discussion</span><b>${fmtEuros(n.prix_ouverture)}</b></div>
+    </div>
+    <p>${n.remise_pct > 0 ? `Le plafond demande une baisse de ${fmtEuros(n.remise_euros)} (−${fmtPct(n.remise_pct)}). ${n.remise_pct > 25 ? "Écart très important : ce scénario n’est pas promu dans la sélection." : n.remise_pct > 15 ? "Écart important à argumenter." : "Écart à discuter avec le vendeur."}` : "Le prix affiché remplit déjà les conditions du modèle."}
+      L’acceptation du vendeur reste inconnue.</p>
+    <p>Au plafond : score simulé <b>${n.score_cible}/100</b> (actuel : ${a.score ?? "—"}),
+      rendement brut ${fmtPct(n.rendement_cible_pct)}, trésorerie prudente <b>${signe(n.cashflow_cible)}</b>,
+      scénario dégradé ${signe(n.stress_cible)}.</p>
+    <p class="offre-note">Référence du modèle : ${h.apport_pct} % d’apport, ${h.duree_ans} ans à ${h.taux_pct} % ; avant impôt et assurance emprunteur.</p>
+    <details><summary>Comprendre le calcul et ses limites</summary>
+      <p>Le plafond est le prix maximal trouvé sur une grille de ${fmtEuros(n.pas_euros)}, avec le seuil pépite et une trésorerie prudente ≥ 0.
+      Le loyer reste constant ; une baisse de prix ne résout pas un défaut du bien.
+      Le point de départ ménage ${n.marge_ouverture_pct} % sous ce plafond, arrondis vers le bas, lorsque les contrôles restent satisfaits.
+      Ce n’est ni une estimation de valeur, ni une prévision de négociation.</p>
+      <p>Référence : ${h.apport_pct} % d’apport, ${h.duree_ans} ans à ${h.taux_pct} %, frais d’acquisition 8 %,
+      honoraires séparés renseignés ajoutés (${fmtEuros(a.honoraires || 0)}). Coût total au plafond : ${fmtEuros(n.cout_total)}, apport : ${fmtEuros(n.apport_reference)}.
+      Provisions : vacance ${h.vacance_pct} %, charges ${h.charges_pct} % ; taxe foncière ${fmtEuros(n.taxe_annuelle_retenue)}/an${n.taxe_estimee ? " provisionnée faute de montant connu" : " annoncée"}.
+      Avant impôt, assurance emprunteur et travaux exceptionnels ; budget de travaux et base des honoraires à confirmer.</p>
+      <p>${n.taxe_estimee ? "La taxe provisionnée doit être remplacée par l’avis réel. " : ""}La répartition des charges doit être vérifiée au bail :
+      <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F32336" target="_blank" rel="noopener">référence Service Public</a>.</p>
+    </details>
+    <p class="offre-note">Brouillon de discussion à personnaliser. Une offre d’achat formelle peut vous engager :
+      <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F2753" target="_blank" rel="noopener">vérifier les conditions</a> avec votre notaire. Aucun envoi depuis l’application.</p>
+    <label for="contact-texte">Message à personnaliser</label>
+    <textarea id="contact-texte" class="contact-texte" rows="13">${ech(n.message || "")}</textarea>
+    <button type="button" class="btn-outil" id="contact-copier">${IC.coche} Copier le message</button>
+    <span id="contact-copie-ok" style="display:none">Copié ✓</span>`;
   document.getElementById("outil-fond").style.display = "block";
 }
 
@@ -1862,7 +1859,7 @@ function decisionHtml(a) {
        <details><summary>Hypothèses, risque et prix d’équilibre</summary>
        <p>Prix d’équilibre simulé : <b>${fmtEuros(d.prix_equilibre)}</b> ; couverture de la dette : ${d.couverture_dette ?? "—"}× (1× = revenus nets égaux au crédit).
        Scénario dégradé : loyer −10 %, deux mois sans loyer par an ; effort d’épargne : ${fmtEuros(d.effort_annuel_stress)}/an.</p>
-       <small>Référence fixe : ${d.apport_pct} % d’apport, ${d.duree_ans} ans à ${d.taux_pct} %, frais d’achat 8 %.
+       <small>Référence fixe : ${d.apport_pct} % d’apport, ${d.duree_ans} ans à ${d.taux_pct} %, frais d’achat 8 %, plus honoraires séparés renseignés.
        Provisions : vacance ${d.vacance_pct} % et charges ${d.charges_pct} % du loyer ; taxe foncière connue déduite.
        Avant impôt, assurance emprunteur et travaux exceptionnels${a.taxe_fonciere_annuelle == null ? "; taxe foncière inconnue, non déduite" : ""}.
        *Net des provisions, avant financement et impôt. ${d.loyer_estime ? "Loyer estimé" : "Loyer annoncé"}, à justifier.
@@ -2043,9 +2040,10 @@ function carteHtml(a, options) {
       <div class="carte-titre"><a href="${ech(a.url)}" target="_blank" rel="noopener">${ech(a.titre)}</a>
         </div>
       <div class="carte-lieu">${ech(a.ville)}${a.code_postal ? " (" + ech(a.code_postal) + ")" : ""}
-        <span class="badges">${pepite ? '<span class="badge badge-pepite" title="Signal économique fondé sur les données de l’annonce. Bail, charges et disponibilité à vérifier.">Pépite à étudier</span>' : ""}${badges[0] || ""}${a.decision?.diagnostic?.bloquant ? '<span class="badge badge-alerte">Chiffres à vérifier</span>' : ""}</span></div>
+        <span class="badges">${pepite ? '<span class="badge badge-pepite" title="Signal économique fondé sur les données de l’annonce. Bail, charges et disponibilité à vérifier.">Pépite à étudier</span>' : estPotentiel(a) ? '<span class="badge badge-pepite">Potentiel à négocier</span>' : ""}${badges[0] || ""}${a.decision?.diagnostic?.bloquant ? '<span class="badge badge-alerte">Chiffres à vérifier</span>' : ""}</span></div>
       ${exceptions.length ? `<div class="exception-recherche">Hors de vos préférences : ${exceptions.map(ech).join(" · ")}</div>` : ""}
       <div class="metriques">${metriques}</div>
+      ${a.negociation?.prix_plafond != null ? `<div class="offre-cible"><span>${a.negociation.statut === "deja_cible" ? "Prix déjà dans la cible" : "Prix à viser"} : <b>${fmtEuros(a.negociation.prix_plafond)}</b>${a.negociation.remise_pct > 0 ? ` (−${fmtPct(a.negociation.remise_pct)})` : ""}${a.negociation.taxe_estimee ? " · taxe provisionnée" : ""}</span><button type="button" data-offre="${ech(a.id)}">Étudier la proposition</button></div>` : ""}
       <details class="analyse-annonce"><summary>Voir l’analyse et les informations à vérifier <span aria-hidden="true">⌄</span></summary>
       <div class="analyse-contenu">
       <p class="provenance-annonce">${ech(a.source || "source non renseignée")} · détectée le ${fmtDate(a.date_premiere_vue)}${joursMarcheHtml(a.date_premiere_vue)}${liens}</p>
@@ -2054,6 +2052,7 @@ function carteHtml(a, options) {
       <p>Rendement acte en main : ${fmtPct(a.rendement_acte_en_main_pct)}${rdtActeInfo}${fiscal ? ` · ${fiscal.libelle} : ${fiscalHtml}` : ""}.</p>
       <p>${apportEstNul() ? "Cash-flow crédit 100 %" : `Cash-flow (${apportLibelle()})`} : ${cfHtml}.</p>
       ${decisionHtml(a)}
+      ${a.negociation?.prix_plafond == null ? `<p class="offre-note">Prix cible pépite : ${ech((a.negociation?.raisons || ["Données à compléter."]).join(" "))}</p>` : ""}
       ${evolutionPrixHtml(a)}
       ${a.decision?.diagnostic?.bloquant ? "" : jaugeMarcheHtml(a)}
       ${a.decision?.diagnostic?.bloquant ? "" : enClairHtml(a)}
@@ -2234,6 +2233,10 @@ function estPepite(a) {
   return a.pepite === true && !a.peut_etre_retiree && !a.decision?.diagnostic?.bloquant;
 }
 
+function estPotentiel(a) {
+  return a.negociation?.selection === true && !a.peut_etre_retiree && !a.decision?.diagnostic?.bloquant;
+}
+
 function ecartsPreferences(a, f) {
   const ecarts = [];
   if (f.surface && !(a.surface_m2 > 0 && a.surface_m2 < Number(f.surface)))
@@ -2254,8 +2257,9 @@ function appliquer(a, f) {
   if (f.signal === "completer" && (a.decision?.documentation ?? 0) >= 80) return false;
   if (f.signal === "coherent" && a.decision?.diagnostic?.bloquant) return false;
   if (f.signal === "prudent" && !(a.decision?.cashflow_prudent != null && a.decision.cashflow_prudent >= 0)) return false;
+  if (f.signal === "negociation" && !estPotentiel(a)) return false;
   if (!f.archives && a.peut_etre_retiree) return false;
-  const exception = f.pepites && estPepite(a) && !estAbandonnee(a.id);
+  const exception = f.pepites && (estPepite(a) || estPotentiel(a)) && !estAbandonnee(a.id);
   if (!exception && ecartsPreferences(a, f).length) return false;
   if (f.type !== "tous" && a.type_murs !== f.type) return false;
   // secteurs cochés : union — le bien passe s'il est dans L'UN d'eux
@@ -2285,6 +2289,8 @@ function rendre() {
   const tris = {
     recherche: (a, b) => Number(estPepite(b)) - Number(estPepite(a))
       || ((estPepite(a) && estPepite(b)) ? (b.score || 0) - (a.score || 0) : 0)
+      || Number(estPotentiel(b)) - Number(estPotentiel(a))
+      || ((estPotentiel(a) && estPotentiel(b)) ? a.negociation.remise_pct - b.negociation.remise_pct : 0)
       || (b.recherche?.score || 0) - (a.recherche?.score || 0) || (b.score || 0) - (a.score || 0),
     score: (a, b) => (b.score || 0) - (a.score || 0),
     prix: (a, b) => (a.prix ?? Infinity) - (b.prix ?? Infinity),
@@ -2295,23 +2301,23 @@ function rendre() {
   const resume = [];
   if (f.surface) resume.push(`< ${f.surface} m²`);
   if (f.trajet) resume.push(`${f.trajet} min max`);
-  if (f.pepites && (f.surface || f.trajet)) resume.push("+ pépites hors critères");
+  if (f.pepites && (f.surface || f.trajet)) resume.push("+ pépites et potentiels");
   document.getElementById("resume-filtres").textContent = resume.join(" · ");
   // Une annonce écartée à la main OU plus revue en ligne depuis longtemps
   // (probablement vendue/retirée) descend dans le reste du tableau de chasse.
   const relegue = a => estAbandonnee(a.id) || a.peut_etre_retiree;
   const incoherente = a => !!a.decision?.diagnostic?.bloquant;
   const verifier = visibles.filter(a => incoherente(a) && !relegue(a));
-  const prio = visibles.filter(a => (a.score ?? 0) >= D.seuils.vert && !relegue(a) && !incoherente(a));
+  const prio = visibles.filter(a => ((a.score ?? 0) >= D.seuils.vert || estPotentiel(a)) && !relegue(a) && !incoherente(a));
   const etudier = visibles.filter(a =>
-    (a.score ?? 0) >= D.seuils.affichage && (a.score ?? 0) < D.seuils.vert && !relegue(a) && !incoherente(a));
-  const reste = visibles.filter(a => ((a.score ?? 0) < D.seuils.affichage && !incoherente(a)) || relegue(a));
+    (a.score ?? 0) >= D.seuils.affichage && (a.score ?? 0) < D.seuils.vert && !estPotentiel(a) && !relegue(a) && !incoherente(a));
+  const reste = visibles.filter(a => ((a.score ?? 0) < D.seuils.affichage && !incoherente(a) && !estPotentiel(a)) || relegue(a));
 
   const podium = [...prio, ...etudier].slice(0, 3).map(a => a.id);
   const opts = a => ({
     prio: (a.score ?? 0) >= D.seuils.vert,
     medaille: podium.indexOf(a.id) >= 0 ? podium.indexOf(a.id) : null,
-    exceptions: f.pepites && estPepite(a) ? ecartsPreferences(a, f) : [],
+    exceptions: f.pepites && (estPepite(a) || estPotentiel(a)) ? ecartsPreferences(a, f) : [],
   });
 
   let index = 0;
@@ -2485,7 +2491,7 @@ function rendreSimulateur() {
   const a = D.retenues.find(x => x.id === simId);
   const loyer = a.loyer_mensuel ?? a.loyer_mensuel_estime;
   const taxe = taxeFonciereMensuelle(a);
-  const cout = simEtat.prix * 1.08;
+  const cout = simEtat.prix * 1.08 + (a.honoraires || 0);
   const apportEuros = simEtat.apportMode === "euros"
     ? Math.round(Math.max(0, Math.min(simEtat.apportEuros, cout)))  // jamais plus que le bien
     : Math.round(cout * simEtat.apport / 100);
@@ -2538,7 +2544,7 @@ function rendreSimulateur() {
     </div>
     ${grille}
     <p style="font-size:12px;color:var(--encre-3);margin-top:10px">Calcul : coût acte en main = prix × 1,08
-    (droits ~7,5 % + frais) ; mensualité = annuité classique ; cash-flow = loyer − mensualité${taxe > 0
+    (droits ~7,5 % + frais), plus honoraires séparés renseignés ; mensualité = annuité classique ; cash-flow = loyer − mensualité${taxe > 0
       ? ` − taxe foncière (${fmtEuros(a.taxe_fonciere_annuelle)}/an, donnée par l'annonce)` : ""}.
     Hors assurance emprunteur (~0,2-0,4 %/an) et gestion${taxe > 0 ? "" : " ; taxe foncière non précisée par l'annonce, donc pas déduite"}.
     Le taux par défaut est une moyenne de marché à ajuster avec votre banque — aucune donnée
@@ -2755,6 +2761,8 @@ document.addEventListener("click", ev => {
   if (chk) { ouvrirChecklist(chk.dataset.check); return; }
   const contact = ev.target.closest("[data-contact]");
   if (contact) { ouvrirContact(contact.dataset.contact); return; }
+  const offre = ev.target.closest("[data-offre]");
+  if (offre) { ouvrirProposition(offre.dataset.offre); return; }
   const critique = ev.target.closest("[data-critique]");
   if (critique) { ouvrirCritique(critique.dataset.critique); return; }
   if (ev.target.id === "contact-copier") {

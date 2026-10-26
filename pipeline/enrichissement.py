@@ -264,6 +264,7 @@ def enrichir(
     annonce.prix_cible_rendement = None
     annonce.decote_pct = None
     annonce.marche_prix_m2_bas = None
+    annonce.marche_prix_m2_median = None
     annonce.marche_prix_m2_haut = None
     if annonce.prix and annonce.surface_m2:
         annonce.prix_m2 = round(annonce.prix / annonce.surface_m2)
@@ -311,6 +312,7 @@ def enrichir(
             annonce.prix_m2, mediane, haut, seuil_decote_pct
         )
         annonce.marche_prix_m2_bas = bas
+        annonce.marche_prix_m2_median = mediane
         annonce.marche_prix_m2_haut = haut
         if annonce.prix_m2 is not None:
             annonce.decote_pct = round((mediane - annonce.prix_m2) / mediane * 100, 1)

@@ -118,7 +118,7 @@ def _points_financement(annonce: Annonce, cfg: dict, config: Config) -> float:
         return 0.0
     financement = config["analyse"]["financement"]
     apport_pct = float(fcfg.get("apport_reference_pct", 20)) / 100
-    cout_acte_en_main = annonce.prix * 1.08
+    cout_acte_en_main = annonce.prix * 1.08 + (annonce.honoraires or 0)
     emprunt = cout_acte_en_main * (1 - apport_pct)
     if emprunt <= 0:
         cash_flow = loyer

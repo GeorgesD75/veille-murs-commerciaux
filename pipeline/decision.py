@@ -89,15 +89,16 @@ def analyser_decision(a: Annonce, config: Config) -> dict:
     # Taxe déduite par prudence même si refacturation annoncée : à vérifier au bail.
     taxe = (a.taxe_fonciere_annuelle or 0) / 12
     revenu = loyer * (1 - vacance - charges) - taxe
-    mensualite = a.prix * 1.08 * (1-apport) * coefficient
+    cout_total = a.prix * 1.08 + (a.honoraires or 0)
+    mensualite = cout_total * (1-apport) * coefficient
     # Stress explicite : loyer -10 %, deux mois de vacance, mêmes charges en %.
     stress = loyer * .9 * (10/12 - charges) - taxe
-    resultat.update({"cashflow_prudent": round(revenu - a.prix * 1.08 * (1-apport) * coefficient),
-                     "prix_equilibre": round(max(0, revenu) / ((1-apport)*1.08*coefficient)),
+    resultat.update({"cashflow_prudent": round(revenu - mensualite),
+                     "prix_equilibre": round(max(0, (revenu / ((1-apport)*coefficient) - (a.honoraires or 0)) / 1.08)),
                      "vacance_pct": vacance * 100, "charges_pct": charges * 100,
                      "apport_pct": apport * 100, "taux_pct": f["taux_pct"], "duree_ans": f["duree_ans"],
                      "cashflow_stress": round(stress - mensualite),
-                     "rendement_net_prudent": round(revenu * 12 / (a.prix * 1.08) * 100, 2),
+                     "rendement_net_prudent": round(revenu * 12 / cout_total * 100, 2),
                      "couverture_dette": round(revenu / mensualite, 2) if mensualite else None,
                      "effort_annuel_stress": round(max(0, mensualite - stress) * 12)})
     return resultat

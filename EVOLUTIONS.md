@@ -1,5 +1,32 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Prix cible pour une pépite à négocier (26 octobre)
+
+- Nouveau calcul de négociation : recherche du prix maximal sur une grille de
+  1 000 € qui satisfait le barème pépite existant ET une trésorerie prudente
+  positive ou nulle. Le revenu reste constant ; le score, le rendement, le prix
+  au m², la décote et le financement sont recalculés sur des copies indépendantes.
+- Les contrôles d’anomalies restent actifs : pas de baisse infinie pour fabriquer
+  une pépite. Annonce récente, occupation claire et loyer déclaré non estimé
+  exigés ; contradictions et risques non clarifiés suspendent la proposition.
+- Taxe foncière inconnue : provision annuelle d’un mois de loyer, signalée comme
+  hypothèse et remplaçable par le montant réel. Honoraires séparés renseignés
+  intégrés au financement et aux scénarios, y compris au simulateur personnel.
+- Prix plafond, point de départ de discussion (marge de 3 % si les contrôles
+  restent satisfaits), score simulé, effort d’apport, trésorerie et scénario
+  dégradé accessibles dans une fenêtre dédiée. Le score réel reste affiché.
+- Potentiels demandant au plus 25 % de baisse promus dans la sélection, y compris
+  hors surface/trajet souhaités si l’option est active. Au-delà, le scénario reste
+  consultable dans la recherche élargie, sans promotion. Un écart de prix n’est
+  jamais présenté comme une probabilité d’acceptation du vendeur.
+- Brouillon chiffré à personnaliser, sans envoi automatique. Demande de validation
+  du bail, loyers, charges, travaux, honoraires et TVA avant de se positionner.
+  Références Service Public sur charges commerciales et offre d’achat dans l’aide.
+- Suppression des anciennes consignes de négociation forfaitaire de 7 % et des
+  affirmations « jouable » : une seule méthode chiffrée pour les repères d’offre.
+- Médiane exacte du référentiel conservée pour les contre-simulations et la jauge
+  de marché ; elle n’est plus assimilée au milieu de la fourchette.
+
 ## Pépites au-delà des préférences (26 octobre)
 
 - Moins de 40 m² reste la recherche principale ; une option active par défaut
