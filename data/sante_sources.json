@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-27",
    "statut": "ok",
-   "annonces": 62,
+   "annonces": 66,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-10-27",
    "statut": "ok",
-   "annonces": 13,
+   "annonces": 15,
    "message": null
   }
  ],
@@ -1451,8 +1451,8 @@
   {
    "jour": "2026-10-27",
    "statut": "ok",
-   "annonces": 219,
-   "message": "/vente/local-commercial/saint-thibault-des-vignes-77400/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); /vente/local-commercial/noisy-le-grand-93160/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 221,
+   "message": null
   }
  ],
  "bureauxlocaux": [
@@ -1633,8 +1633,8 @@
   {
    "jour": "2026-10-27",
    "statut": "ok",
-   "annonces": 710,
-   "message": "/immobilier-d-entreprise/annonces/seine-et-marne-77/vente-commerces/page/2 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 743,
+   "message": null
   }
  ],
  "notaires": [
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-27",
    "statut": "ok",
-   "annonces": 3,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 33 liens résolus en 13 s sur 240 s (33 aboutis, 0 en échec, 0.4 s/lien)"
+   "annonces": 49,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 381 liens résolus en 159 s sur 240 s (379 aboutis, 0 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-27",
    "statut": "ok",
-   "annonces": 96,
+   "annonces": 113,
    "message": null
   }
  ],
