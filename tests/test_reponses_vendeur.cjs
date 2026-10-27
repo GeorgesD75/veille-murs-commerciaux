@@ -103,7 +103,21 @@ test('risque de rue, local libre, manque d’information : pas de feu vert',()=>
 test('prix cible financier conservateur : cash-flow visé atteint au plafond',()=>{
   const r=analyser({prix:300000,prix_base:'inclus'}); assert.equal(r.niveau,'a_negocier');
   assert.ok(r.finance.prixCible<300000);
-  assert.ok(analyser({prix:r.finance.prixCible,prix_base:'inclus'}).finance.cashflow>=100);
+  const cible=analyser({prix:r.finance.prixCible,prix_base:'inclus'}).finance;
+  assert.ok(cible.cashflow>=100);
+  assert.equal(r.finance.cashflowCible,cible.cashflow);
+  assert.equal(r.finance.stressCible,cible.stress);
+  assert.equal(r.finance.mensualiteCible,cible.mensualite);
+  assert.ok(r.finance.cashflowCible>r.finance.cashflow);
+});
+test('cash-flow au prix cible recalculé avec apport fixe, frais et taux zéro',()=>{
+  const a={...annonce,honoraires:10000};
+  const p={...profil,apportMode:'euros',apportEuros:40000,taux:0};
+  const r=analyser({prix:400000,prix_base:'net'},a,p).finance;
+  const cible=analyser({prix:r.prixCible,prix_base:'net'},a,p).finance;
+  assert.equal(r.cashflowCible,cible.cashflow);
+  assert.equal(r.stressCible,cible.stress);
+  assert.ok(r.cashflowCible>=100);
 });
 test('taux zéro, apport fixe et achat comptant',()=>{
   assert.ok(Number.isFinite(analyser({},annonce,{...profil,taux:0}).finance.cashflow));

@@ -59,8 +59,10 @@ def verifier_exceptions_pepites(browser):
     cible = page.locator('.carte:has(.carte-img[data-id="potentiel"]) .offre-cible')
     texte_cible = cible.inner_text().replace("\u202f", " ").replace("\u00a0", " ")
     assert "180 000" in texte_cible and "maximum" in texte_cible
-    assert "82/100 simulés" in cible.inner_text() and "actuel : 65/100" in cible.inner_text()
-    assert "+130" in cible.inner_text() and "20 % d’apport" in cible.inner_text()
+    assert "82/100 simulés" in cible.text_content() and "actuel : 65/100" in cible.text_content()
+    assert "174 000" in texte_cible and "Prix à tenter" in texte_cible
+    assert cible.locator('[data-prix-propose="174000"] [data-cashflow-prix]').evaluate("e=>e.textContent==='+'+fmtEuros(cashflowAuPrix(D.retenues.find(a=>a.id==='potentiel'),174000))+'/mois'")
+    assert "Cash-flows avec votre financement" in texte_cible
     page.evaluate("window.profilTest=structuredClone(profil); Object.assign(profil,{apport:0,taux:20}); rendre()")
     assert page.locator('#bloc-prio .carte-img[data-id="potentiel"]').count() == 0
     assert "Ce plafond ne suffit pas" in cible.inner_text()
@@ -94,11 +96,13 @@ def verifier_exceptions_pepites(browser):
     assert urgente.locator(".analyse-annonce").evaluate("e=>e.open")
     page.evaluate("delete suivi.grande; D.retenues.forEach(a=>a.est_nouvelle=false); rendre()")
     assert not urgente.locator(".analyse-annonce").evaluate("e=>e.open")
-    assert "82/100" in page.locator('.carte:has([data-offre="potentiel"]) .offre-cible').inner_text()
+    assert "82/100" in page.locator('.carte:has([data-offre="potentiel"]) .offre-cible').text_content()
     assert page.locator(".exception-recherche").count() == 3
     assert "65 m²" in page.locator(".exception-recherche").first.inner_text()
     assert "45 min" in page.locator(".exception-recherche").first.inner_text()
     page.locator('[data-offre="potentiel"]').click()
+    assert page.locator('#outil-contenu [data-prix-propose]').count()==3
+    assert page.locator('#outil-contenu [data-prix-propose="174000"] [data-cashflow-prix]').evaluate("e=>e.textContent==='+'+fmtEuros(cashflowAuPrix(D.retenues.find(a=>a.id==='potentiel'),174000))+'/mois'")
     assert "174 000" in page.locator("#contact-texte").input_value()
     assert "82/100" in page.locator("#outil-contenu").inner_text()
     page.locator("#outil-contenu details > summary").filter(has_text="Comprendre le calcul").click()
@@ -258,6 +262,18 @@ def verifier_reponses_vendeur(browser):
     assert page.locator(".rep-prix").count()==1
     assert "Avant impôt" in page.locator("#rep-analyse").inner_text()
     assert page.evaluate("id=>JSON.stringify(D.retenues.find(a=>a.id===id))",ids[0])==avant
+    # Le cash-flow affiché au prix cible est recalculé à ce montant,
+    # distinct du cash-flow au prix demandé plus élevé.
+    page.locator('.rep-informations').evaluate("e=>e.open=true")
+    page.locator('.rep-complements').evaluate("e=>e.open=true")
+    page.locator('[data-rep-champ="prix"]').fill("300000")
+    page.locator('[data-rep-action="valider"]').click()
+    assert page.locator('.rep-resultat.a_negocier').count()==1
+    assert page.locator('.rep-prix b').last.evaluate("e=>{const f=calculerDossierReponse(dossiersReponses[reponseSelectionnee],annonceReponse(reponseSelectionnee)).finance;return f.prixCible<f.prix && f.cashflowCible>f.cashflow && e.textContent==='+'+fmtEuros(f.cashflowCible)+'/mois'}")
+    page.locator('.rep-informations').evaluate("e=>e.open=true")
+    page.locator('.rep-complements').evaluate("e=>e.open=true")
+    page.locator('[data-rep-champ="prix"]').fill("180000")
+    page.locator('[data-rep-action="valider"]').click()
     # Une réponse complémentaire conserve les réponses déjà obtenues.
     page.locator('[data-rep-action="ajouter"]').click()
     assert page.locator("#rep-texte").input_value()==""

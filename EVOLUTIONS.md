@@ -1,5 +1,17 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Prix de discussion et cash-flow au même prix (27 octobre)
+
+- Sur les annonces, prix de départ et cash-flow correspondant affichés côte
+  à côte, puis plafond du modèle et cash-flow à ce plafond. Les montants
+  utilisent le financement personnel, y compris l’apport fixe en euros.
+- La fenêtre de proposition compare prix demandé, prix à tenter et plafond,
+  chacun avec son propre cash-flow. Les scores restent liés au prix simulé
+  de référence, distinct du calcul de trésorerie personnel.
+- Dans « Réponses », le prix maximal à obtenir affiche maintenant son
+  cash-flow prudent et dégradé recalculés à ce prix, avec la baisse à obtenir.
+  Les chiffres au prix demandé restent identifiés séparément.
+
 ## Premier contact léger et analyse des réponses vendeur (26 octobre)
 
 - Premier message limité à cinq points : murs seuls/disponibilité, occupation

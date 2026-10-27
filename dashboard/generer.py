@@ -955,6 +955,12 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
 .offre-cible.financiere-seule { background:var(--surface); border-left-color:var(--filet); }
 .offre-entete { display:flex; align-items:baseline; flex-wrap:wrap; gap:5px 12px; justify-content:space-between; }
 .offre-entete strong { font-size:14px; }
+.offre-prix-cashflow { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 16px; margin:10px 0; }
+.offre-prix-cashflow span { display:block; color:var(--encre-2); font-size:12px; }
+.offre-prix-cashflow b { display:block; font-size:20px; line-height:1.35; }
+.offre-prix-cashflow small { display:block; font-size:12px; margin-top:3px; }
+.offre-plafond { padding-top:8px; border-top:1px solid var(--filet); }
+.rep-prix-cible { padding:14px; background:var(--vert-fond); border-radius:8px; }
 .offre-cible p { margin:5px 0 0; }
 .offre-indisponible { font-size:12px; color:var(--encre-2); margin:0 0 8px; }
 .relocation-annonce { font-size:12px; margin:0 0 12px; }
@@ -1754,14 +1760,13 @@ function ouvrirProposition(id) {
   const signe = v => `${v >= 0 ? "+" : "−"}${fmtEuros(Math.abs(v))}/mois`;
   document.getElementById("outil-contenu").innerHTML = `
     <h3>Étudier une proposition — ${ech(a.titre)}</h3>
-    <div class="offre-chiffres">
-      <div><span>Prix affiché</span><b>${fmtEuros(a.prix)}</b></div>
-      <div><span>Prix d’achat cible · maximum</span><b>${fmtEuros(n.prix_plafond)}</b></div>
-      <div><span>Point de départ de la discussion</span><b>${fmtEuros(n.prix_ouverture)}</b></div>
-    </div>
+    ${prixCashflowHtml(a, a.prix, "Prix demandé")}
+    ${prixCashflowHtml(a, n.prix_ouverture ?? n.prix_plafond, "Prix à tenter · proposition de départ")}
+    ${prixCashflowHtml(a, n.prix_plafond, "Plafond du modèle · maximum")}
+    <p class="offre-note">Ces trois cash-flows utilisent votre financement : ${finTxt()}, avec les mêmes provisions de vacance, charges et taxe. Avant impôt, assurance emprunteur et travaux exceptionnels.</p>
     <p>${n.remise_pct > 0 ? `Le plafond demande une baisse de ${fmtEuros(n.remise_euros)} (−${fmtPct(n.remise_pct)}). ${n.remise_pct > remiseMax ? "Écart très important : ce scénario n’est pas promu dans la sélection." : n.remise_pct > 15 ? "Baisse importante à obtenir et à argumenter." : "Écart à discuter avec le vendeur."}` : "Le prix affiché remplit déjà les conditions du modèle."}
       L’acceptation du vendeur reste inconnue.</p>
-    <p>Objectif : au moins ${fmtEuros(n.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100)}/mois de cash-flow prudent. Au plafond : score simulé <b>${n.score_cible}/100</b> (actuel : ${a.score ?? "—"}),
+    <p>Objectif du modèle : au moins ${fmtEuros(n.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100)}/mois de cash-flow prudent. Au plafond avec le financement de référence : score simulé <b>${n.score_cible}/100</b> (actuel : ${a.score ?? "—"}),
       rendement brut ${fmtPct(n.rendement_cible_pct)}, trésorerie prudente <b>${signe(n.cashflow_cible)}</b>,
       scénario dégradé ${signe(n.stress_cible)}.</p>
     <p class="offre-note">Référence du modèle : ${h.apport_pct} % d’apport, ${h.duree_ans} ans à ${h.taux_pct} % ; avant impôt et assurance emprunteur. Ce prix cible est un plafond, pas un prix minimum à payer.</p>
@@ -1979,6 +1984,14 @@ function cashflowAuPrix(a, prix) {
   return cashflowMensuel({...a, prix});
 }
 
+function prixCashflowHtml(a, prix, libelle) {
+  const cf = cashflowAuPrix(a, prix);
+  return `<div class="offre-prix-cashflow" data-prix-propose="${prix}">
+    <div><span>${libelle}</span><b>${fmtEuros(prix)}</b></div>
+    <div><span>Cash-flow prudent à ce prix</span><b data-cashflow-prix>${cf == null ? "Non calculable" : `${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois`}</b></div>
+  </div>`;
+}
+
 function relocationHtml(a) {
   const r = a.decision?.relocation || a.negociation?.relocation;
   const niveau = r?.niveau || "a_verifier";
@@ -1995,27 +2008,29 @@ function prixCibleHtml(a) {
   const n = a.negociation;
   if (n?.prix_plafond == null) {
     if (n?.prix_seuil_financier != null) {
-      const h = n.hypotheses;
       return `<div class="offre-cible financiere-seule">
-        <div class="offre-entete"><strong>Pour viser +${fmtEuros(n.objectif_cashflow)}/mois : ${fmtEuros(n.prix_seuil_financier)} maximum</strong>
+        <div class="offre-entete"><strong>Prix à obtenir · seuil financier du modèle</strong>
           <button type="button" class="btn-outil" data-sim="${ech(a.id)}" data-sim-prix="${n.prix_seuil_financier}">Tester ce prix</button></div>
-        <p><b>Seuil financier seul, critères pépite non réunis.</b> Cash-flow prudent simulé : +${fmtEuros(n.cashflow_seuil_financier)}/mois · score ${n.score_seuil_financier}/100 simulés (actuel : ${a.score ?? "—"}/100).</p>
-        <p class="offre-note">Avec ${h.apport_pct} % d’apport, ${h.duree_ans} ans à ${h.taux_pct} % · vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt et assurance. Ce prix ne valide ni le loyer, ni l’emplacement, ni l’accord du vendeur.</p>
+        ${prixCashflowHtml(a, n.prix_seuil_financier, "Prix maximum du modèle")}
+        <p><b>Critères pépite non réunis.</b> Score ${n.score_seuil_financier}/100 simulés à ce prix (actuel : ${a.score ?? "—"}/100).</p>
+        <p class="offre-note">Cash-flow avec votre financement : ${finTxt()}. Vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt et assurance. Ce prix ne valide ni le loyer, ni l’emplacement, ni l’accord du vendeur.</p>
       </div>`;
     }
     const raison = n?.raisons?.[0] || "Loyer, charges et disponibilité à confirmer.";
     return `<p class="offre-indisponible">Prix d’achat cible à déterminer : ${ech(raison)}</p>`;
   }
-  const h = n.hypotheses, cf = cashflowAuPrix(a, n.prix_plafond);
+  const cf = cashflowAuPrix(a, n.prix_plafond);
   const signe = v => v == null ? "non calculable" : `${v >= 0 ? "+" : "−"}${fmtEuros(Math.abs(v))}/mois`;
   const vigilance = (a.decision?.relocation || n.relocation)?.niveau === "vigilance";
   const objectif = n.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100;
   const adapte = cf != null && cf >= objectif;
   return `<div class="offre-cible">
-    <div class="offre-entete"><strong>${vigilance || !adapte ? "Cible financière du modèle" : "Intéressant financièrement"} à ${fmtEuros(n.prix_plafond)} maximum</strong>
+    <div class="offre-entete"><strong>Prix à tenter en négociation</strong>
       <button type="button" data-offre="${ech(a.id)}">Étudier la proposition</button></div>
-    <p>Cash-flow prudent <b>${signe(n.cashflow_cible)}</b> (objectif : +${fmtEuros(objectif)}/mois) · <b>${n.score_cible}/100 simulés</b> (actuel : ${a.score ?? "—"}/100)${n.remise_pct > 0 ? ` · baisse de ${fmtPct(n.remise_pct)} à obtenir` : " · au prix affiché"}.</p>
-    <p class="offre-note">Avec ${h.apport_pct} % d’apport, ${h.duree_ans} ans à ${h.taux_pct} % · vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt et assurance.</p>
+    ${prixCashflowHtml(a, n.prix_ouverture ?? n.prix_plafond, "Proposition de départ")}
+    <p class="offre-plafond">Plafond du modèle : <b>${fmtEuros(n.prix_plafond)} maximum</b> → <b>${signe(cf)}</b> à ce prix.</p>
+    <p class="offre-note">Cash-flows avec votre financement : ${finTxt()}. Vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt, assurance et travaux exceptionnels.</p>
+    <details><summary>Objectif et score au plafond</summary><p>Objectif : +${fmtEuros(objectif)}/mois · <b>${n.score_cible}/100 simulés</b> (actuel : ${a.score ?? "—"}/100)${n.remise_pct > 0 ? ` · baisse de ${fmtPct(n.remise_pct)} à obtenir au plafond` : " · au prix affiché"}. Le prix de départ ménage une marge de discussion sous le plafond du modèle ; l’accord du vendeur reste à obtenir.</p></details>
     ${!adapte ? `<p class="alerte-donnee fort">Avec votre financement à ce prix : ${signe(cf)}. Ce plafond ne suffit pas à votre objectif ; ajustez le prix ou le financement dans le simulateur.</p>` : ""}
     ${vigilance ? '<p class="alerte-donnee fort">Emplacement à valider : une baisse de prix ne résout pas les risques de relocation.</p>' : ""}
   </div>`;

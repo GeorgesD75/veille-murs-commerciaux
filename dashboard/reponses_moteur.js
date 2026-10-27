@@ -181,10 +181,16 @@ const ReponsesVendeur = (() => {
         const coutMax = p.apportMode === "euros" ? (revenu-objectif)/coefficient + Number(p.apportEuros) : (revenu-objectif)/(coefficient*(1-apport/100));
         prixCible = Math.max(0, Math.floor(Math.min(prix, (coutMax-honoraires)/1.08)/1000)*1000);
       } else if (revenu-mensualite >= objectif) prixCible = prix;
+      const coutCible = prixCible > 0 ? prixCible * 1.08 + honoraires : null;
+      const apportCible = coutCible == null ? null : p.apportMode === "euros" ? Math.min(Number(p.apportEuros), coutCible) : coutCible * apport/100;
+      const mensualiteCible = coutCible == null ? null : Math.max(0, coutCible-apportCible) * coefficient;
       finance = {prix, prixVendeur: prixVendeur != null, loyer, chargesDeclarees: chargesConnues ? charges : null,
         taxe, taxeEstimee, fraisMensuels: frais, chargesComprises: c.taxe_comprise === "oui", mensualite,
         cashflow: Math.round(revenu-mensualite), stress: Math.round(revenuStress-mensualite),
         objectif, prixCible: prixCible > 0 ? prixCible : null, honoraires, apportEuros, cout,
+        cashflowCible: mensualiteCible == null ? null : Math.round(revenu-mensualiteCible),
+        stressCible: mensualiteCible == null ? null : Math.round(revenuStress-mensualiteCible),
+        mensualiteCible,
         taux, duree, revenuNetMensuel:revenu, vacancePct: vacance*100, chargesPct: provisionCharges*100};
       if (revenu < objectif) risques.push("Les revenus après charges et provisions ne permettent pas la marge visée, même sans crédit. Une baisse de prix ne suffit pas à elle seule.");
       if (c.occupation !== "loue") points.push("Simulation de relocation : aucun revenu en place garanti pour un local libre ou d’occupation inconnue.");
