@@ -4,7 +4,12 @@
 name: Veille quotidienne
 
 on:
-  workflow_dispatch:       # bouton « Run workflow » pour lancer à la main
+  workflow_dispatch:
+    inputs:
+      collecter:
+        description: 'Collecter les sources (désactiver pour republier le stock sans collecte ni emails)'
+        type: boolean
+        default: true
   schedule:
     # 3 tournées/jour (~07:17, 15:17, 23:17 à Paris l'été — cron en UTC) :
     # matin pour le café, après-midi pour les annonces de la journée, soir
@@ -15,6 +20,7 @@ on:
 
 permissions:
   contents: write          # nécessaire pour committer données + site
+  pages: write             # demander explicitement le build après le push du bot
 
 concurrency:
   group: veille
@@ -40,7 +46,9 @@ jobs:
       - name: Tests de santé (30 s)
         run: python -m pytest -q
 
-      - name: Tournée du matin
+      - name: Collecter les annonces
+        id: collecte
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.collecter }}
         env:
           IMAP_USER: ${{ secrets.IMAP_USER }}
           IMAP_PASSWORD: ${{ secrets.IMAP_PASSWORD }}
@@ -48,6 +56,22 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}  # optionnel : critique IA (pipeline/critique.py)
         run: python run.py
+
+      - name: Régénérer le stock sans collecte ni notifications
+        id: republication
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.collecter }}
+        run: python -c "from scripts.regenerer_dashboard import main; main(persister=True)"
+
+      - name: Sauvegarder la tournée avant publication
+        if: ${{ !cancelled() && (steps.collecte.outcome == 'success' || steps.republication.outcome == 'success') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: veille-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            data/
+            docs/
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Vérifier la syntaxe JS du dashboard généré
         # Filet de sécurité gratuit (Node déjà présent sur les runners GitHub) :
@@ -74,27 +98,10 @@ jobs:
         run: |
           git config user.name "veille-bot"
           git config user.email "github-actions@users.noreply.github.com"
-          git add data/ docs/
-          if git diff --staged --quiet; then
-            echo "Rien de nouveau à publier."
-          else
-            git commit -m "Tournée du $(date -u +%F)"
-            # Un push concurrent (une session de travail humaine, typiquement)
-            # peut arriver pendant les ~2-20 min de la tournée : on se rebase
-            # dessus au lieu d'échouer platement (constaté le 2026-08-22).
-            succes=0
-            for essai in 1 2 3; do
-              git fetch origin master
-              if git rebase origin/master && git push; then
-                succes=1
-                break
-              fi
-              echo "Tentative $essai : rebase/push en échec (course avec un autre push), nouvel essai dans 5 s..."
-              git rebase --abort 2>/dev/null || true
-              sleep 5
-            done
-            if [ "$succes" -ne 1 ]; then
-              echo "Échec de la publication après 3 tentatives."
-              exit 1
-            fi
-          fi
+          python scripts/publier_veille.py
+
+      - name: Déclencher la publication GitHub Pages
+        # Un push avec GITHUB_TOKEN ne déclenche pas le build Pages automatique.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds"

@@ -14,6 +14,16 @@ Trois fois par jour (7 h, 15 h, 23 h), ce système :
 
 Zéro serveur, zéro abonnement : GitHub exécute et héberge tout gratuitement.
 
+La publication supporte une modification du site pendant une tournée : elle
+reconstruit la page avec le code le plus récent et les annonces collectées,
+puis relance les contrôles avant un push normal. Les conflits sur les données
+ne sont jamais résolus par écrasement. Chaque tournée est sauvegardée dans les
+**Artifacts** du workflow pendant sept jours, avant la publication.
+Pour vérifier ou republier le stock sans nouvelle collecte ni email : dans
+**Actions → Veille quotidienne → Run workflow**, décochez **Collecter les sources**.
+La date de dernière collecte reste inchangée. Le workflow demande explicitement
+la construction GitHub Pages après le push du bot.
+
 La collecte parcourt les deux rubriques publiques Point de Vente (murs libres
 et occupés, jusqu’à 12 pages chacune), CessionPME (20 pages) et PAP sur la
 véritable région Île-de-France g471 (10 pages). Les liens Suivant sont suivis

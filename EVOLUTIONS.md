@@ -1,5 +1,25 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Publication de la veille malgré une modification concurrente (27 octobre)
+
+- Diagnostic des échecs des 26 et 27 octobre : collecte et contrôles réussis,
+  mais conflit Git sur `docs/index.html` pendant la publication. Les trois
+  tentatives de rebase répétaient le même conflit sans le résoudre.
+- Publication extraite dans `scripts/publier_veille.py` : récupération du code
+  distant, reconstruction hors ligne du HTML avec le stock collecté et le
+  template courant, puis nouveaux tests, contrôle JavaScript et aperçu.
+  Aucun push forcé. Un conflit sur le stock reste explicite, sans écrasement.
+- Sauvegarde `data/` et `docs/` en artefact avant publication, conservée sept
+  jours, pour récupérer une tournée même si les contrôles ou le push échouent.
+- Mode manuel « collecter » désactivable : republication du stock sans réseau
+  de collecte ni notifications, sans changer la date de dernière collecte.
+- Demande explicite de build Pages après le push du bot : `GITHUB_TOKEN`
+  ne déclenche pas automatiquement la construction d’un site publié par branche.
+- Vérification : sept scénarios Git avec dépôt distant et clone superficiel,
+  dont conflit HTML, code concurrent sans conflit HTML, deuxième push pendant
+  les contrôles, refus des conflits de stock et arrêt sur validation en échec.
+  Suite complète : 535 tests réussis.
+
 ## Une décision explicite sur chaque annonce (27 octobre)
 
 - Encadré de décision avec motif et prochaine étape : contacter en vert,
