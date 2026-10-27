@@ -185,8 +185,10 @@ function prixConfirmeVendeurHtml(a, e) {
     <button type="button" data-reponse-vendeur="${ech(a.id)}">Ouvrir le dossier vendeur</button></div>
     <p class="rep-note">Dernier dossier relu le ${ech(fmtDate(e.maj))} · déclarations du vendeur, pièces non vérifiées. Les métriques de l’annonce restent affichées au-dessus.</p>
     ${fiable && f?`<p>Prix retenu : ${fmtEuros(f.prix)} → ${signe(f.cashflow)} prudent. Loyer retenu : ${fmtEuros(f.loyer)}/mois HT/HC.</p>
-      ${f.prixCible?`<div class="offre-prix-cashflow" data-prix-vendeur="${f.prixCible}"><div><span>Prix à obtenir · maximum</span><b>${fmtEuros(f.prixCible)}</b>${rendementAuPrixHtml(f.loyer,f.prixCible)}</div>
-        <div><span>Cash-flow prudent à ce prix</span><b data-cashflow-vendeur>${signe(f.cashflowCible)}</b></div></div>
+      ${f.prixCible?`<div class="offre-prix-cashflow" data-prix-vendeur="${f.prixCible}"><div><span>Prix à obtenir · maximum</span><b>${fmtEuros(f.prixCible)}</b></div>
+        <div><span>Cash-flow prudent à ce prix</span><b data-cashflow-vendeur>${signe(f.cashflowCible)}</b></div>
+        <div class="offre-rendement-cle"><span>Rendement brut à ce prix</span><b data-rendement-prix>${fmtPct(f.loyer*1200/f.prixCible)}</b><small>/an · avant frais et charges</small></div></div>
+      ${resistancePrixHtml(budgetReponseVendeur(f,true))}
       ${budgetProjetHtml(budgetReponseVendeur(f,true),"Budget au prix cible avec les chiffres du vendeur")}`:""}`:""}
     ${[...r.risques,...r.manquants.map(m=>m.texte)].slice(0,2).map(t=>`<p>${ech(t)}</p>`).join("")}
     <p class="rep-note">${fiable?"Votre financement et les provisions prudentes sont appliqués ; avant impôt, assurance et travaux exceptionnels.":"La recommandation est suspendue sur cet appareil tant que le dossier reste à clarifier."} Le score publié de l’annonce reste inchangé.</p>

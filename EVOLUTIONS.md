@@ -1,5 +1,26 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Une décision explicite sur chaque annonce (27 octobre)
+
+- Encadré de décision avec motif et prochaine étape : contacter en vert,
+  négocier en ambre, compléter ou lever un risque. Les pièces restent à vérifier.
+- Lecture distincte du score : potentiel négocié, trésorerie avec le financement
+  personnel, loyer estimé, occupation, disponibilité et risques de relocation.
+  Le dossier vendeur relu prime sur les déclarations du stock.
+- Trois chiffres regroupés : prix à tenter, cash-flow prudent à ce prix,
+  rendement brut. Écart au prix demandé en euros et pourcentage ; une forte
+  baisse nécessaire est signalée sans présumer l’accord du vendeur.
+- Scénario dégradé visible au prix proposé et effort d’épargne annuel associé ;
+  mêmes hypothèses et calculs que le budget et le simulateur. Appliqué aussi
+  aux chiffres du vendeur et dans la fenêtre de proposition.
+- Les anciennes propositions disparaissent pendant la relecture d’une réponse
+  vendeur. Les métriques de l’annonce restent identifiées et le score inchangé.
+- Sur mobile, photo et titre en tête, puis données et analyse sur toute la
+  largeur. Chiffres plus lisibles, liens contrastés en mode sombre, filtres
+  repliés et accès direct aux annonces conservés.
+- Validation : 528 tests Python (dont sept scénarios JavaScript de décision),
+  parcours navigateur complet, persistance des dossiers et vues 320–1440 px.
+
 ## Collecte élargie et qualification de la vente (27 octobre)
 
 - Point de Vente : parcours des rubriques publiques lf9 (libres) et lf10

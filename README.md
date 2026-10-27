@@ -63,6 +63,22 @@ l’effort d’épargne en scénario dégradé. Le rendement après provisions i
 les frais d’achat et reste avant crédit et impôt. Travaux, assurance et frais
 bancaires non chiffrés ne sont pas ajoutés artificiellement au budget.
 
+Chaque fiche affiche une **aide à la décision** : contacter (vert), négocier
+(ambre), compléter les informations ou lever un risque (rouge). Le motif et la
+prochaine étape sont explicites. Le potentiel après négociation est distingué
+de la situation au prix demandé ; un financement personnel insuffisant reste
+signalé même si le score simulé est bon. Les contradictions, loyers estimés,
+occupations inconnues et risques de relocation priment sur un signal favorable.
+Les chiffres d’une réponse vendeur relue prennent la priorité sur le stock.
+
+Le prix à tenter, le cash-flow et le rendement brut sont réunis. La baisse à
+obtenir est indiquée en euros et pourcentage, sans présumer son acceptation.
+Le scénario dégradé au **même prix**, avec votre financement, reste visible :
+loyer −10 %, au moins deux mois sans loyer par an, et effort annuel éventuel.
+Sur mobile, les données occupent toute la largeur sous le titre et la photo.
+Une réponse vendeur en attente de relecture masque les anciennes propositions
+de prix pour éviter de décider sur des chiffres dépassés.
+
 Le premier contact tient en cinq questions utiles : murs seuls, occupation et
 bail, loyer HT/HC, charges bailleur/taxe et impayés. Les demandes de pièces
 restent dans l’étape « Demander les pièces », pour ne pas charger le premier échange.

@@ -247,7 +247,7 @@ def preparer_payload(
 def generer_html(payload: dict[str, Any]) -> str:
     donnees = json.dumps(payload, ensure_ascii=False).replace("</", "<\\/")
     scripts = "\n".join((Path(__file__).parent / nom).read_text(encoding="utf-8")
-                        for nom in ["reponses_moteur.js", "reponses_interface.js"])
+                        for nom in ["decision_achat.js", "reponses_moteur.js", "reponses_interface.js"])
     return _GABARIT.replace("__REPONSES_VENDEUR__", scripts).replace("__DONNEES__", donnees)
 
 
@@ -948,16 +948,38 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
 .carte-titre { font-size:16px; line-height:1.35; margin-bottom:6px; }
 .carte-lieu { font-size:12px; margin-bottom:16px; }
 .carte .badges { margin-left:8px; gap:4px; }
+.carte-contenu { min-width:0; }
 .badge { font-size:10.5px; padding:2px 6px; font-weight:500; }
 .badge-pepite { background:var(--or-clair); color:var(--encre-1); }
 .exception-recherche { margin:-6px 0 14px; font-size:12px; color:var(--encre-2); }
-.offre-cible { margin:0 0 10px; padding:10px 12px; border-left:3px solid var(--or); background:var(--vert-fond); border-radius:0 8px 8px 0; font-size:12px; }
+.avis-achat { --avis-fond:var(--bande); --avis-texte:var(--encre-2); border-radius:9px; background:var(--avis-fond); border-left:4px solid var(--avis-texte); padding:11px 14px; margin:0 0 12px; font-size:12px; }
+.avis-achat.favorable { --avis-fond:var(--vert-fond); --avis-texte:var(--vert-texte); }
+.avis-achat.negociation { --avis-fond:var(--orange-fond); --avis-texte:var(--orange-texte); }
+.avis-achat.vigilance { --avis-fond:var(--alerte-fond); --avis-texte:var(--alerte-texte); }
+.avis-titre { display:flex; align-items:center; gap:8px; color:var(--avis-texte); }
+.avis-titre .ic { flex-shrink:0; width:19px; height:19px; }
+.avis-titre strong { font-size:15px; line-height:1.35; }
+.avis-achat p { margin:6px 0 0; }
+.avis-suite { color:var(--encre-2); }
+.avis-base { display:block; font-size:10px; color:var(--encre-2); margin-top:8px; }
+.offre-cible { margin:0 0 10px; padding:14px 16px; border:1px solid var(--filet); background:var(--surface); border-radius:9px; font-size:12px; }
 .offre-cible.financiere-seule { background:var(--surface); border-left-color:var(--filet); }
 .offre-entete { display:flex; align-items:baseline; flex-wrap:wrap; gap:5px 12px; justify-content:space-between; }
 .offre-entete strong { font-size:14px; }
-.offre-prix-cashflow { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 16px; margin:10px 0; }
+.offre-prix-cashflow { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 18px; margin:14px 0; }
 .offre-prix-cashflow span { display:block; color:var(--encre-2); font-size:12px; }
-.offre-prix-cashflow b { display:block; font-size:20px; line-height:1.35; }
+.offre-prix-cashflow b { display:block; font-size:23px; line-height:1.4; font-variant-numeric:tabular-nums; }
+.offre-prix-cashflow [data-cashflow-prix].positif { color:var(--vert-texte); }
+.offre-prix-cashflow [data-cashflow-prix].negatif { color:var(--alerte-texte); }
+.offre-prix-cashflow .offre-rendement-cle b { color:var(--encre-1); }
+.offre-reperes { display:flex; flex-wrap:wrap; gap:6px 16px; padding:9px 0; margin:6px 0; border-top:1px solid var(--filet); color:var(--encre-2); }
+.offre-reperes .effort-important { color:var(--orange-texte); }
+.offre-resistance { padding:9px 11px; border-radius:6px; background:var(--bande); color:var(--encre-2); }
+.offre-resistance.fragile { background:var(--alerte-fond); color:var(--alerte-texte); }
+.offre-resistance b { font-variant-numeric:tabular-nums; }
+.offre-resistance small { display:block; margin-top:3px; }
+.offre-cible > details > summary { cursor:pointer; color:var(--encre-2); }
+.offre-hypotheses { color:var(--encre-2); }
 .offre-prix-cashflow small { display:block; font-size:12px; margin-top:3px; }
 .offre-rendement { display:block; font-size:12px; margin:3px 0; }
 .budget-projet { margin:10px 0; font-size:13px; }
@@ -972,16 +994,21 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
 .budget-alerte { padding:10px; border-left:3px solid var(--alerte-texte); background:var(--surface); }
 .retour-vendeur { padding:9px 12px; margin:8px 0; border-left:3px solid var(--or); background:var(--vert-fond); border-radius:0 8px 8px 0; font-size:13px; }
 .retour-vendeur.vigilance, .retour-vendeur.hors_cible { border-left-color:var(--alerte-texte); }
-.retour-vendeur button { background:none; border:0; padding:0; color:var(--marque); text-decoration:underline; cursor:pointer; font:inherit; text-align:left; }
+.retour-vendeur.a_negocier { background:var(--orange-fond); }
+.retour-vendeur.a_clarifier { background:var(--bande); }
+.retour-vendeur.vigilance,.retour-vendeur.hors_cible { background:var(--alerte-fond); }
+.retour-vendeur button { background:none; border:0; padding:0; color:var(--vert-texte); text-decoration:underline; cursor:pointer; font:inherit; text-align:left; }
 .offre-plafond { padding-top:8px; border-top:1px solid var(--filet); }
 .rep-prix-cible { padding:14px; background:var(--vert-fond); border-radius:8px; }
 .offre-cible p { margin:5px 0 0; }
 .offre-indisponible { font-size:12px; color:var(--encre-2); margin:0 0 8px; }
 .relocation-annonce { font-size:12px; margin:0 0 12px; }
 .relocation-annonce > summary { cursor:pointer; color:var(--encre-2); }
+.relocation-annonce.a_verifier > summary { color:var(--orange-texte); }
+.relocation-annonce.favorable > summary { color:var(--vert-texte); }
 .relocation-annonce.vigilance > summary { color:var(--alerte-texte); }
 .relocation-annonce ul { margin:6px 0; padding-left:18px; }
-.offre-cible button { color:var(--marque); border:0; background:none; padding:3px 0; font:inherit; text-decoration:underline; cursor:pointer; }
+.offre-cible button { color:var(--vert-texte); border:0; background:none; padding:3px 0; font:inherit; text-decoration:underline; cursor:pointer; }
 .offre-chiffres { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin:18px 0; }
 .offre-chiffres span { display:block; font-size:12px; color:var(--encre-2); }
 .offre-chiffres b { font-size:20px; }
@@ -1017,10 +1044,19 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
   .onglet { font-size:15px; padding:12px; }
   h2.section { font-size:21px; }
   .carte { grid-template-columns:76px minmax(0,1fr); padding:14px; gap:14px; }
+  .carte-contenu { display:contents; }
   .carte-img { grid-column:auto; height:94px; }
+  .carte-annonce > .carte-img { grid-column:1; grid-row:1 / span 2; height:100%; min-height:88px; max-height:136px; }
   .carte-titre { font-size:15px; }
+  .carte-contenu > .carte-titre { grid-column:2; grid-row:1; margin:0; }
+  .carte-contenu > .carte-lieu { grid-column:2; grid-row:2; margin:0; }
+  .carte .exception-recherche,.carte .metriques,.carte .avis-achat,.carte .offre-cible,
+  .carte .retour-vendeur,.carte .offre-indisponible,.carte .relocation-annonce,.carte .analyse-annonce { grid-column:1 / -1; margin-bottom:0; }
+  .carte .exception-recherche { margin-top:0; }
   .carte-lieu .badges { display:flex; margin:5px 0 0; }
   .metriques { gap:10px 16px; }
+  .carte-annonce .metriques { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px 12px; padding:12px 0; border-top:1px solid var(--filet); }
+  .carte .metrique .valeur { overflow-wrap:anywhere; }
   .metrique .valeur,.metrique--cle .valeur { font-size:15px; }
   .carte-score { grid-column:1 / -1; flex-direction:row; justify-content:flex-end; flex-wrap:wrap; gap:8px; }
   .carte-score .score { width:34px; height:30px; font-size:17px; }
@@ -1030,6 +1066,14 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
   .outils-annonce > summary { text-align:right; }
   .carte-enchere { grid-template-columns:1fr; }
   .carte-enchere .carte-img { height:130px; }
+}
+@media(max-width:600px) {
+  .offre-prix-cashflow { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .offre-prix-cashflow b { font-size:20px; }
+  .offre-rendement-cle { grid-column:1 / -1; display:flex; align-items:baseline; gap:5px 10px; flex-wrap:wrap; }
+  .offre-rendement-cle b { font-size:17px; }
+  .offre-cible { padding:12px; }
+  .avis-achat { padding:10px 12px; }
 }
 </style>
 </head>
@@ -1814,6 +1858,8 @@ function ouvrirProposition(id) {
     ${prixCashflowHtml(a, a.prix, "Prix demandé")}
     ${prixCashflowHtml(a, n.prix_ouverture ?? n.prix_plafond, "Prix à tenter · proposition de départ")}
     ${prixCashflowHtml(a, n.prix_plafond, "Plafond du modèle · maximum")}
+    ${ecartNegociationHtml(a,n.prix_ouverture ?? n.prix_plafond)}
+    ${resistancePrixHtml(projectionAchat(a,n.prix_ouverture ?? n.prix_plafond))}
     ${budgetProjetHtml(projectionAchat(a, n.prix_ouverture ?? n.prix_plafond), "Budget au prix à tenter et risque de vacance")}
     <p class="offre-note">Ces trois cash-flows utilisent votre financement : ${finTxt()}, avec les mêmes provisions de vacance, charges et taxe. Avant impôt, assurance emprunteur et travaux exceptionnels.</p>
     <p>${n.remise_pct > 0 ? `Le plafond demande une baisse de ${fmtEuros(n.remise_euros)} (−${fmtPct(n.remise_pct)}). ${n.remise_pct > remiseMax ? "Écart très important : ce scénario n’est pas promu dans la sélection." : n.remise_pct > 15 ? "Baisse importante à obtenir et à argumenter." : "Écart à discuter avec le vendeur."}` : "Le prix affiché remplit déjà les conditions du modèle."}
@@ -2043,10 +2089,42 @@ function rendementAuPrixHtml(loyerMensuel, prix) {
 
 function prixCashflowHtml(a, prix, libelle) {
   const cf = cashflowAuPrix(a, prix);
+  const brut = Number.isFinite(a.loyer_mensuel) && a.loyer_mensuel > 0 && prix > 0 ? a.loyer_mensuel * 1200 / prix : null;
   return `<div class="offre-prix-cashflow" data-prix-propose="${prix}">
-    <div><span>${libelle}</span><b>${fmtEuros(prix)}</b>${rendementAuPrixHtml(a.loyer_mensuel, prix)}</div>
-    <div><span>Cash-flow prudent à ce prix</span><b data-cashflow-prix>${cf == null ? "Non calculable" : `${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois`}</b></div>
+    <div><span>${libelle}</span><b>${fmtEuros(prix)}</b></div>
+    <div><span>Cash-flow prudent à ce prix</span><b data-cashflow-prix class="${cf == null ? "" : cf >= 0 ? "positif" : "negatif"}">${cf == null ? "Non calculable" : `${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois`}</b></div>
+    <div class="offre-rendement-cle" title="Loyer annuel annoncé ÷ ce prix. Avant frais d’acquisition, charges, crédit et impôt."><span>Rendement brut à ce prix</span><b data-rendement-prix>${brut == null ? "À préciser" : fmtPct(brut)}</b><small>/an · avant frais et charges</small></div>
   </div>`;
+}
+
+function avisAchatHtml(a) {
+  const avis = DecisionAchat.analyser(a, {
+    projection:projectionAchat(a), projectionCible:projectionAchat(a,a.negociation?.prix_plafond),
+    retour:etatReponseVendeur(a), prioritaire:contactPrioritaire(a), pepite:estPepite(a), potentiel:estPotentiel(a),
+    objectif:a.negociation?.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100
+  });
+  const icone = {favorable:IC.coche,negociation:IC.cible,completer:IC.loupe,vigilance:IC.alerte}[avis.niveau];
+  return `<section class="avis-achat ${avis.niveau}" aria-label="Aide à la décision" data-decision="${avis.niveau}">
+    <div class="avis-titre">${icone}<strong>${ech(avis.titre)}</strong></div>
+    <p>${ech(avis.raison)}</p>
+    <p class="avis-suite"><b>Prochaine étape :</b> ${ech(avis.prochaine)}</p>
+    <small class="avis-base">${avis.origine === "vendeur" ? "Dossier vendeur sur cet appareil · déclarations à justifier" : "Lecture de l’annonce · pièces non vérifiées"}</small>
+  </section>`;
+}
+
+function resistancePrixHtml(p) {
+  if (!Number.isFinite(p?.stress)) return "";
+  const stress = p.stress;
+  return `<div class="offre-resistance${stress < 0 ? " fragile" : ""}" data-resistance-prix="${p.prix}">
+    <span>Scénario dégradé au même prix : <b data-stress-prix>${stress>=0?"+":"−"}${fmtEuros(Math.abs(stress))}/mois</b></span>
+    <small>Loyer −10 %, au moins 2 mois sans loyer/an.${stress < 0 ? ` Soit <b>${fmtEuros(-stress*12)}/an</b> à financer dans ce scénario.` : " Le scénario reste à l’équilibre ou positif."} Avant impôt, assurance et travaux.</small>
+  </div>`;
+}
+
+function ecartNegociationHtml(a, prix) {
+  if (!(a.prix > 0) || !(prix > 0) || prix >= a.prix) return "";
+  const baisse = a.prix-prix, pct = baisse/a.prix*100;
+  return `<div class="offre-reperes"><span class="${pct>15?"effort-important":""}"><b>${pct>15?"Baisse importante à obtenir":"Baisse à obtenir"} : ${fmtEuros(baisse)} (−${fmtPct(pct)})</b></span><span>Accord du vendeur inconnu.</span></div>`;
 }
 
 function relocationHtml(a) {
@@ -2064,6 +2142,7 @@ function relocationHtml(a) {
 function prixCibleHtml(a) {
   const vendeur = etatReponseVendeur(a);
   if (vendeur?.confirme && !vendeur.aRelire) return prixConfirmeVendeurHtml(a,vendeur);
+  if (vendeur) return ""; // Ne pas proposer un ancien prix pendant la relecture du retour.
   const n = a.negociation;
   if (n?.prix_plafond == null) {
     if (n?.prix_seuil_financier != null) {
@@ -2071,6 +2150,8 @@ function prixCibleHtml(a) {
         <div class="offre-entete"><strong>Prix à obtenir · seuil financier du modèle</strong>
           <button type="button" class="btn-outil" data-sim="${ech(a.id)}" data-sim-prix="${n.prix_seuil_financier}">Tester ce prix</button></div>
         ${prixCashflowHtml(a, n.prix_seuil_financier, "Prix maximum du modèle")}
+        ${ecartNegociationHtml(a,n.prix_seuil_financier)}
+        ${resistancePrixHtml(projectionAchat(a,n.prix_seuil_financier))}
         ${budgetProjetHtml(projectionAchat(a, n.prix_seuil_financier))}
         <p><b>Critères pépite non réunis.</b> Score ${n.score_seuil_financier}/100 simulés à ce prix (actuel : ${a.score ?? "—"}/100).</p>
         <p class="offre-note">Cash-flow avec votre financement : ${finTxt()}. Vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt et assurance. Ce prix ne valide ni le loyer, ni l’emplacement, ni l’accord du vendeur.</p>
@@ -2088,10 +2169,12 @@ function prixCibleHtml(a) {
     <div class="offre-entete"><strong>Prix à tenter en négociation</strong>
       <button type="button" data-offre="${ech(a.id)}">Étudier la proposition</button></div>
     ${prixCashflowHtml(a, n.prix_ouverture ?? n.prix_plafond, "Proposition de départ")}
+    ${ecartNegociationHtml(a,n.prix_ouverture ?? n.prix_plafond)}
     <p class="offre-plafond">Plafond du modèle : <b>${fmtEuros(n.prix_plafond)} maximum</b> → <b>${signe(cf)}</b> à ce prix.${rendementAuPrixHtml(a.loyer_mensuel, n.prix_plafond)}</p>
+    ${resistancePrixHtml(projectionAchat(a,n.prix_ouverture ?? n.prix_plafond))}
     ${budgetProjetHtml(projectionAchat(a, n.prix_ouverture ?? n.prix_plafond), "Budget au prix à tenter et risque de vacance")}
-    <p class="offre-note">Cash-flows avec votre financement : ${finTxt()}. Vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt, assurance et travaux exceptionnels.</p>
-    <details><summary>Objectif et score au plafond</summary><p>Objectif : +${fmtEuros(objectif)}/mois · <b>${n.score_cible}/100 simulés</b> (actuel : ${a.score ?? "—"}/100)${n.remise_pct > 0 ? ` · baisse de ${fmtPct(n.remise_pct)} à obtenir au plafond` : " · au prix affiché"}. Le prix de départ ménage une marge de discussion sous le plafond du modèle ; l’accord du vendeur reste à obtenir.</p></details>
+    <p class="offre-hypotheses">Simulation sur le loyer annoncé, à justifier. Objectif : +${fmtEuros(objectif)}/mois.</p>
+    <details><summary>Financement, objectif et score simulé</summary><p class="offre-note">Cash-flows avec votre financement : ${finTxt()}. Vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt, assurance et travaux exceptionnels.</p><p>Objectif : +${fmtEuros(objectif)}/mois · <b>${n.score_cible}/100 simulés</b> (actuel : ${a.score ?? "—"}/100)${n.remise_pct > 0 ? ` · baisse de ${fmtPct(n.remise_pct)} à obtenir au plafond` : " · au prix affiché"}. Le prix de départ ménage une marge de discussion sous le plafond du modèle ; l’accord du vendeur reste à obtenir.</p></details>
     ${!adapte ? `<p class="alerte-donnee fort">Avec votre financement à ce prix : ${signe(cf)}. Ce plafond ne suffit pas à votre objectif ; ajustez le prix ou le financement dans le simulateur.</p>` : ""}
     ${vigilance ? '<p class="alerte-donnee fort">Emplacement à valider : une baisse de prix ne résout pas les risques de relocation.</p>' : ""}
   </div>`;
@@ -2234,7 +2317,7 @@ function carteHtml(a, options) {
   const metriques = [
     ["Prix · annonce", fmtEuros(a.prix), ""],
     ["Surface", a.surface_m2 == null ? "—" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²", ""],
-    ["Loyer · annonce", loyer == null ? "—" : fmtEuros(loyer) + est + loyerInfo, ""],
+    ["Loyer · annonce", loyer == null ? "—" : fmtEuros(loyer) + "/mois" + est + loyerInfo, ""],
     ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "") + rdtBrutInfo, "cle"],
     ["Prudent · annonce", cf == null ? "—" :
       `${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois`, "cle"],
@@ -2251,17 +2334,18 @@ function carteHtml(a, options) {
 
   // Un badge discret suffit : le motif de l'exception reste lisible sans
   // ouvrir l'analyse, sans rajouter de bandeau au-dessus des annonces.
-  return `<article class="carte${options.prio ? " prio" : ""}${options.medaille === 0 ? " podium-1" : ""}${pepite ? " rang-s" : ""}"
+  return `<article class="carte carte-annonce${options.prio ? " prio" : ""}${options.medaille === 0 ? " podium-1" : ""}${pepite ? " rang-s" : ""}"
       style="animation-delay:${(options.index || 0) * 45}ms">
     ${boutonMasquerHtml(a.id)}
     <div class="carte-img" data-id="${ech(a.id)}" data-idx="0">${img}</div>
-    <div>
+    <div class="carte-contenu">
       <div class="carte-titre"><a href="${ech(a.url)}" target="_blank" rel="noopener">${ech(a.titre)}</a>
         </div>
       <div class="carte-lieu">${ech(a.ville)}${a.code_postal ? " (" + ech(a.code_postal) + ")" : ""}
         <span class="badges">${pepite ? '<span class="badge badge-pepite" title="Signal économique fondé sur les données de l’annonce. Bail, charges et disponibilité à vérifier.">Pépite à étudier</span>' : estPotentiel(a) ? '<span class="badge badge-pepite">Potentiel à négocier</span>' : ""}${badges[0] || ""}${a.decision?.diagnostic?.bloquant ? '<span class="badge badge-alerte">Chiffres à vérifier</span>' : ""}</span></div>
       ${exceptions.length ? `<div class="exception-recherche">Hors de vos préférences : ${exceptions.map(ech).join(" · ")}</div>` : ""}
       <div class="metriques">${metriques}</div>
+      ${avisAchatHtml(a)}
       ${reponseVendeurHtml(a)}
       ${prixCibleHtml(a)}
       ${relocationHtml(a)}

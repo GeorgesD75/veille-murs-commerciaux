@@ -24,10 +24,10 @@ def verifier_exceptions_pepites(browser):
       const base = structuredClone(D.retenues[0]);
       const creer = (id, score, surface, trajet, pepite) => ({...structuredClone(base),
         id, titre:id, score, surface_m2:surface, temps_trajet_min:trajet, pepite,
-        prix:200000,honoraires:0,loyer_mensuel:1800,loyer_estime:false,taxe_fonciere_annuelle:0,
+        prix:200000,honoraires:0,loyer_mensuel:1800,loyer_estime:false,loyer_origine:'annonce',flags:[],taxe_fonciere_annuelle:0,
         ville:'Pantin', code_postal:'93500', departement:'93', type_murs:'murs_occupes',
         peut_etre_retiree:false, est_nouvelle:false, negociation:null, recherche:{...structuredClone(base.recherche),score:surface<40?100:30},
-        decision:{...structuredClone(base.decision), relocation:{niveau:'a_verifier',favorables:[],vigilances:[],a_confirmer:['Adresse et passage']}, diagnostic:{occupation:'occupe',bloquant:false,alertes:[]}}
+        decision:{...structuredClone(base.decision),loyer_estime:false, relocation:{niveau:'a_verifier',favorables:[],vigilances:[],a_confirmer:['Adresse et passage']}, diagnostic:{occupation:'occupe',bloquant:false,alertes:[]}}
       });
       D.retenues = [creer('petite',70,25,15,false), creer('grande',90,65,45,true),
         creer('limite',85,40,20,true), creer('ordinaire',79,60,15,false),
@@ -65,10 +65,16 @@ def verifier_exceptions_pepites(browser):
     assert cible.locator('[data-prix-propose="174000"] [data-rendement-prix]').evaluate("e=>e.textContent===fmtPct(1800*1200/174000)")
     assert cible.locator('.offre-plafond [data-rendement-prix]').evaluate("e=>e.textContent===fmtPct(1800*1200/180000)")
     assert page.evaluate("rendementAuPrixHtml(null,180000)==='' && rendementAuPrixHtml(1800,0)===''")
-    assert "Cash-flows avec votre financement" in texte_cible
+    assert "Cash-flows avec votre financement" in cible.text_content()
+    avis = page.locator('.carte:has(.carte-img[data-id="potentiel"]) .avis-achat')
+    assert avis.get_attribute('data-decision') == 'negociation'
+    assert 'après négociation' in avis.inner_text()
+    assert cible.locator('[data-resistance-prix="174000"] [data-stress-prix]').evaluate("e=>{const s=projectionAchat(D.retenues.find(a=>a.id==='potentiel'),174000).stress;return e.textContent===(s>=0?'+':'−')+fmtEuros(Math.abs(s))+'/mois'}")
+    assert 'Baisse à obtenir' in cible.locator('.offre-reperes').inner_text()
     page.evaluate("window.profilTest=structuredClone(profil); Object.assign(profil,{apport:0,taux:20}); rendre()")
     assert page.locator('#bloc-prio .carte-img[data-id="potentiel"]').count() == 0
     assert "Ce plafond ne suffit pas" in cible.inner_text()
+    assert avis.get_attribute('data-decision') == 'vigilance'
     page.evaluate("Object.assign(profil,window.profilTest); rendre()")
     page.evaluate("D.retenues.find(a=>a.id==='potentiel').negociation.cashflow_cible=0; rendre()")
     assert page.locator('#bloc-prio .carte-img[data-id="potentiel"]').count() == 0
@@ -378,6 +384,8 @@ def verifier_retours_sur_annonces(browser):
         surface_m2:30,temps_trajet_min:15,score:90,pepite:true,est_nouvelle:true,peut_etre_retiree:false,
         flags:[],negociation:null,type_murs:'murs_occupes'});
       a.decision.diagnostic={bloquant:false,occupation:'occupe',transaction:{nature:'murs'},alertes:[],preuves:{}};
+      a.decision.loyer_estime=false;
+      a.loyer_origine='annonce';
       a.decision.relocation={niveau:'favorable',favorables:[],vigilances:[],a_confirmer:[]};
       D.retenues=[a]; D.encheres=[];
       Object.assign(profil,{apportMode:'pct',apport:20,taux:4,duree:20}); rendre();
@@ -385,6 +393,7 @@ def verifier_retours_sur_annonces(browser):
     avant=page.evaluate("JSON.stringify(D.retenues[0])")
     assert page.evaluate("contactPrioritaire(D.retenues[0])")
     assert page.locator('.analyse-annonce').evaluate("e=>e.open")
+    assert page.locator('.avis-achat').get_attribute('data-decision')=='favorable'
     page.locator('[data-contact="retour-test"]').click()
     page.locator('#outil-contenu [data-reponse-vendeur="retour-test"]').click()
     page.locator('#rep-texte').fill("Vente du fonds de commerce, murs non compris.")
@@ -397,6 +406,7 @@ def verifier_retours_sur_annonces(browser):
     page.locator('#verifier-liste .ligne-depliable > summary').click()
     page.locator('.retour-vendeur.hors_cible').wait_for(state="visible")
     assert page.locator('.retour-vendeur.hors_cible').count()==1
+    assert page.locator('.avis-achat').get_attribute('data-decision')=='vigilance'
     assert page.locator('.badge-pepite').count()==0
     assert page.evaluate("!estPepite(D.retenues[0]) && !estOpportunitePrioritaire(D.retenues[0])")
     assert not page.locator('.analyse-annonce').evaluate("e=>e.open")
@@ -410,11 +420,14 @@ def verifier_retours_sur_annonces(browser):
     page.locator('[data-vue="chasse"]').click()
     assert page.evaluate("!estPepite(D.retenues[0]) && !estOpportunitePrioritaire(D.retenues[0])")
     assert 'en attente de relecture' in page.locator('.retour-vendeur').inner_text()
+    assert page.locator('.avis-achat').get_attribute('data-decision')=='completer'
+    assert page.locator('.offre-cible').count()==0
     page.locator('.retour-vendeur [data-reponse-vendeur]').click()
     page.locator('[data-rep-action="extraire"]').click()
     page.locator('[data-rep-action="valider"]').click()
     page.locator('[data-vue="chasse"]').click()
     assert 'prix à négocier' in page.locator('.retour-vendeur').inner_text()
+    assert page.locator('.avis-achat').get_attribute('data-decision')=='negociation'
     assert page.evaluate("!estOpportunitePrioritaire(D.retenues[0])")
     assert page.locator('[data-prix-vendeur]').count()==1
     assert page.locator('.offre-indisponible').count()==0  # remplace la vieille conclusion du stock
@@ -424,6 +437,7 @@ def verifier_retours_sur_annonces(browser):
     page.locator('[data-rep-action="valider"]').click()
     page.locator('[data-vue="chasse"]').click()
     assert page.locator('.retour-vendeur.interessant').count()==1
+    assert page.locator('.avis-achat').get_attribute('data-decision')=='favorable'
     assert page.evaluate("estOpportunitePrioritaire(D.retenues[0]) && !contactPrioritaire(D.retenues[0])")
     budget=page.locator('.retour-vendeur .budget-projet')
     budget.locator('summary').click()
