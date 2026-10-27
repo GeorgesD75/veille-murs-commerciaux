@@ -158,8 +158,8 @@ function rendreAnalyseReponse() {
     <h3>${ech(resultat.titre)}</h3>
     ${[...(r.lecture.alertes||[]),...resultat.risques].map(t=>`<p class="alerte-donnee fort">${ech(t)}</p>`).join("")}
     ${f?`<div class="rep-bilan"><div><span>Prudent · votre financement</span><b>${signe(f.cashflow)}/mois</b></div><div><span>Scénario dégradé</span><b>${signe(f.stress)}/mois</b></div></div>
-      <p class="rep-note">Au prix retenu de ${fmtEuros(f.prix)}. ${financierFiable?"Calcul sur les chiffres retenus":"Simulation indicative : les inconnues ou risques empêchent de conclure"}. Avant impôt, assurance emprunteur et travaux exceptionnels.</p>
-      ${financierFiable && f.prixCible?`<div class="offre-prix-cashflow rep-prix rep-prix-cible"><div><span>Prix à obtenir · maximum</span><b>${fmtEuros(f.prixCible)}</b></div><div><span>Cash-flow prudent à ce prix</span><b>${signe(f.cashflowCible)}/mois</b></div></div>
+      <p class="rep-note">Au prix retenu de ${fmtEuros(f.prix)}.${rendementAuPrixHtml(f.loyer, f.prix)} ${financierFiable?"Calcul sur les chiffres retenus":"Simulation indicative : les inconnues ou risques empêchent de conclure"}. Avant impôt, assurance emprunteur et travaux exceptionnels.</p>
+      ${financierFiable && f.prixCible?`<div class="offre-prix-cashflow rep-prix rep-prix-cible"><div><span>Prix à obtenir · maximum</span><b>${fmtEuros(f.prixCible)}</b>${rendementAuPrixHtml(f.loyer, f.prixCible)}</div><div><span>Cash-flow prudent à ce prix</span><b>${signe(f.cashflowCible)}/mois</b></div></div>
         <p class="rep-note">Avec votre financement, pour viser au moins +${fmtEuros(f.objectif)}/mois. Scénario dégradé à ce même prix : ${signe(f.stressCible)}/mois. ${f.prixCible===f.prix?"Le prix demandé atteint déjà la marge visée.":`Baisse de ${fmtEuros(f.prix-f.prixCible)} à obtenir (${fmtPct((1-f.prixCible/f.prix)*100)}).`}</p>
         <p class="rep-note">Seuil financier, sans nouveau score pépite. Demande locative, bail, pièces et accord du vendeur restent à qualifier.</p>`:""}
       <details class="rep-calcul"><summary>Hypothèses et comparaison avec l’annonce</summary>

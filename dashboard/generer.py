@@ -959,6 +959,7 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
 .offre-prix-cashflow span { display:block; color:var(--encre-2); font-size:12px; }
 .offre-prix-cashflow b { display:block; font-size:20px; line-height:1.35; }
 .offre-prix-cashflow small { display:block; font-size:12px; margin-top:3px; }
+.offre-rendement { display:block; font-size:12px; margin:3px 0; }
 .offre-plafond { padding-top:8px; border-top:1px solid var(--filet); }
 .rep-prix-cible { padding:14px; background:var(--vert-fond); border-radius:8px; }
 .offre-cible p { margin:5px 0 0; }
@@ -1984,10 +1985,15 @@ function cashflowAuPrix(a, prix) {
   return cashflowMensuel({...a, prix});
 }
 
+function rendementAuPrixHtml(loyerMensuel, prix) {
+  if (!Number.isFinite(loyerMensuel) || loyerMensuel <= 0 || !Number.isFinite(prix) || prix <= 0) return "";
+  return `<small class="offre-rendement" title="Loyer annuel ÷ ce prix d’achat. Rendement brut avant frais d’acquisition, charges, crédit et impôt.">Rendement brut : <strong data-rendement-prix>${fmtPct(loyerMensuel * 1200 / prix)}</strong>/an</small>`;
+}
+
 function prixCashflowHtml(a, prix, libelle) {
   const cf = cashflowAuPrix(a, prix);
   return `<div class="offre-prix-cashflow" data-prix-propose="${prix}">
-    <div><span>${libelle}</span><b>${fmtEuros(prix)}</b></div>
+    <div><span>${libelle}</span><b>${fmtEuros(prix)}</b>${rendementAuPrixHtml(a.loyer_mensuel, prix)}</div>
     <div><span>Cash-flow prudent à ce prix</span><b data-cashflow-prix>${cf == null ? "Non calculable" : `${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois`}</b></div>
   </div>`;
 }
@@ -2028,7 +2034,7 @@ function prixCibleHtml(a) {
     <div class="offre-entete"><strong>Prix à tenter en négociation</strong>
       <button type="button" data-offre="${ech(a.id)}">Étudier la proposition</button></div>
     ${prixCashflowHtml(a, n.prix_ouverture ?? n.prix_plafond, "Proposition de départ")}
-    <p class="offre-plafond">Plafond du modèle : <b>${fmtEuros(n.prix_plafond)} maximum</b> → <b>${signe(cf)}</b> à ce prix.</p>
+    <p class="offre-plafond">Plafond du modèle : <b>${fmtEuros(n.prix_plafond)} maximum</b> → <b>${signe(cf)}</b> à ce prix.${rendementAuPrixHtml(a.loyer_mensuel, n.prix_plafond)}</p>
     <p class="offre-note">Cash-flows avec votre financement : ${finTxt()}. Vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt, assurance et travaux exceptionnels.</p>
     <details><summary>Objectif et score au plafond</summary><p>Objectif : +${fmtEuros(objectif)}/mois · <b>${n.score_cible}/100 simulés</b> (actuel : ${a.score ?? "—"}/100)${n.remise_pct > 0 ? ` · baisse de ${fmtPct(n.remise_pct)} à obtenir au plafond` : " · au prix affiché"}. Le prix de départ ménage une marge de discussion sous le plafond du modèle ; l’accord du vendeur reste à obtenir.</p></details>
     ${!adapte ? `<p class="alerte-donnee fort">Avec votre financement à ce prix : ${signe(cf)}. Ce plafond ne suffit pas à votre objectif ; ajustez le prix ou le financement dans le simulateur.</p>` : ""}

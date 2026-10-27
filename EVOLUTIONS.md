@@ -1,5 +1,13 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Rendement à chaque prix proposé (27 octobre)
+
+- Rendement brut annuel affiché avec le prix à tenter et le plafond sur les
+  annonces, ainsi qu’à chacun des trois prix de la fenêtre de proposition.
+- Dans « Réponses », recalcul avec le loyer retenu du vendeur au prix demandé
+  et au prix cible. Formule explicitée : loyer annuel divisé par ce prix,
+  avant frais, charges, financement et impôt ; absent si le revenu est inconnu.
+
 ## Prix de discussion et cash-flow au même prix (27 octobre)
 
 - Sur les annonces, prix de départ et cash-flow correspondant affichés côte

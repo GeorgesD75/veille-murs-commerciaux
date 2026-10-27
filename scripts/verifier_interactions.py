@@ -62,6 +62,9 @@ def verifier_exceptions_pepites(browser):
     assert "82/100 simulés" in cible.text_content() and "actuel : 65/100" in cible.text_content()
     assert "174 000" in texte_cible and "Prix à tenter" in texte_cible
     assert cible.locator('[data-prix-propose="174000"] [data-cashflow-prix]').evaluate("e=>e.textContent==='+'+fmtEuros(cashflowAuPrix(D.retenues.find(a=>a.id==='potentiel'),174000))+'/mois'")
+    assert cible.locator('[data-prix-propose="174000"] [data-rendement-prix]').evaluate("e=>e.textContent===fmtPct(1800*1200/174000)")
+    assert cible.locator('.offre-plafond [data-rendement-prix]').evaluate("e=>e.textContent===fmtPct(1800*1200/180000)")
+    assert page.evaluate("rendementAuPrixHtml(null,180000)==='' && rendementAuPrixHtml(1800,0)===''")
     assert "Cash-flows avec votre financement" in texte_cible
     page.evaluate("window.profilTest=structuredClone(profil); Object.assign(profil,{apport:0,taux:20}); rendre()")
     assert page.locator('#bloc-prio .carte-img[data-id="potentiel"]').count() == 0
@@ -102,6 +105,7 @@ def verifier_exceptions_pepites(browser):
     assert "45 min" in page.locator(".exception-recherche").first.inner_text()
     page.locator('[data-offre="potentiel"]').click()
     assert page.locator('#outil-contenu [data-prix-propose]').count()==3
+    assert page.locator('#outil-contenu [data-prix-propose="200000"] [data-rendement-prix]').evaluate("e=>e.textContent===fmtPct(1800*1200/200000)")
     assert page.locator('#outil-contenu [data-prix-propose="174000"] [data-cashflow-prix]').evaluate("e=>e.textContent==='+'+fmtEuros(cashflowAuPrix(D.retenues.find(a=>a.id==='potentiel'),174000))+'/mois'")
     assert "174 000" in page.locator("#contact-texte").input_value()
     assert "82/100" in page.locator("#outil-contenu").inner_text()
@@ -270,6 +274,8 @@ def verifier_reponses_vendeur(browser):
     page.locator('[data-rep-action="valider"]').click()
     assert page.locator('.rep-resultat.a_negocier').count()==1
     assert page.locator('.rep-prix b').last.evaluate("e=>{const f=calculerDossierReponse(dossiersReponses[reponseSelectionnee],annonceReponse(reponseSelectionnee)).finance;return f.prixCible<f.prix && f.cashflowCible>f.cashflow && e.textContent==='+'+fmtEuros(f.cashflowCible)+'/mois'}")
+    assert page.locator('.rep-prix [data-rendement-prix]').evaluate("e=>{const f=calculerDossierReponse(dossiersReponses[reponseSelectionnee],annonceReponse(reponseSelectionnee)).finance;return e.textContent===fmtPct(1800*1200/f.prixCible)}")
+    assert page.locator('#rep-analyse > section > .rep-note [data-rendement-prix]').evaluate("e=>e.textContent===fmtPct(1800*1200/300000)")
     page.locator('.rep-informations').evaluate("e=>e.open=true")
     page.locator('.rep-complements').evaluate("e=>e.open=true")
     page.locator('[data-rep-champ="prix"]').fill("180000")
