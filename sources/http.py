@@ -15,10 +15,11 @@ from __future__ import annotations
 
 import logging
 import random
+import re
 import socket
 import time
 import urllib.robotparser
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 
 import requests
 import urllib3.util.connection as _urllib3_connexion
@@ -44,6 +45,37 @@ class SourceBloqueeErreur(RuntimeError):
 
 class SourceTemporaireErreur(RuntimeError):
     """Serveur/robots indisponible : réessayer à la prochaine tournée."""
+
+
+def robots_autorise(parseur, agent: str, url: str) -> bool:
+    """Règle la plus spécifique, jokers et ancre finale (RFC 9309).
+
+    La stdlib applique le premier préfixe : « Allow: / » masquait ainsi des
+    interdictions plus précises. Elle ne reconnaît pas non plus * et $.
+    """
+    if parseur.disallow_all:
+        return False
+    if parseur.allow_all:
+        return True
+    produit = agent.split('/')[0].lower()
+    groupes = []
+    for entree in parseur.entries:
+        tailles = [len(a) for a in entree.useragents if a != '*' and a.lower() in produit]
+        if tailles:
+            groupes.append((max(tailles),entree))
+    retenues = [e for taille,e in groupes if taille == max(t for t,_ in groupes)] if groupes else ([parseur.default_entry] if parseur.default_entry else [])
+    decoupe = urlparse(url)
+    chemin = unquote(decoupe.path or '/') + ('?' + unquote(decoupe.query) if decoupe.query else '')
+    correspondances = []
+    for entree in retenues:
+        for regle in entree.rulelines:
+            motif = unquote(regle.path)
+            ancre = motif.endswith('$')
+            corps = motif[:-1] if ancre else motif
+            expression = '^' + re.escape(corps).replace(r'\*','.*') + ('$' if ancre else '')
+            if re.search(expression,chemin):
+                correspondances.append((len(corps.replace('*','').encode('utf-8')),regle.allowance))
+    return max(correspondances)[1] if correspondances else True
 
 
 class ClientPoli:
@@ -101,7 +133,7 @@ class ClientPoli:
     def obtenir(self, url: str) -> str:
         """GET poli. Lève SourceBloqueeErreur sur refus (robots, 403, 429)."""
         parseur = self._robots_pour(url)
-        if parseur is not None and not parseur.can_fetch(USER_AGENT, url):
+        if parseur is not None and not robots_autorise(parseur, USER_AGENT, url):
             raise SourceBloqueeErreur(f"robots.txt interdit {url}")
         if parseur is not None:
             delai = parseur.crawl_delay(USER_AGENT) or parseur.crawl_delay("*")

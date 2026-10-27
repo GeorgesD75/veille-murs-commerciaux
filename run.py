@@ -49,6 +49,8 @@ def collecter_toutes_sources(config: Config) -> tuple[list[AnnonceBrute], dict[s
             lot = source.collecter()
             brutes.extend(lot)
             sante[nom] = {"statut": "ok", "annonces": len(lot)}
+            if source.rapport_collecte:
+                sante[nom]["collecte"] = dict(source.rapport_collecte)
             if source.avertissements:
                 sante[nom]["avertissements"] = list(source.avertissements)
                 log.warning("source %s : %s", nom, "; ".join(source.avertissements))

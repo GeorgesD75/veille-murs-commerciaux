@@ -9,6 +9,8 @@ aucun. Le tri par défaut est « plus récentes d'abord ».
 Particularités : prix au format « 515.000 € » (milliers à point), type de murs
 et loyer déduits de la description (« Vendu loué : 2 087 € »), code postal
 parfois absent de l'URL (déduit de l'arrondissement : « Paris 5e » -> 75005).
+Région vérifiée le 27/10/2026 : g471 = Île-de-France ; g439 ne couvre que Paris.
+Les liens Suivante sont suivis jusqu'à la fin ou la limite de pages explicite.
 """
 from __future__ import annotations
 
@@ -38,10 +40,14 @@ def _texte(element: Tag | None) -> str:
 class SourcePapCommerces(SourceHtml):
     nom = "papcommerces"
     BASE = "https://www.papcommerces.fr"
-    PAGES = [("/commerce/vente-local-commercial-ile-de-france-g439", None)]
+    PAGES = [("/commerce/vente-local-commercial-ile-de-france-g471", None)]
+
+    def __init__(self, client=None, max_pages: int = 10) -> None:
+        super().__init__(client)
+        self.max_pages = max_pages
 
     def collecter(self) -> list[AnnonceBrute]:
-        return self.collecter_pages(self.PAGES, lambda html, _ctx: self.extraire(html))
+        return self.collecter_pagination(self.PAGES[0][0], self.extraire, self.max_pages)
 
     def extraire(self, html: str) -> list[AnnonceBrute]:
         soup = BeautifulSoup(html, "html.parser")

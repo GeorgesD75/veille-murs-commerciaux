@@ -1,18 +1,14 @@
-"""pointdevente.fr — rubrique murs commerciaux (donnée en or : prix + loyer affichés).
+"""Point de Vente : deux rubriques publiques, murs libres et murs occupés.
 
-Validation robots.txt (relevé du 2026-07-02) : le listing
-`/fr/acheter-murs-commerciaux-paris/lf393` est explicitement autorisé
-(`Allow: ...lf393$`) ; la pagination `/lf393/50/{page}/1` n'est pas dans les
-motifs interdits (seuls les affichages 10/20/30/40 résultats et la vue grille
-`.../2` le sont). Tri du site : plus récentes d'abord (`created_on.DESC`),
-donc 2 pages de 50 suffisent largement pour une veille quotidienne.
-
-La rubrique mélange plusieurs types (fonds de commerce, locations…) : seuls
-MURS OCCUPÉS et MURS LIBRES sont retenus ici.
+Vérifiées le 27/10/2026 : lf9/lf10 listent les murs, contrairement à lf393
+qui mélange les transactions. Pagination par les liens Suivant réels, 50
+résultats par page ; libellé de CHAQUE carte vérifié. /produit.list, vues
+grille et tailles 10/20/30/40 sont interdites par robots et jamais utilisées.
 """
 from __future__ import annotations
 
 import re
+from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
@@ -39,18 +35,34 @@ def _texte(element: Tag | None) -> str:
 class SourcePointDeVente(SourceHtml):
     nom = "pointdevente"
     BASE = "https://www.pointdevente.fr"
-    LISTE = "/fr/acheter-murs-commerciaux-paris/lf393"
+    LISTES = [
+        ("/fr/murs-de-boutique-libres/murs-de-boutique/lf9", "libres"),
+        ("/fr/murs-de-boutique-occupes/murs-de-boutique/lf10", "occupes"),
+    ]
 
-    def __init__(self, client=None, max_pages: int = 2) -> None:
+    def __init__(self, client=None, max_pages: int = 12) -> None:
         super().__init__(client)
         self.max_pages = max_pages
 
     def collecter(self) -> list[AnnonceBrute]:
-        pages = [
-            (self.LISTE if n == 0 else f"{self.LISTE}/50/{n}/1", None)
-            for n in range(self.max_pages)
-        ]
-        return self.collecter_pages(pages, lambda html, _ctx: self.extraire(html))
+        # Rubriques publiques liées dans la navigation du site. Le moteur
+        # /produit.list est interdit par robots.txt et n'est jamais interrogé.
+        annonces = {}
+        rapport = {"pages_lues":0,"annonces_uniques":0,"categories":{}}
+        for chemin, categorie in self.LISTES:
+            try:
+                lot = self.collecter_pagination(chemin,self.extraire,self.max_pages)
+            except Exception:
+                if not annonces:
+                    raise
+                break
+            rapport["categories"][categorie] = dict(self.rapport_collecte)
+            rapport["pages_lues"] += self.rapport_collecte["pages_lues"]
+            for a in lot:
+                annonces.setdefault(a.id_source,a)
+        rapport["annonces_uniques"] = len(annonces)
+        self.rapport_collecte = rapport
+        return list(annonces.values())
 
     def extraire(self, html: str) -> list[AnnonceBrute]:
         soup = BeautifulSoup(html, "html.parser")
@@ -113,7 +125,7 @@ class SourcePointDeVente(SourceHtml):
         return AnnonceBrute(
             id_source=ref.group(1),
             source=self.nom,
-            url=href,
+            url=urljoin(self.BASE, href),
             titre=titre,
             ville=ville,
             code_postal=code_postal,

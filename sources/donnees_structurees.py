@@ -82,7 +82,7 @@ def extraire_structure(html: str, url: str) -> dict:
             resultat["code_postal"] = cp
     description = bien.get("description") or objet.get("description")
     if isinstance(description, str):
-        resultat["description"] = BeautifulSoup(description, "html.parser").get_text(" ", strip=True)[:6000]
+        resultat["description"] = BeautifulSoup(description, "html.parser").get_text(" ", strip=True)[:12000]
     images = bien.get("image") or objet.get("image") or []
     images = images if isinstance(images, list) else [images]
     liens = [i.get("url") if isinstance(i, dict) else i for i in images]

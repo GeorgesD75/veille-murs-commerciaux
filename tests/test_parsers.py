@@ -115,19 +115,6 @@ class TestPointDeVente:
         assert libres.loyer_mensuel is None
         assert libres.image_url is None             # picto générique ignoré
 
-    def test_urls_pagination(self):
-        source = SourcePointDeVente(max_pages=3)
-        pages = [
-            source.LISTE if n == 0 else f"{source.LISTE}/50/{n}/1"
-            for n in range(source.max_pages)
-        ]
-        assert pages == [
-            "/fr/acheter-murs-commerciaux-paris/lf393",
-            "/fr/acheter-murs-commerciaux-paris/lf393/50/1/1",
-            "/fr/acheter-murs-commerciaux-paris/lf393/50/2/1",
-        ]
-
-
 # --- murscommerciaux.com ---
 
 
@@ -183,7 +170,8 @@ class TestHektor:
         assert occ.type_murs is TypeMurs.MURS_OCCUPES      # « vendu occupé »
         assert libre.type_murs is TypeMurs.MURS_LIBRES     # « vendus libres de toute occupation »
         assert libre.surface_m2 == 38                      # depuis la description
-        assert "murs" in libre.titre.lower()
+        assert "vente - commerce" in libre.titre.lower() # libellé source, aucun « murs » inventé
+        assert "Murs de boutique" in libre.description
 
 
 # --- papcommerces.fr ---

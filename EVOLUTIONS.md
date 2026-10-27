@@ -1,5 +1,44 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Collecte élargie et qualification de la vente (27 octobre)
+
+- Point de Vente : parcours des rubriques publiques lf9 (libres) et lf10
+  (occupés), jusqu’à 12 pages chacune. La page SEO lf393 mélangeait locations,
+  fonds et murs ; le libellé de chaque carte reste vérifié indépendamment.
+- PAP : correction de g439 (Paris) vers g471 (Île-de-France), pagination
+  réelle sur 10 pages maximum. CessionPME : jusqu’à 20 pages et identifiants
+  reconnus malgré les slugs sans « boutique » ou sans code postal.
+- Bien’ici : plafond porté de trois à cinq pages. Les autres sources restent
+  actives ; aucune revendication de couverture exhaustive des portails.
+- Pagination partagée : dédoublonnage, détection de boucle/page répétée,
+  limites annoncées, erreurs partielles conservant les résultats déjà lus et
+  refus des liens vers une autre origine. Compteurs de pages en rapport de santé.
+- Lecture détaillée : jusqu’à 72 fiches / 480 secondes, répartition entre
+  domaines et plafond de 18 par domaine. Priorité aux fiches encore non lues,
+  récupération possible des adresses inconnues et soupçons fondés sur le prix.
+- Anti-fonds : titres Hektor conservés tels qu’annoncés au lieu d’inventer
+  « murs libres/occupés ». Les anciennes présentations synthétiques ne font
+  plus preuve. Négations de vente, locations, murs-fonds et variantes de
+  fonds/baux mieux reconnus ; titre de fiche conservé même dans un header.
+- Descriptions gardées sur 6 000 caractères, détail sur 12 000 pour les
+  clauses de cession tardives. Les recommandations d’autres annonces restent
+  exclues du texte principal et les inconnues ne prouvent jamais les murs.
+- Robots : correction du premier préfixe permissif de la stdlib ; règle la
+  plus spécifique, jokers, groupes d’agents et ancre finale appliqués. Le moteur
+  /produit.list de Point de Vente, interdit, n’est pas utilisé par le collecteur.
+- Performance : code postal, surface et prix comparés avant l’analyse des
+  textes au dédoublonnage. Les garde-fous de nature restent appliqués avant fusion.
+- Passe complémentaire sans IMAP, IA ni notifications ; historique distinct
+  de la tournée complète. Budget de workflow porté à 45 minutes pour la couverture accrue.
+- Passe réelle du 27 octobre : 44 pages, 1 403 annonces récupérées (996 Point
+  de Vente, 303 CessionPME, 104 PAP), 904 nouvelles fiches après dédoublonnage.
+  Après filtres, 230 nouvelles annonces déclarant les murs, dont 71 < 40 m² ;
+  les 28 autres nouvelles fiches retenues restent ambiguës et hors recommandations.
+- Détail : 72 tentatives, 64 fiches lues (38 murs annoncés, 26 à confirmer),
+  quatre refus, deux retraits et deux redirections de liste. Plafonds de temps
+  et accès refusés respectés. Les déclarations ne valent pas actes vérifiés.
+- Validation : 527 tests et parcours navigateur complet sur le stock élargi.
+
 ## Budget réel du projet et prise en compte du retour vendeur (27 octobre)
 
 - Volet replié sous le prix cible : coût d’acquisition estimé, apport en euros,

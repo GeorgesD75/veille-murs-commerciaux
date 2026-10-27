@@ -4,7 +4,7 @@ filtré Île-de-France (1 000+ annonces, cartes rendues côté serveur).
 Validation robots.txt (relevé du 2026-07-03, revérifié le 2026-08-15 après la
 refonte ci-dessous) : `Allow: /` ; seuls quelques paramètres de requête sont
 interdits (`bounds=`, `tribarre=`, `moteur=OUI`…), nous n'en utilisons aucun.
-Une requête par run sur le listing de base.
+Pagination réelle via les liens Suivant, bornée par max_pages.
 
 Refonte du site constatée le 2026-08-15 (source tombée à 0 annonce plusieurs
 jours de suite, cf. alerte de santé) : les cartes `a.offer-card` sont devenues
@@ -35,11 +35,10 @@ from sources.extraction import (
     loyer_mensuel_depuis_texte,
 )
 
-# « …boutique-{ville-slug}-{cp},{id},{lettre},offre.html » — le verbe (achat,
-# vente, acheter…) varie selon l'annonce, jamais le reste du gabarit.
+# L'identifiant reste stable ; les slugs peuvent contenir « local commercial »,
+# « boutique », « locaux loués », ou un titre libre sans code postal.
 _HREF = re.compile(
-    r"^/annonce,immo-entreprise-[a-z]+-local-commercial-boutique-"
-    r"(?P<ville>[a-z0-9-]+?)-(?P<cp>\d{5}),(?P<id>\d+),[A-Z],offre\.html$"
+    r"^/annonce,immo-entreprise-[a-z]+-(?P<slug>[a-z0-9-]+),(?P<id>\d+),[A-Z],offre\.html$"
 )
 _PETITS_MOTS = {"de", "du", "des", "le", "la", "les", "sur", "sous", "en", "aux", "et"}
 
@@ -72,8 +71,12 @@ class SourceCessionPme(SourceHtml):
         )
     ]
 
+    def __init__(self, client=None, max_pages: int = 12) -> None:
+        super().__init__(client)
+        self.max_pages = max_pages
+
     def collecter(self) -> list[AnnonceBrute]:
-        return self.collecter_pages(self.PAGES, lambda html, _ctx: self.extraire(html))
+        return self.collecter_pagination(self.PAGES[0][0], self.extraire, self.max_pages)
 
     def extraire(self, html: str) -> list[AnnonceBrute]:
         soup = BeautifulSoup(html, "html.parser")
@@ -104,7 +107,11 @@ class SourceCessionPme(SourceHtml):
         if surface is None:
             surface = extraire_surface(description)
 
-        ville = _ville_depuis_slug(ref.group("ville"))
+        slug = ref.group("slug")
+        localisation = re.search(r"(?:local-commercial(?:-boutique)?|locaux-commerciaux(?:-boutiques)?)-(.+?)-(\d{5})$", slug)
+        cp = re.search(r"\b((?:75|77|78|91|92|93|94|95)\d{3})\b", description)
+        ville = _ville_depuis_slug(localisation.group(1)) if localisation else ""
+        code_postal = localisation.group(2) if localisation else cp.group(1) if cp else ""
         type_murs = deviner_type_murs(f"{titre_source} {description}")
 
         image = None
@@ -120,9 +127,9 @@ class SourceCessionPme(SourceHtml):
             url=urljoin(self.BASE, href),
             # Titre de la SOURCE, sans préfixe ajouté : le contrôle « suspect_fonds »
             # exige une mention des murs par l'annonceur lui-même.
-            titre=titre_source or ville,
+            titre=titre_source or ville or "Local commercial",
             ville=ville,
-            code_postal=ref.group("cp"),
+            code_postal=code_postal,
             type_murs=type_murs,
             prix=prix,
             surface_m2=surface,

@@ -2630,8 +2630,8 @@ function rendreEncheres() {
     document.getElementById("qualite-veille-resume").textContent += ` · passe ciblée ${new Date(c.date).toLocaleDateString("fr-FR", {timeZone:"Europe/Paris"})} ${new Date(c.date).toLocaleTimeString("fr-FR", {timeZone:"Europe/Paris",hour:"2-digit",minute:"2-digit"})}`;
     document.getElementById("qualite-veille-detail").innerHTML +=
       `<p><b>Passe ciblée complémentaire : ${fmtDate(c.date)}</b> · ${c.nouvelles} nouvelle(s) fiche(s).</p>` +
-      Object.entries(c.sources || {}).map(([nom,x]) => `<p>${ech(nom)} : ${x.statut === "ok" ? x.annonces + " annonces collectées (couverture partielle)" : ech(x.message)}</p>`).join("") +
-      `<p>${d.refusees || 0} accès refusés pendant cette passe. Les résultats ont ensuite fait l’objet d’un contrôle de qualité.</p>`;
+      Object.entries(c.sources || {}).map(([nom,x]) => `<p>${ech(nom)} : ${x.statut === "ok" ? x.annonces + " annonces collectées" + (x.collecte?.pages_lues != null ? " sur " + x.collecte.pages_lues + " pages" : "") + " (couverture partielle)" : ech(x.message)}</p>`).join("") +
+      `<p>${d.lues || 0} fiches détaillées lues sur ${d.tentees || 0} tentatives ; ${d.refusees || 0} accès refusés. ${d.natures_apres_lecture?Object.entries(d.natures_apres_lecture).map(([n,v])=>`${v} ${ech({murs:"vente(s) de murs annoncée(s)",fonds:"fonds de commerce",bail:"droits au bail",mixte:"offres mixtes",location:"locations",a_confirmer:"nature(s) encore à confirmer"}[n]||n)}`).join(" · ")+".":""} Les résultats ont ensuite fait l’objet d’un contrôle de qualité.</p>`;
   }
   if (D.qualite_donnees) {
     const q = D.qualite_donnees;

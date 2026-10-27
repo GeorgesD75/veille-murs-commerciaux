@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 
 from pipeline.modeles import AnnonceBrute, TypeMurs
+from pipeline.texte import normaliser_texte
 from sources.base import SourceHtml
 from sources.extraction import (
     deviner_type_murs,
@@ -26,12 +27,6 @@ from sources.extraction import (
     loyer_mensuel_depuis_texte,
     rentabilite_depuis_texte,
 )
-
-_LIBELLES = {
-    TypeMurs.MURS_OCCUPES: "Murs occupés",
-    TypeMurs.MURS_LIBRES: "Murs libres",
-}
-
 
 def _premiere_ligne(element: Tag | None) -> str:
     return next(element.stripped_strings, "") if element else ""
@@ -109,7 +104,10 @@ class SourceHektor(SourceHtml):
 
         ville = _premiere_ligne(carte.select_one("p.city")).title()
         quartier = _premiere_ligne(carte.select_one("p.quartier"))
-        titre = f"{_LIBELLES[type_murs]} – {ville}" + (f" ({quartier})" if quartier else "")
+        libelle_source = _texte(carte.select_one("p.type"))
+        titre = libelle_source or str(lien.get("title", "")) or f"Local commercial – {ville}"
+        if quartier:
+            titre += f" ({quartier})"
 
         return AnnonceBrute(
             id_source=ref.group(1),
@@ -119,6 +117,7 @@ class SourceHektor(SourceHtml):
             ville=ville,
             code_postal=cp.group(1) if cp else "",
             type_murs=type_murs,
+            nature_transaction_source="murs" if re.search(r"\b(?:vente|achat)\s+murs\b", normaliser_texte(libelle_source)) else None,
             prix=prix,
             surface_m2=surface,
             loyer_mensuel=loyer,

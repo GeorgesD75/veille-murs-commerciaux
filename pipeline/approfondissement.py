@@ -31,7 +31,7 @@ import time
 from collections import deque
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 
 from bs4 import BeautifulSoup
 import requests
@@ -42,6 +42,7 @@ from sources.donnees_structurees import appliquer_structure, extraire_structure
 from pipeline.fiabilite import noter_preuve
 from pipeline.normalisation import maintenant_iso
 from pipeline.texte import normaliser_texte
+from pipeline.transaction import qualifier_transaction
 
 if TYPE_CHECKING:
     from pipeline.config import Config
@@ -49,7 +50,7 @@ if TYPE_CHECKING:
 
 log = logging.getLogger("collecteur.approfondissement")
 
-TAILLE_TEXTE_DETAIL = 6000   # garder aussi les clauses en fin de description
+TAILLE_TEXTE_DETAIL = 12000  # garder aussi les clauses en fin de description
 _SCRIPTS = re.compile(r"<(script|style|noscript|svg|nav|footer|header)[^>]*>.*?</\1>",
                       re.DOTALL | re.IGNORECASE)
 _BALISES = re.compile(r"<[^>]+>")
@@ -57,9 +58,15 @@ _ENTITES = {"&amp;": "&", "&nbsp;": " ", "&#39;": "'", "&apos;": "'",
             "&quot;": '"', "&lt;": "<", "&gt;": ">", "&eacute;": "é", "&egrave;": "è"}
 
 
-def est_page_de_liste(html: str) -> bool:
+def est_page_de_liste(html: str, url: str | None = None) -> bool:
     """Une ancienne fiche peut rediriger silencieusement vers les résultats."""
     soup = BeautifulSoup(html, "html.parser")
+    canonical = soup.select_one('link[rel="canonical"][href]')
+    if url and canonical:
+        chemin = urlparse(urljoin(url,str(canonical['href']))).path.rstrip('/')
+        if chemin != urlparse(url).path.rstrip('/') and re.search(
+            r'^/(?:annonces,|commerce/vente-(?:local|locaux)|fr/(?:acheter-murs|murs-de-boutique-)|immobilier-d-entreprise/annonces/)',chemin):
+            return True
     contexte = soup.select_one("script#react-context")
     if contexte:
         try:
@@ -75,6 +82,8 @@ def est_page_de_liste(html: str) -> bool:
 def texte_de_page(html: str) -> str:
     """Isole le contenu principal et retire les recommandations d'autres biens."""
     soup = BeautifulSoup(html, "html.parser")
+    titres = soup.select("h1")
+    titre_principal = titres[0].get_text(" ", strip=True) if len(titres) == 1 else ""
     for noeud in soup.select("script, style, noscript, svg, nav, footer, header, aside, form"):
         noeud.decompose()
     for noeud in list(soup.find_all(["section", "div", "ul"])):
@@ -91,7 +100,10 @@ def texte_de_page(html: str) -> str:
                 suivant.decompose()
             titre.decompose()
             break
-    return " ".join(racine.get_text(" ", strip=True).split())
+    texte = " ".join(racine.get_text(" ", strip=True).split())
+    if titre_principal and titre_principal not in texte:
+        texte = titre_principal + " " + texte
+    return texte
 
 
 def approfondir(annonce: "Annonce", texte: str, quand: str | None = None) -> list[str]:
@@ -152,14 +164,19 @@ def approfondir_annonces(annonces: dict[str, "Annonce"], config: "Config") -> di
 
     candidats = sorted(
         (a for a in annonces.values()
-         if (not a.exclue or a.raison_exclusion == "prix non renseigné") and eligible(a) and a.url.startswith("http")),
+         if (not a.exclue or a.raison_exclusion in {"prix non renseigné", "hors Île-de-France (département inconnu)"}
+             or (a.raison_exclusion or "").startswith("suspect_fonds"))
+         and qualifier_transaction(a)["nature"] not in {"fonds", "bail", "mixte", "location"}
+         and eligible(a) and a.url.startswith("http")),
         key=lambda a: (
             petite(a),
+            a.etat_detail != "lu",
             a.code_postal == "75018", a.date_derniere_vue, (a.score or 50), a.loyer_mensuel is None),
         reverse=True,
     )
     if not candidats:
         return rapport
+    rapport["candidats"] = len(candidats)
 
     scoring = config.donnees.get("scoring", {})
     seuils = scoring.get("seuils", {})
@@ -173,10 +190,24 @@ def approfondir_annonces(annonces: dict[str, "Annonce"], config: "Config") -> di
         rendement = a.loyer_mensuel * 1200 / a.prix
         return seuils.get("rendement_minimum_vert", 7) <= rendement <= scoring.get("seuil_alerte_rendement_pct", 10)
 
-    petites = deque(a for a in candidats if petite(a))
-    opportunites = deque(sorted((a for a in candidats if not petite(a) and prometteuse(a)),
-                                key=lambda a: (a.score or 50, a.date_derniere_vue), reverse=True))
-    autres = [a for a in candidats if not petite(a) and not prometteuse(a)]
+    def repartir(lot):
+        if not cfg.get("repartir_sources", False):
+            return list(lot)
+        files = {}
+        for a in lot:
+            files.setdefault(urlparse(a.url).netloc, deque()).append(a)
+        resultat = []
+        while files:
+            for hote in list(files):
+                resultat.append(files[hote].popleft())
+                if not files[hote]:
+                    del files[hote]
+        return resultat
+
+    petites = deque(repartir(a for a in candidats if petite(a)))
+    opportunites = deque(repartir(sorted((a for a in candidats if not petite(a) and prometteuse(a)),
+                                key=lambda a: (a.score or 50, a.date_derniere_vue), reverse=True)))
+    autres = repartir(a for a in candidats if not petite(a) and not prometteuse(a))
     candidats = []
     # Un tiers des créneaux disponibles, tant que les deux files sont pleines.
     # Aucun appel supplémentaire : les mêmes plafonds de temps/requêtes restent appliqués.
@@ -193,9 +224,11 @@ def approfondir_annonces(annonces: dict[str, "Annonce"], config: "Config") -> di
     hotes_bloques: set[str] = set()
     debut = time.monotonic()
     tentatives = 0
+    par_hote = {}
+    plafond_hote = int(cfg.get("max_par_hote", max_par_run))
     for a in candidats:
         hote = urlparse(a.url).netloc
-        if hote in hotes_bloques:
+        if hote in hotes_bloques or par_hote.get(hote, 0) >= plafond_hote:
             continue
         if tentatives >= max_par_run:
             break
@@ -203,6 +236,7 @@ def approfondir_annonces(annonces: dict[str, "Annonce"], config: "Config") -> di
             log.info("budget de temps approfondissement (%.0f s) atteint", budget_s)
             break
         tentatives += 1
+        par_hote[hote] = par_hote.get(hote, 0) + 1
         rapport["tentees"] += 1
         a.date_detail_tentative = quand
         try:
@@ -234,13 +268,17 @@ def approfondir_annonces(annonces: dict[str, "Annonce"], config: "Config") -> di
             rapport["temporaires"] += 1
             log.info("détail indisponible (%s) : %s", a.url, exc)
             continue
-        if est_page_de_liste(html):
+        if est_page_de_liste(html, a.url):
             a.etat_detail, a.approfondie = "redirection_liste", True
             rapport["listes"] += 1
             log.info("page de résultats ignorée à la place de la fiche : %s", a.url)
             continue
         donnees = extraire_structure(html, a.url)
         texte = donnees.get("description") or texte_de_page(html)
+        if donnees.get("description"):
+            titres = BeautifulSoup(html, "html.parser").select("h1")
+            if len(titres) == 1:
+                texte = titres[0].get_text(" ", strip=True) + " " + texte
         if donnees.get("retiree") or re.search(r"cette annonce n.est plus disponible|cette annonce a ete (?:supprimee|retiree)|ce bien n.est plus disponible", normaliser_texte(texte)):
             a.etat_detail, a.approfondie = "retiree", True
             rapport["retirees"] += 1
@@ -256,7 +294,11 @@ def approfondir_annonces(annonces: dict[str, "Annonce"], config: "Config") -> di
         a.etat_detail = "lu"
         a.date_detail_vue = quand
         rapport["lues"] += 1
+        nature = qualifier_transaction(a)["nature"]
+        rapport.setdefault("natures_apres_lecture", {})[nature] = rapport.get("natures_apres_lecture", {}).get(nature, 0) + 1
         rapport["champs_ajoutes"] += len(appris)
         if appris:
             log.info("approfondi %s : %s", a.url, ", ".join(appris))
+    rapport["par_hote"] = par_hote
+    rapport["restantes"] = max(0, len(candidats)-tentatives)
     return rapport

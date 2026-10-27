@@ -40,7 +40,7 @@ RENDEMENT_MAX_PLAUSIBLE = 0.20  # au-delà de 20 %/an, la donnée est suspecte
 # 2000 est calibré sur les descriptions réelles (60 annonces bureauxlocaux
 # relevées le 2026-09-05 : médiane 471, maximum 1098) — large marge, pour un
 # surcoût de stockage plafonné à ~1,3 Mo sur un fichier de 7 Mo.
-LIMITE_DESCRIPTION = 2000
+LIMITE_DESCRIPTION = 6000  # conserver les clauses de cession en fin d'annonce
 
 _MOTS_OCCUPES = (
     "vendu occupe", "vendus occupes", "vendue occupee", "murs occupes", "vendu loue",

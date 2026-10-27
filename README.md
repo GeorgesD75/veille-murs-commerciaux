@@ -14,6 +14,21 @@ Trois fois par jour (7 h, 15 h, 23 h), ce système :
 
 Zéro serveur, zéro abonnement : GitHub exécute et héberge tout gratuitement.
 
+La collecte parcourt les deux rubriques publiques Point de Vente (murs libres
+et occupés, jusqu’à 12 pages chacune), CessionPME (20 pages) et PAP sur la
+véritable région Île-de-France g471 (10 pages). Les liens Suivant sont suivis
+réellement, avec arrêt sur fin, répétition, erreur ou limite explicite. Bien’ici
+explore jusqu’à cinq pages de 100 résultats ; le filtrage géographique reste en aval.
+Les limites ne garantissent pas une couverture exhaustive de chaque portail.
+
+La lecture détaillée dispose de 72 créneaux et de huit minutes par tournée,
+répartis entre domaines, avec un maximum de 18 fiches par domaine. Les petites
+surfaces gardent la priorité, et des créneaux restent réservés aux grandes
+opportunités. Les dossiers sans adresse exploitable ou suspectés sur le seul
+prix peuvent être relus pour lever le doute ; les fonds explicites restent écartés.
+La rubrique repliée de qualité indique les pages réellement lues pendant une
+passe complémentaire et les natures de transaction détectées après lecture.
+
 Les recommandations exigent une vente des **murs** annoncée explicitement,
 ou un champ structuré propre à l'annonce. Fonds de commerce, droits au bail,
 locations et prix groupant murs et fonds sont écartés. Les intitulés génériques

@@ -13,14 +13,6 @@ from pipeline.transaction import qualifier_transaction
 def sont_similaires(a: Annonce, b: Annonce, config: Config) -> bool:
     """Même bien probable : même code postal, surface ±3 m², prix ±5 % (config)."""
     d = config.deduplication
-    natures = {qualifier_transaction(a)["nature"], qualifier_transaction(b)["nature"]}
-    if "murs" in natures and natures.intersection({"fonds", "bail", "mixte", "location"}):
-        return False
-    if "murs" in natures and "a_confirmer" in natures:
-        liens_a = {a.url, *a.urls_multiples}
-        liens_b = {b.url, *b.urls_multiples}
-        if not (liens_a & liens_b):
-            return False  # même photo/local ne prouve pas qu'on vende le même droit
     if not a.code_postal or a.code_postal != b.code_postal:
         return False
     if a.surface_m2 is None or b.surface_m2 is None:
@@ -30,7 +22,17 @@ def sont_similaires(a: Annonce, b: Annonce, config: Config) -> bool:
     if a.prix is None or b.prix is None:
         return False
     tolerance = d["tolerance_prix_pct"] / 100 * max(a.prix, b.prix)
-    return abs(a.prix - b.prix) <= tolerance
+    if abs(a.prix - b.prix) > tolerance:
+        return False
+    # Ces contrôles très peu coûteux éliminent presque toutes les paires.
+    # Ne normaliser/analyser les longs textes que pour les vrais candidats.
+    natures = {qualifier_transaction(a)["nature"], qualifier_transaction(b)["nature"]}
+    if "murs" in natures and natures.intersection({"fonds", "bail", "mixte", "location"}):
+        return False
+    if "murs" in natures and "a_confirmer" in natures:
+        if not ({a.url, *a.urls_multiples} & {b.url, *b.urls_multiples}):
+            return False
+    return True
 
 
 def trouver_similaire(

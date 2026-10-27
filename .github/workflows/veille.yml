@@ -23,7 +23,7 @@ concurrency:
 jobs:
   tournee:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     steps:
       - name: Récupérer le code
         uses: actions/checkout@v4
