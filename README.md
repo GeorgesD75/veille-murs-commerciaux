@@ -42,6 +42,21 @@ et charges et de tester directement un prix plafond, sans modifier l’annonce.
 Vos brouillons de contact sont conservés sur votre appareil, par annonce et par
 étape, y compris après fermeture ou rechargement ; aucun message n’est envoyé.
 
+Le premier contact tient en cinq questions utiles : murs seuls, occupation et
+bail, loyer HT/HC, charges bailleur/taxe et impayés. Les demandes de pièces
+restent dans l’étape « Demander les pièces », pour ne pas charger le premier échange.
+
+Dans **Réponses**, choisissez l’annonce et collez le retour du vendeur (ou
+cliquez « J’ai sa réponse : l’analyser » dans la fenêtre de contact). La lecture
+locale propose des champs avec leurs extraits ; corrigez-les puis validez pour
+obtenir l’analyse financière et les informations encore nécessaires. Une
+relance courte se limite aux questions manquantes. Les réponses restent dans
+votre navigateur, avec export/import pour changer d’appareil. Elles ne sont pas
+publiées avec le site et ne remplacent pas automatiquement le score de la chasse.
+« Ajouter une réponse » complète le dossier avec l’échange suivant, sans
+redemander les informations déjà reçues ; les dix derniers échanges restent
+consultables et les corrections du vendeur remplacent les anciennes valeurs.
+
 La facilité à relouer est évaluée séparément : indices de rue favorables,
 à vérifier ou points de vigilance. Une bonne commune ou un métro proche ne
 prouvent pas la demande locative. Une rue peu commerçante, plusieurs locaux

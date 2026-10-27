@@ -29,25 +29,21 @@ def messages_contact(a: Annonce) -> dict[str, str]:
     intro = [f"Objet : {reference} — renseignements", "", "Bonjour,", "",
              f"Je vous contacte au sujet de cette annonce : {a.url}",
              "Je recherche des murs commerciaux pour un investissement locatif.", ""]
-    essentiels = ["Le bien est-il toujours disponible et s’agit-il bien de la vente des murs seuls, hors fonds de commerce et droit au bail ?",
-                  "Pouvez-vous préciser la surface privative, dont la surface commerciale en rez-de-chaussée et les éventuelles annexes ?"]
-    if d["occupation"] == "occupe":
-        loyer = f"Le loyer annoncé de {a.loyer_mensuel:,.0f} €/mois".replace(",", " ") if a.loyer_mensuel else "Le loyer actuel"
-        if a.loyer_origine == "rendement":
-            loyer = "Le loyer actuel (plutôt que le seul taux de rendement annoncé)"
-        essentiels.append(f"{loyer} est-il bien HT et hors charges, effectivement encaissé ? Quelle est la prochaine échéance de résiliation du bail ?")
-    elif d["occupation"] == "libre":
-        essentiels.append("Depuis quand le local est-il libre ? Quel était le dernier loyer réellement encaissé et à quelle date ?")
-    else:
-        essentiels.append("Le local sera-t-il vendu libre ou occupé ? S’il est loué, quel est le loyer annuel actuel HT/HC et la prochaine échéance du bail ?")
-    essentiels.extend(["Quel est le prix total honoraires inclus, et quel budget annuel reste au propriétaire (charges, taxe foncière, travaux votés) ?"])
-    essentiels.append("Quelles activités sont autorisées par le bail et la copropriété ? En cas de départ du locataire, quels travaux et quel délai de relocation seraient à prévoir ?")
+    essentiels = ["Le bien est-il toujours disponible, et le prix porte-t-il bien sur les murs seuls, hors fonds de commerce ou droit au bail ?"]
     if d["transaction"]["nature"] != "murs":
-        essentiels.insert(1, "Le prix affiché achète-t-il les murs en pleine propriété, ou uniquement un fonds de commerce / droit au bail ? Si les murs sont proposés séparément, quel est leur prix immobilier seul ?")
-    elif d["bloquant"]:
-        essentiels.insert(1, "J’ai relevé des informations à rapprocher : pouvez-vous confirmer les chiffres de la fiche et de l’annonce (prix, surface et localisation) ?")
+        essentiels[0] = "Le bien est-il toujours disponible, et le prix porte-t-il bien sur les murs seuls en pleine propriété, hors fonds de commerce ou droit au bail ?"
+    if d["occupation"] == "libre":
+        essentiels.extend(["Le local est-il toujours libre et depuis quand ?",
+                           "Quel était le dernier loyer réellement encaissé, HT et hors charges (par mois ou par an) ?"])
+    else:
+        essentiels.extend(["Est-il actuellement loué ? Si oui, depuis quand et pour quelle durée de bail ?",
+                           "Quel est le loyer actuel HT et hors charges (par mois ou par an) ?"])
+    essentiels.extend(["Quel montant de charges reste au propriétaire, avec la taxe foncière comprise ou indiquée à part ?",
+                       "Les loyers sont-ils à jour ? Y a-t-il eu des impayés récents ?"])
     signature = ["", "Merci par avance pour votre retour.", "Cordialement,", "[Votre nom]", "[Votre téléphone]"]
-    court = "\n".join(intro + ["Avant d’envisager une visite, pourriez-vous me préciser ces points ?", ""] +
+    court = "\n".join([f"Objet : {reference}", "", "Bonjour,", "",
+                       f"Votre local m’intéresse : {a.url}",
+                       "Avant de convenir d’une visite, pourriez-vous me confirmer ces quelques points ?", ""] +
                        [f"- {q}" for q in essentiels] + signature)
     pieces = ["Adresse exacte, référence du lot et plan coté avec ventilation des surfaces ; destination autorisée et règlement de copropriété.",
               "Prix net vendeur, honoraires (montant et personne redevable), régime de TVA et raison de la vente.",

@@ -1,5 +1,31 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Premier contact léger et analyse des réponses vendeur (26 octobre)
+
+- Premier message limité à cinq points : murs seuls/disponibilité, occupation
+  et bail, loyer HT/HC, charges bailleur et taxe, paiements et impayés. Les
+  pièces, diagnostics et restrictions détaillées restent dans la seconde étape.
+- Nouvel onglet « Réponses », accessible aussi depuis une annonce ou la fenêtre
+  de contact. Chaque réponse est associée à une annonce et conservée localement,
+  avec un instantané si elle disparaît du stock. Export/import de sauvegardes.
+- Réponses complémentaires consolidées sans perdre les informations déjà
+  reçues ; corrections prises en compte et inconnues explicites invalidant les
+  anciennes valeurs. Dix derniers échanges conservés et relances personnalisées
+  sauvegardées tant que les questions restent pertinentes.
+- Lecture déterministe du texte dans le navigateur : extraits conservés,
+  périodes explicites, conversion annuel/mensuel, conflits à départager et
+  champs corrigibles. Les questions citées ne deviennent pas des affirmations.
+- Analyse après relecture : inconnues, nature de la vente, bail, impayés,
+  cash-flow prudent/dégradé au profil personnel et seuil financier de discussion.
+  Charges taxe comprise non comptées deux fois ; réserves de prudence conservées.
+- Pas de feu vert sur un loyer estimé/TTC, une occupation libre ou inconnue,
+  des impayés, une échéance problématique ou un signal de relocation à risque.
+  Une relance courte propose jusqu’à trois questions sur les réponses manquantes.
+- Les réponses privées ne sont pas envoyées à un serveur et ne remplacent pas
+  le score de l’annonce. Chiffres vendeur déclaratifs, justificatifs à vérifier.
+- Validation : 493 tests dont le moteur JavaScript (27 scénarios), parcours
+  navigateur complets, sauvegarde/restauration et affichage de 320 à 1 440 px.
+
 ## Un prix d’achat explicite et une relocation à qualifier (26 octobre)
 
 - Les annonces indiquent un prix maximal d’achat, le cash-flow prudent à ce

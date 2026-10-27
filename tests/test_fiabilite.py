@@ -94,7 +94,7 @@ def test_messages_libres_occupes_et_relance():
     libre = faire_annonce(description="Vente de murs libres, local vide.")
     occupe = faire_annonce(description="Murs occupés, locataire en place.", loyer_mensuel=1200)
     assert "dernier loyer" in messages_contact(libre)["court"]
-    assert "1 200 €/mois" in messages_contact(occupe)["court"]
+    assert "loyer actuel HT et hors charges" in messages_contact(occupe)["court"]
     assert "Bail signé" in messages_contact(occupe)["dossier"]
     assert "précédent message" in messages_contact(occupe)["relance"]
     for texte in messages_contact(occupe).values():
@@ -176,4 +176,4 @@ def test_loyer_reconstitue_reste_estime_meme_si_occupe(config, benchmarks):
     assert a.loyer_estime and a.loyer_confiance == "rendement"
     assert a.score < config.scoring["seuils"]["pepite"]
     assert "loyer_deduit" in a.flags
-    assert "plutôt que le seul taux" in messages_contact(a)["court"]
+    assert "loyer actuel HT et hors charges" in messages_contact(a)["court"]

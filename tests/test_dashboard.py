@@ -137,6 +137,9 @@ def test_html_autonome_et_non_reference(config):
     # La note « clique ensuite sur Run workflow » a été retirée du bandeau
     # (2026-09-01) : le bouton et son infobulle suffisent.
     assert 'Run workflow' not in html
+    assert 'data-vue="reponses"' in html
+    assert 'const ReponsesVendeur' in html
+    assert '__REPONSES_VENDEUR__' not in html
 
 
 def test_generation_fichiers(config, tmp_path):

@@ -53,6 +53,7 @@ def test_pas_alerte_pepite_si_relocation_risquee_ou_cashflow_negatif(config, mon
 
 def test_contact_demande_les_contraintes_de_relocation():
     messages = messages_contact(faire_annonce())
-    assert "activités sont autorisées" in messages["court"]
-    assert "délai de relocation" in messages["court"]
+    assert "impayés récents" in messages["court"]
+    assert "durée de bail" in messages["court"]
+    assert "activités" not in messages["court"]
     assert "restrictions du bail" in messages["dossier"]

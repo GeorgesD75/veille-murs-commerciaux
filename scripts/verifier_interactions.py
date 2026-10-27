@@ -4,6 +4,7 @@ Nécessite Playwright (pip install playwright) et un Chrome/Chromium installé.
 Utilise le navigateur existant ; aucune installation de navigateur automatique.
 """
 from pathlib import Path
+import json
 import shutil
 
 from playwright.sync_api import sync_playwright
@@ -224,6 +225,114 @@ def verifier_financement_et_brouillons(browser):
     page.close()
 
 
+def verifier_reponses_vendeur(browser):
+    page = browser.new_page(viewport={"width":1440,"height":1000})
+    erreurs = []
+    page.on("pageerror", lambda e: erreurs.append(str(e)))
+    page.route("**/*", lambda r:r.abort() if r.request.resource_type=="image" else r.continue_())
+    page.goto((RACINE / "docs/index.html").as_uri(), wait_until="domcontentloaded")
+    ids = page.evaluate("D.retenues.filter(a=>a.decision.diagnostic.transaction.nature==='murs' && a.decision.relocation.niveau!=='vigilance').slice(0,2).map(a=>a.id)")
+    avant = page.evaluate("id=>JSON.stringify(D.retenues.find(a=>a.id===id))",ids[0])
+    page.evaluate("id=>ouvrirContact(id)",ids[0])
+    premier = page.locator("#contact-texte").input_value()
+    assert len(premier.split())<180 and "impayés récents" in premier
+    page.locator("#outil-contenu [data-reponse-vendeur]").click()
+    assert page.locator('[data-vue="reponses"]').get_attribute("class").endswith("actif")
+    assert page.locator("#rep-annonce").input_value()==ids[0]
+    texte = ("Bonjour, vente des murs seuls hors fonds de commerce. Le local est actuellement loué. "
+             "Bail signé en 2022 pour 9 ans. Loyer annuel : 21 600 € HT HC. "
+             "Charges non récupérables du propriétaire : 600 €/an, hors taxe foncière. "
+             "Taxe foncière annuelle : 1200 €. Aucun impayé. Prix : 180 000 € honoraires inclus.")
+    page.locator("#rep-texte").fill(texte)
+    page.locator('[data-rep-action="extraire"]').click()
+    assert page.locator('[data-rep-champ="loyer"]').input_value()=="1800"
+    assert page.locator('[data-rep-champ="periode_loyer"]').input_value()=="mois"
+    assert page.locator('[data-rep-champ="charges"]').input_value()=="600"
+    assert page.locator('[data-rep-champ="impayes"]').input_value()=="non"
+    assert page.locator(".rep-resultat.provisoire").count()==1
+    assert page.locator(".rep-prix").count()==0
+    page.locator('[data-rep-champ="loyer"]').fill("1700")
+    page.locator('[data-rep-champ="loyer"]').fill("1800")
+    page.locator('[data-rep-action="valider"]').click()
+    assert page.locator(".rep-resultat.interessant").count()==1
+    assert page.locator(".rep-prix").count()==1
+    assert "Avant impôt" in page.locator("#rep-analyse").inner_text()
+    assert page.evaluate("id=>JSON.stringify(D.retenues.find(a=>a.id===id))",ids[0])==avant
+    # Une réponse complémentaire conserve les réponses déjà obtenues.
+    page.locator('[data-rep-action="ajouter"]').click()
+    assert page.locator("#rep-texte").input_value()==""
+    page.locator("#rep-texte").fill("Les charges du propriétaire sont finalement de 1200 €/an, hors taxe foncière.")
+    page.locator('[data-rep-action="extraire"]').click()
+    assert page.locator('[data-rep-champ="loyer"]').input_value()=="1800"
+    assert page.locator('[data-rep-champ="charges"]').input_value()=="1200"
+    assert page.locator('[data-rep-champ="impayes"]').input_value()=="non"
+    page.locator('[data-rep-action="valider"]').click()
+    page.locator('[data-rep-action="ajouter"]').click()
+    texte_courant = "Le loyer annuel est corrigé à 20 400 € HT HC."
+    page.locator("#rep-texte").fill(texte_courant)
+    page.locator('[data-rep-action="extraire"]').click()
+    assert page.locator('[data-rep-champ="loyer"]').input_value()=="1700"
+    assert page.locator('[data-rep-champ="charges"]').input_value()=="1200"
+    page.locator('[data-rep-action="valider"]').click()
+    assert page.locator(".rep-resultat.interessant").count()==1
+    for largeur in [320,390,768,1440]:
+        page.set_viewport_size({"width":largeur,"height":844})
+        assert not page.evaluate("document.documentElement.scrollWidth>innerWidth"), largeur
+    page.set_viewport_size({"width":1440,"height":1000})
+    page.locator("#rep-association > summary").click()
+    page.locator("#rep-annonce").select_option(ids[1])
+    assert page.locator("#rep-texte").input_value()==""
+    page.locator("#rep-texte").fill("Vente du fonds de commerce, murs non compris.")
+    page.locator('[data-rep-action="extraire"]').click()
+    page.locator('[data-rep-action="valider"]').click()
+    assert page.locator(".rep-resultat.hors_cible").count()==1
+    assert page.locator(".rep-bilan").count()==0
+    page.locator("#rep-association > summary").click()
+    page.locator("#rep-annonce").select_option(ids[0])
+    assert page.locator("#rep-texte").input_value()==texte_courant
+    assert page.locator(".rep-resultat.interessant").count()==1
+    page.reload(wait_until="domcontentloaded")
+    assert page.locator("#vue-reponses").is_visible()
+    assert page.locator("#rep-texte").input_value()==texte_courant
+    assert page.locator(".rep-resultat.interessant").count()==1
+    with page.expect_download() as evenement:
+        page.locator('[data-rep-action="exporter"]').click()
+    sauvegarde = json.loads(Path(evenement.value.path()).read_text(encoding="utf-8"))
+    assert sauvegarde["dossiers"][ids[0]]["texte"]==texte_courant
+    assert sauvegarde["dossiers"][ids[0]]["historique"][0]["texte"]==texte
+    page.locator("#rep-texte").fill("Je ne connais pas le loyer. Je ne connais pas les charges. Je ne sais pas s’il y a des impayés.")
+    assert page.locator(".rep-bilan").count()==0
+    assert "Texte modifié" in page.locator("#rep-analyse").inner_text()
+    page.locator('[data-rep-action="extraire"]').click()
+    assert page.locator(".rep-manquants li").count()>=3
+    page.locator(".rep-relance > summary").click()
+    assert len([l for l in page.locator("#rep-relance").input_value().splitlines() if l.startswith("- ")])<=3
+    page.locator("#rep-relance").fill("Merci, pourriez-vous préciser simplement les charges à ma charge ?")
+    page.reload(wait_until="domcontentloaded")
+    page.locator(".rep-relance > summary").click()
+    assert page.locator("#rep-relance").input_value()=="Merci, pourriez-vous préciser simplement les charges à ma charge ?"
+    page.locator("#rep-texte").fill('</textarea><img src=x onerror="window.reponseInjectee=true"> '+texte)
+    page.locator('[data-rep-action="extraire"]').click()
+    assert not page.evaluate("window.reponseInjectee===true")
+    assert page.locator("#rep-informations img").count()==0
+    # La réponse survit à la disparition d'une annonce, avec son instantané.
+    page.evaluate("id=>{D.retenues=D.retenues.filter(a=>a.id!==id);rendreReponses()}",ids[0])
+    assert "instantané conservé" in page.locator("#rep-dossier").inner_text()
+    assert not erreurs, erreurs
+    page.close()
+    autre = browser.new_page(viewport={"width":390,"height":844})
+    autre.goto((RACINE / "docs/index.html").as_uri(),wait_until="domcontentloaded")
+    autre.locator('[data-vue="reponses"]').click()
+    autre.locator("#rep-importer").set_input_files({"name":"mes-reponses.json","mimeType":"application/json","buffer":json.dumps(sauvegarde).encode("utf-8")})
+    autre.wait_for_function("document.getElementById('rep-import-statut').textContent.includes('2 dossier')")
+    autre.locator("#rep-annonce").select_option(ids[0])
+    assert autre.locator("#rep-texte").input_value()==texte_courant
+    assert autre.locator('[data-rep-champ="loyer"]').input_value()=="1700"
+    assert autre.locator(".rep-resultat.provisoire").count()==1
+    assert not autre.evaluate("document.documentElement.scrollWidth>innerWidth")
+    autre.close()
+
+
 def main():
     candidats = [shutil.which("google-chrome"), shutil.which("chromium"),
                  r"C:\Program Files\Google\Chrome\Application\chrome.exe"]
@@ -296,6 +405,7 @@ def main():
         assert not erreurs, erreurs
         verifier_exceptions_pepites(browser)
         verifier_financement_et_brouillons(browser)
+        verifier_reponses_vendeur(browser)
         browser.close()
     print("Interactions, persistance, simulateur et responsive 320–1440 px : OK")
 

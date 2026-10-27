@@ -246,7 +246,9 @@ def preparer_payload(
 
 def generer_html(payload: dict[str, Any]) -> str:
     donnees = json.dumps(payload, ensure_ascii=False).replace("</", "<\\/")
-    return _GABARIT.replace("__DONNEES__", donnees)
+    scripts = "\n".join((Path(__file__).parent / nom).read_text(encoding="utf-8")
+                        for nom in ["reponses_moteur.js", "reponses_interface.js"])
+    return _GABARIT.replace("__REPONSES_VENDEUR__", scripts).replace("__DONNEES__", donnees)
 
 
 def generer_dashboard(
@@ -667,6 +669,36 @@ a.btn-outil:hover { text-decoration: none; border-color: var(--marque); }
   resize: vertical; margin-top: 10px; }
 .contact-actions { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px; }
 .contact-brouillon { display:block; font-size:12px; color:var(--encre-2); margin-top:8px; }
+.rep-intro { color:var(--encre-2); margin:0 0 18px; max-width:850px; }
+#rep-association > summary { cursor:pointer; font-size:13px; font-weight:600; margin-bottom:14px; }
+.rep-choix { display:grid; grid-template-columns:minmax(180px,1fr) minmax(0,2fr); gap:14px; }
+.rep-choix label,.rep-champs label { display:flex; flex-direction:column; gap:5px; min-width:0; font-size:12px; color:var(--encre-2); }
+.rep-choix input,.rep-choix select,.rep-champs input,.rep-champs select { box-sizing:border-box; width:100%; min-width:0; padding:10px; border:1px solid var(--filet); border-radius:8px; background:var(--surface); color:var(--encre-1); font:inherit; font-size:14px; }
+.rep-note { color:var(--encre-2); font-size:12px; line-height:1.6; }
+.rep-dossier { background:var(--surface); border:1px solid var(--filet); padding:22px; border-radius:12px; margin:18px 0; }
+.rep-dossier h3,.rep-dossier p { overflow-wrap:anywhere; }
+.rep-entete h3 { margin:0; font-size:18px; }
+.rep-entete { display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.rep-message { white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px; color:var(--encre-2); border-left:2px solid var(--filet); margin:10px 0; padding-left:12px; }
+.rep-entete p { font-size:12px; color:var(--encre-2); margin:6px 0 18px; }
+.rep-principal { background:var(--marque)!important; color:var(--marque-encre)!important; border-color:var(--marque)!important; }
+.rep-resultat { margin:20px 0; padding:18px; border:1px solid var(--filet); border-left:3px solid var(--or); border-radius:0 10px 10px 0; }
+.rep-resultat.interessant { border-left-color:var(--vert-texte); background:var(--vert-fond); }
+.rep-resultat.vigilance,.rep-resultat.hors_cible { border-left-color:var(--alerte-texte); }
+.rep-etat { font-size:12px; color:var(--encre-2); margin:0 0 8px; }
+.rep-resultat h3 { font-size:18px; margin:0 0 14px; }
+.rep-bilan { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.rep-bilan span { display:block; font-size:12px; color:var(--encre-2); }
+.rep-bilan b { display:block; font-size:22px; margin-top:5px; }
+.rep-prix { font-size:15px; }
+.rep-informations > summary,.rep-calcul > summary,.rep-preuves > summary,.rep-complements > summary,.rep-relance > summary { cursor:pointer; font-size:13px; font-weight:600; margin:14px 0; }
+.rep-champs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:14px 0; }
+.rep-preuves li,.rep-manquants li { margin:5px 0; font-size:13px; overflow-wrap:anywhere; }
+.rep-sauvegarde { display:flex; flex-wrap:wrap; align-items:center; gap:12px; font-size:12px; color:var(--encre-2); margin:20px 0; }
+.rep-import { position:relative; cursor:pointer; }
+.rep-import input { position:absolute; inset:0; opacity:0; width:100%; cursor:pointer; }
+@media(max-width:760px) { .rep-champs { grid-template-columns:repeat(2,minmax(0,1fr)); } .rep-choix { grid-template-columns:1fr; } }
+@media(max-width:600px) { .onglets { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); } .onglets .onglet { min-width:0; font-size:13px; padding:12px 3px; white-space:nowrap; } .onglets #suivi-compteur { display:none; } .rep-dossier { padding:14px; } .rep-champs { grid-template-columns:1fr; } .rep-bilan b { font-size:18px; } }
 .critique-texte { background: var(--plan); border-left: 3px solid var(--marque); border-radius: 0 9px 9px 0;
   padding: 14px 16px; font-size: 14px; line-height: 1.6; color: var(--encre-1); white-space: pre-wrap; }
 .critique-note { font-size: 12.5px; color: var(--encre-3); margin-top: 10px; }
@@ -998,6 +1030,7 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
   <nav class="onglets" id="onglets">
     <button type="button" class="onglet actif" data-vue="chasse">La chasse</button>
     <button type="button" class="onglet" data-vue="suivi">Mon suivi <span id="suivi-compteur"></span></button>
+    <button type="button" class="onglet" data-vue="reponses">Réponses</button>
     <button type="button" class="onglet" data-vue="marche">Le marché</button>
   </nav>
 
@@ -1007,6 +1040,8 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
       n'importe quelle carte de la chasse pour qu'elle apparaisse ici.</p>
     <div id="suivi-contenu"></div>
   </div>
+
+  <div id="vue-reponses" style="display:none"><div id="reponses-contenu"></div></div>
 
   <div id="vue-marche" style="display:none">
     <p class="marche-intro" id="marche-intro"></p>
@@ -1707,6 +1742,7 @@ function ouvrirContact(id) {
     <label for="contact-texte">Message à personnaliser</label>
     <textarea id="contact-texte" class="contact-texte" data-contact-id="${ech(id)}" data-mode="${mode}" rows="15">${ech(texteContact(a, mode))}</textarea>
     ${actionsContactHtml()}`;
+  document.getElementById("outil-contenu").insertAdjacentHTML("beforeend", `<p><button type="button" class="btn-outil" data-reponse-vendeur="${ech(id)}">J’ai sa réponse : l’analyser</button></p>`);
   document.getElementById("outil-fond").style.display = "block";
 }
 
@@ -2177,6 +2213,7 @@ function carteHtml(a, options) {
         title="Génère un message personnalisé à copier-coller pour contacter le vendeur : visite, offre, documents manquants.">${IC.enveloppe} Contacter</button>
       <button type="button" class="btn-outil" data-sim="${ech(a.id)}">${IC.calc} Financer</button>
       <details class="outils-annonce"><summary>Plus d’actions</summary>
+      <button type="button" class="btn-outil" data-reponse-vendeur="${ech(a.id)}">Analyser une réponse vendeur</button>
       <button type="button" class="btn-comp${dansComp ? " actif" : ""}" data-id="${ech(a.id)}">
         ${IC.balance} ${dansComp ? "Comparé" : "Comparer"}</button>
       <button type="button" class="btn-outil" data-check="${ech(a.id)}">${IC.coche} ${nbChecklist(a)}</button>
@@ -3205,14 +3242,17 @@ function construireMarche() {
   }
 }
 
+__REPONSES_VENDEUR__
+
 function basculerVue(vue) {
-  for (const v of ["chasse", "suivi", "marche"])
+  for (const v of ["chasse", "suivi", "marche", "reponses"])
     document.getElementById("vue-" + v).style.display = v === vue ? "" : "none";
   document.querySelectorAll("#onglets .onglet").forEach(b =>
     b.classList.toggle("actif", b.dataset.vue === vue));
   localStorage.setItem(CLE_ONGLET, vue);
   if (vue === "marche") construireMarche();
   if (vue === "suivi") rendreSuivi();
+  if (vue === "reponses") rendreReponses();
 }
 
 /* ---- Onglet « Mon suivi » : le carnet de chasse ----
@@ -3304,9 +3344,10 @@ function initialiser() {
     b.addEventListener("click", () => basculerVue(b.dataset.vue)));
   majCompteurSuivi();
   const vueDemandee = location.hash === "#marche" ? "marche"
-    : location.hash === "#suivi" ? "suivi" : localStorage.getItem(CLE_ONGLET);
+    : location.hash === "#suivi" ? "suivi" : location.hash === "#reponses" ? "reponses" : localStorage.getItem(CLE_ONGLET);
   if (vueDemandee === "marche" && aMarche) basculerVue("marche");
   else if (vueDemandee === "suivi") basculerVue("suivi");
+  else if (vueDemandee === "reponses") basculerVue("reponses");
 
   const s = D.stats;
   // Les pépites ne sont pas un sous-ensemble des nouvelles (une pépite peut
