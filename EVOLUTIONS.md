@@ -1,5 +1,26 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Prix personnel et suivi des démarches (27 octobre)
+
+- Recherche du prix maximal compatible avec l’objectif mensuel et le financement
+  personnel, sur une grille de 1 000 €. Prix demandé comme borne supérieure,
+  apport fixe ou en pourcentage, taux nul et achat comptant pris en charge.
+- Lorsque le plafond de référence ne suffit pas, affichage de cette limite,
+  du cash-flow, du rendement et du repère d’équilibre ; ouverture directe du
+  simulateur à ce prix. Seuil financier seul, score inchangé, pas de promotion
+  en pépite sur cette seule base. Bornes de cohérence du prix conservées.
+- « Suivre » directement sur les cartes, puis accès au dossier de suivi.
+  Avancement, notes et date de prochaine action accessibles sans ouvrir la fiche.
+- Rappels échus et du jour regroupés dans « À traiter », sans doublons ; dates
+  calendaires locales, rappels suspendus pour les pistes abandonnées.
+- Brouillon de relance ouvert directement pour une annonce contactée sans retour ;
+  accès au dossier vendeur dès qu’une réponse est reçue. Statut jamais changé par
+  la simple copie d’un message. Instantané conservé si le bien quitte le stock.
+- Effort mensuel au prix demandé mis en couleur et revenus estimés signalés.
+  Recherche vide récupérable en un clic. Navigation clavier du suivi conservée.
+- Validation : 536 tests et parcours navigateur incluant prix personnel, taux nul,
+  apport fixe, persistance des rappels/notes, relance et affichage 320–1440 px.
+
 ## Publication de la veille malgré une modification concurrente (27 octobre)
 
 - Diagnostic des échecs des 26 et 27 octobre : collecte et contrôles réussis,

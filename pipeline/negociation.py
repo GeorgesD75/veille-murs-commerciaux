@@ -95,6 +95,7 @@ def plan_negociation(a: Annonce, config: Config, maintenant: datetime) -> dict:
     prix_min = max(a.loyer_mensuel * 1200 / 20,
                    (plancher_prix_m2(a.departement, config) or 0) * a.surface_m2)
     minimum = math.ceil(prix_min / pas) * pas
+    resultat["prix_min_coherent"] = minimum
 
     def evaluer(prix):
         simulee = simuler_prix(base, prix, config)

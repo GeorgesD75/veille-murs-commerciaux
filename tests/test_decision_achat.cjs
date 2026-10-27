@@ -79,3 +79,25 @@ test('la lecture ne modifie ni le score, ni les faits, ni les projections',()=>{
   const avant=JSON.stringify({a,c}); analyser(a,c);
   assert.equal(JSON.stringify({a,c}),avant);
 });
+
+test('prix personnel : plus grand prix sur la grille et prix affiché comme borne maximale',()=>{
+  const f=prix=>1300-prix/200;
+  const p=contexte.moteur.prixPourCashflow({maximum:300000,objectif:100},f);
+  assert.equal(p,240000); assert.ok(f(p)>=100 && f(p+1000)<100);
+  assert.equal(contexte.moteur.prixPourCashflow({maximum:200123,objectif:100},f),200123);
+  assert.equal(contexte.moteur.prixPourCashflow({maximum:300000,objectif:0},f),260000);
+});
+
+test('prix personnel : apport fixe et achat comptant restent monotones',()=>{
+  const f=prix=>1200-Math.max(0,prix*1.08+10000-40000)/240;
+  const p=contexte.moteur.prixPourCashflow({maximum:400000,objectif:100},f);
+  assert.equal(p,272000); assert.ok(f(p)>=100 && f(p+1000)<100);
+  assert.equal(contexte.moteur.prixPourCashflow({maximum:200000,objectif:100},()=>1200),200000);
+});
+
+test('prix personnel : aucun nombre inventé si revenu ou financement invalide',()=>{
+  for (const f of [()=>null,()=>undefined,()=>NaN,()=>Infinity,()=>-50])
+    assert.equal(contexte.moteur.prixPourCashflow({maximum:300000,objectif:100},f),null);
+  for (const options of [{maximum:NaN},{maximum:-1},{maximum:100000,objectif:-1},{maximum:100000,pas:0}])
+    assert.equal(contexte.moteur.prixPourCashflow(options,()=>1000),null);
+});

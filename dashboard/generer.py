@@ -247,7 +247,7 @@ def preparer_payload(
 def generer_html(payload: dict[str, Any]) -> str:
     donnees = json.dumps(payload, ensure_ascii=False).replace("</", "<\\/")
     scripts = "\n".join((Path(__file__).parent / nom).read_text(encoding="utf-8")
-                        for nom in ["decision_achat.js", "reponses_moteur.js", "reponses_interface.js"])
+                        for nom in ["decision_achat.js", "suivi_moteur.js", "reponses_moteur.js", "reponses_interface.js"])
     return _GABARIT.replace("__REPONSES_VENDEUR__", scripts).replace("__DONNEES__", donnees)
 
 
@@ -416,6 +416,15 @@ svg.ic { width: 1em; height: 1em; vertical-align: -.12em; fill: none;
   background: var(--plan); border: 1px solid var(--filet); border-radius: 8px; padding: 7px 10px;
   resize: vertical; }
 .suivi-note:focus { outline: none; border-color: var(--marque); }
+.suivi-commandes { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin:14px 0; }
+.suivi-commandes label { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--encre-2); }
+.suivi-commandes select,.suivi-commandes input { padding:8px 10px; border:1px solid var(--filet); border-radius:7px; background:var(--surface); color:var(--encre-1); font:inherit; min-height:38px; }
+.suivi-commandes .btn-outil { width:auto; margin:0; }
+.suivi-echeance { display:inline-block; font-size:12px; font-weight:600; color:var(--orange-texte); background:var(--orange-fond); padding:4px 8px; border-radius:5px; }
+.suivi-echeance.retard { color:var(--alerte-texte); background:var(--alerte-fond); }
+.suivi-item:focus { outline:2px solid var(--or); outline-offset:3px; }
+.suivi-item .suivi-select { font-size:13px; }
+.btn-piste.en-suivi { border-color:var(--vert-texte); color:var(--vert-texte); background:var(--vert-fond); }
 
 /* ---- Le marché : graphiques (palette catégorielle VALIDÉE par mode —
    scripts dataviz : light warn contraste couvert par la vue tableau) ---- */
@@ -980,6 +989,10 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
 .offre-resistance small { display:block; margin-top:3px; }
 .offre-cible > details > summary { cursor:pointer; color:var(--encre-2); }
 .offre-hypotheses { color:var(--encre-2); }
+.seuil-personnel { padding:12px; background:var(--bande); border:1px solid var(--filet); border-radius:7px; margin:10px 0; color:var(--encre-1); }
+.seuil-personnel p { margin:5px 0; }
+.seuil-personnel strong { font-size:16px; }
+.seuil-personnel small { display:block; color:var(--encre-2); margin-top:7px; }
 .offre-prix-cashflow small { display:block; font-size:12px; margin-top:3px; }
 .offre-rendement { display:block; font-size:12px; margin:3px 0; }
 .budget-projet { margin:10px 0; font-size:13px; }
@@ -1016,6 +1029,8 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
 .metriques { gap:16px 24px; margin-bottom:14px; }
 .metrique .libelle { font-size:11px; letter-spacing:0; text-transform:none; }
 .metrique .valeur,.metrique--cle .valeur { font-size:16px; line-height:1.45; font-weight:600; }
+.metrique--deficit .valeur { color:var(--alerte-texte); }
+.metrique--positif .valeur { color:var(--vert-texte); }
 .metrique--cle .libelle { font-weight:400; color:var(--encre-2); }
 .metriques .info-i { display:none; }
 .carte-score { gap:7px; }
@@ -1099,9 +1114,8 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
   </nav>
 
   <div id="vue-suivi" style="display:none">
-    <p class="marche-intro">Vos démarches, annonce par annonce — statut et notes sont mémorisés
-      sur cet appareil uniquement (rien n'est envoyé nulle part). Choisissez un statut sur
-      n'importe quelle carte de la chasse pour qu'elle apparaisse ici.</p>
+    <h2 class="section">Vos pistes, vos prochaines actions</h2>
+    <p class="marche-intro">Statuts, dates de rappel et notes restent sur cet appareil. Les rappels sont visibles ici ; aucune notification ni message automatique.</p>
     <div id="suivi-contenu"></div>
   </div>
 
@@ -1828,10 +1842,10 @@ function actionsContactHtml() {
   </div><span id="contact-brouillon" class="contact-brouillon" role="status">Vos modifications sont conservées sur cet appareil, par annonce et par étape. Aucun envoi automatique.</span>`;
 }
 
-function ouvrirContact(id) {
+function ouvrirContact(id, modeDemande = null) {
   const a = D.retenues.find(x => x.id === id);
   if (!a) return;
-  const precedent = brouillonsContact[id]?.mode;
+  const precedent = modeDemande ?? brouillonsContact[id]?.mode;
   const mode = ["court", "dossier", "relance"].includes(precedent) ? precedent : "court";
   document.getElementById("outil-contenu").innerHTML = `
     <h3>${IC.enveloppe} Contacter le vendeur — ${ech(a.titre)}</h3>
@@ -1860,6 +1874,7 @@ function ouvrirProposition(id) {
     ${prixCashflowHtml(a, n.prix_plafond, "Plafond du modèle · maximum")}
     ${ecartNegociationHtml(a,n.prix_ouverture ?? n.prix_plafond)}
     ${resistancePrixHtml(projectionAchat(a,n.prix_ouverture ?? n.prix_plafond))}
+    ${seuilPersonnelHtml(a)}
     ${budgetProjetHtml(projectionAchat(a, n.prix_ouverture ?? n.prix_plafond), "Budget au prix à tenter et risque de vacance")}
     <p class="offre-note">Ces trois cash-flows utilisent votre financement : ${finTxt()}, avec les mêmes provisions de vacance, charges et taxe. Avant impôt, assurance emprunteur et travaux exceptionnels.</p>
     <p>${n.remise_pct > 0 ? `Le plafond demande une baisse de ${fmtEuros(n.remise_euros)} (−${fmtPct(n.remise_pct)}). ${n.remise_pct > remiseMax ? "Écart très important : ce scénario n’est pas promu dans la sélection." : n.remise_pct > 15 ? "Baisse importante à obtenir et à argumenter." : "Écart à discuter avec le vendeur."}` : "Le prix affiché remplit déjà les conditions du modèle."}
@@ -2127,6 +2142,36 @@ function ecartNegociationHtml(a, prix) {
   return `<div class="offre-reperes"><span class="${pct>15?"effort-important":""}"><b>${pct>15?"Baisse importante à obtenir":"Baisse à obtenir"} : ${fmtEuros(baisse)} (−${fmtPct(pct)})</b></span><span>Accord du vendeur inconnu.</span></div>`;
 }
 
+function seuilPersonnel(a, objectif = a.negociation?.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100) {
+  const n = a.negociation, d = a.decision?.diagnostic;
+  if (!(n?.prix_plafond || n?.prix_seuil_financier) || etatReponseVendeur(a) || a.peut_etre_retiree
+      || d?.bloquant || d?.transaction?.nature !== "murs" || d.occupation !== "occupe"
+      || !(a.loyer_mensuel > 0) || a.loyer_estime || a.decision?.loyer_estime || a.loyer_origine === "rendement") return null;
+  if (!Number.isFinite(projectionAchat(a)?.cashflow)) return null;
+  const prix = DecisionAchat.prixPourCashflow({maximum:a.prix,objectif}, prix=>projectionAchat(a,prix)?.cashflow);
+  if (prix == null) return {objectif,prix:null};
+  const minimum = n.prix_min_coherent ?? a.loyer_mensuel*60;
+  if (prix < minimum) return {objectif,prix:null,incoherent:true};
+  return {objectif,prix,projection:projectionAchat(a,prix)};
+}
+
+function seuilPersonnelHtml(a) {
+  const ref = a.negociation?.prix_plafond ?? a.negociation?.prix_seuil_financier;
+  const objectif = a.negociation?.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100;
+  if (!ref || (cashflowAuPrix(a,ref) ?? -Infinity) >= objectif) return "";
+  const s = seuilPersonnel(a,objectif);
+  if (!s) return "";
+  if (s.prix == null) return `<p class="offre-note">${s.incoherent ? "Le prix nécessaire à votre objectif tombe sous les bornes de cohérence du bien. Aucun prix de proposition automatique n’est retenu." : "L’objectif reste hors d’atteinte sur la grille de prix avec ces revenus et ce financement."} Vérifiez le loyer ou ajustez le financement.</p>`;
+  const equilibre = seuilPersonnel(a,0), cf = s.projection.cashflow;
+  return `<div class="seuil-personnel" data-seuil-personnel="${s.prix}">
+    <p><b>Votre limite financière pour +${fmtEuros(objectif)}/mois</b></p>
+    <p><strong>${fmtEuros(s.prix)} maximum</strong> → <b data-seuil-cashflow>+${fmtEuros(cf)}/mois</b> prudent · rendement brut <b data-seuil-rendement>${fmtPct(a.loyer_mensuel*1200/s.prix)}</b>/an.</p>
+    ${equilibre?.prix ? `<p>Repère d’équilibre sans marge mensuelle : ${fmtEuros(equilibre.prix)} maximum.</p>` : ""}
+    <button type="button" class="btn-outil" data-sim="${ech(a.id)}" data-sim-prix="${s.prix}">Tester ce prix avec mon financement</button>
+    <small>Seuil financier seul, arrondi par pas de 1 000 € ; qualification pépite et score non recalculés. Financement : ${finTxt()}. Loyer annoncé à justifier ; provisions habituelles déduites, avant impôt, assurance et travaux. ${s.prix < a.prix*.65 ? "Baisse supérieure à 35 % : acceptation très incertaine." : "L’accord du vendeur reste à obtenir."}</small>
+  </div>`;
+}
+
 function relocationHtml(a) {
   const r = a.decision?.relocation || a.negociation?.relocation;
   const niveau = r?.niveau || "a_verifier";
@@ -2152,6 +2197,7 @@ function prixCibleHtml(a) {
         ${prixCashflowHtml(a, n.prix_seuil_financier, "Prix maximum du modèle")}
         ${ecartNegociationHtml(a,n.prix_seuil_financier)}
         ${resistancePrixHtml(projectionAchat(a,n.prix_seuil_financier))}
+        ${seuilPersonnelHtml(a)}
         ${budgetProjetHtml(projectionAchat(a, n.prix_seuil_financier))}
         <p><b>Critères pépite non réunis.</b> Score ${n.score_seuil_financier}/100 simulés à ce prix (actuel : ${a.score ?? "—"}/100).</p>
         <p class="offre-note">Cash-flow avec votre financement : ${finTxt()}. Vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt et assurance. Ce prix ne valide ni le loyer, ni l’emplacement, ni l’accord du vendeur.</p>
@@ -2176,6 +2222,7 @@ function prixCibleHtml(a) {
     <p class="offre-hypotheses">Simulation sur le loyer annoncé, à justifier. Objectif : +${fmtEuros(objectif)}/mois.</p>
     <details><summary>Financement, objectif et score simulé</summary><p class="offre-note">Cash-flows avec votre financement : ${finTxt()}. Vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt, assurance et travaux exceptionnels.</p><p>Objectif : +${fmtEuros(objectif)}/mois · <b>${n.score_cible}/100 simulés</b> (actuel : ${a.score ?? "—"}/100)${n.remise_pct > 0 ? ` · baisse de ${fmtPct(n.remise_pct)} à obtenir au plafond` : " · au prix affiché"}. Le prix de départ ménage une marge de discussion sous le plafond du modèle ; l’accord du vendeur reste à obtenir.</p></details>
     ${!adapte ? `<p class="alerte-donnee fort">Avec votre financement à ce prix : ${signe(cf)}. Ce plafond ne suffit pas à votre objectif ; ajustez le prix ou le financement dans le simulateur.</p>` : ""}
+    ${!adapte ? seuilPersonnelHtml(a) : ""}
     ${vigilance ? '<p class="alerte-donnee fort">Emplacement à valider : une baisse de prix ne résout pas les risques de relocation.</p>' : ""}
   </div>`;
 }
@@ -2319,8 +2366,8 @@ function carteHtml(a, options) {
     ["Surface", a.surface_m2 == null ? "—" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²", ""],
     ["Loyer · annonce", loyer == null ? "—" : fmtEuros(loyer) + "/mois" + est + loyerInfo, ""],
     ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "") + rdtBrutInfo, "cle"],
-    ["Prudent · annonce", cf == null ? "—" :
-      `${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois`, "cle"],
+    [cf < 0 ? "Effort au prix demandé" : "Cash-flow · annonce", cf == null ? "—" :
+      `${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois` + (estimeSansBail ? " <small>est.</small>" : ""), cf == null ? "cle" : cf < 0 ? "deficit" : "positif"],
     ["Trajet", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min", ""],
   ].map(([l, v, rang]) =>
     `<div class="metrique${rang ? " metrique--" + rang : ""}"><div class="libelle">${l}</div><div class="valeur">${v}</div></div>`).join("");
@@ -2373,6 +2420,7 @@ function carteHtml(a, options) {
       <button type="button" class="btn-outil btn-outil--primaire" data-contact="${ech(a.id)}"
         title="Génère un message personnalisé à copier-coller pour contacter le vendeur : visite, offre, documents manquants.">${IC.enveloppe} Contacter</button>
       <button type="button" class="btn-outil" data-sim="${ech(a.id)}">${IC.calc} Financer</button>
+      <button type="button" class="btn-outil btn-piste${suivi[a.id] && !estAbandonnee(a.id) ? " en-suivi" : ""}" data-piste="${ech(a.id)}">${IC.coche} ${suivi[a.id] && !estAbandonnee(a.id) ? "Mon suivi" : "Suivre"}</button>
       <details class="outils-annonce"><summary>Plus d’actions</summary>
       <button type="button" class="btn-outil" data-reponse-vendeur="${ech(a.id)}">Analyser une réponse vendeur</button>
       <button type="button" class="btn-comp${dansComp ? " actif" : ""}" data-id="${ech(a.id)}">
@@ -2673,7 +2721,7 @@ function rendre() {
   document.getElementById("bloc-etudier").innerHTML =
     `<h2 class="section">${prio.length ? "À étudier aussi" : titreSelection}</h2>` +
     (etudier.length ? etudier.map(a => carteHtml(a, {...opts(a), index: index++})).join("")
-      : '<div class="note-vide">Rien dans cette tranche avec ces filtres.</div>') +
+      : `<div class="note-vide">${visibles.length ? "Aucune autre annonce dans cette tranche." : "Aucune annonce avec ces filtres."}${!visibles.length?'<p><button type="button" class="btn-outil" data-effacer-filtres>Effacer les filtres</button></p>':""}</div>`) +
     (occasions.length ? '<h2 class="section">Occasions aux enchères <span class="nb">score d’intérêt distinct</span></h2>' +
       occasions.map((e, i) => enchereHtml(e, index + i)).join("") : "");
 
@@ -3021,7 +3069,18 @@ document.addEventListener("change", ev => {
 // Suivi : changement de statut depuis n'importe quelle carte, notes dans l'onglet
 document.addEventListener("change", ev => {
   const sel = ev.target.closest?.("[data-suivi]");
-  if (sel) majSuivi(sel.dataset.suivi, sel.value);
+  if (sel) {
+    majSuivi(sel.dataset.suivi, sel.value);
+    if (document.getElementById("vue-suivi").style.display !== "none")
+      document.querySelector(`.suivi-commandes [data-suivi="${CSS.escape(sel.dataset.suivi)}"]`)?.focus({preventScroll:true});
+  }
+  const rappel = ev.target.closest?.("[data-rappel]");
+  if (rappel && suivi[rappel.dataset.rappel] && (!rappel.value || SuiviMoteur.dateValide(rappel.value))) {
+    suivi[rappel.dataset.rappel].rappel = rappel.value;
+    localStorage.setItem(CLE_SUIVI, JSON.stringify(suivi));
+    rendreSuivi();
+    document.querySelector(`[data-rappel="${CSS.escape(rappel.dataset.rappel)}"]`)?.focus();
+  }
 });
 document.addEventListener("input", ev => {
   const note = ev.target.closest?.("[data-note]");
@@ -3143,6 +3202,19 @@ document.addEventListener("click", ev => {
   if (chk) { ouvrirChecklist(chk.dataset.check); return; }
   const contact = ev.target.closest("[data-contact]");
   if (contact) { ouvrirContact(contact.dataset.contact); return; }
+  const piste = ev.target.closest("[data-piste]");
+  if (piste) {
+    const id = piste.dataset.piste;
+    if (!suivi[id] || estAbandonnee(id)) {
+      majSuivi(id,"suivie");
+      document.querySelector(`.btn-piste[data-piste="${CSS.escape(id)}"]`)?.focus({preventScroll:true});
+    }
+    else { basculerVue("suivi"); document.querySelector(`[data-piste-suivi="${CSS.escape(id)}"]`)?.focus(); }
+    return;
+  }
+  if (ev.target.closest("[data-effacer-filtres]")) { document.getElementById("f-reset").click(); return; }
+  const suiviContact = ev.target.closest("[data-suivi-contact]");
+  if (suiviContact) { ouvrirContact(suiviContact.dataset.suiviContact,suiviContact.dataset.mode); return; }
   const offre = ev.target.closest("[data-offre]");
   if (offre) { ouvrirProposition(offre.dataset.offre); return; }
   const critique = ev.target.closest("[data-critique]");
@@ -3470,14 +3542,17 @@ function rendreSuivi() {
   const ids = Object.keys(suivi);
   if (!ids.length) {
     conteneur.innerHTML = `<div class="note-vide">Rien en suivi pour l'instant.
-      Dans l'onglet « La chasse », choisissez un statut (« Je la suis », « Contactée »…)
-      sur une carte : elle apparaîtra ici, avec vos notes.</div>`;
+      Cliquez sur « Suivre » sur une annonce pour garder cette piste, programmer votre prochaine action et prendre des notes.</div>`;
     return;
   }
+  const aFaire = ids.filter(id=>["retard","aujourdhui"].includes(SuiviMoteur.etatRappel(suivi[id])))
+    .sort((x,y)=>SuiviMoteur.trier(suivi[x],suivi[y]));
+  const aFaireIds = new Set(aFaire);
+  const groupes = [["a_faire","À traiter",aFaire], ...SUIVI_STATUTS.map(([statut,libelle])=>
+    [statut,libelle,ids.filter(id=>suivi[id].statut===statut && !aFaireIds.has(id))
+      .sort((x,y)=>SuiviMoteur.trier(suivi[x],suivi[y]))])];
   let html = "";
-  for (const [statut, libelle] of SUIVI_STATUTS) {
-    const lot = ids.filter(id => suivi[id].statut === statut)
-      .sort((x, y) => (suivi[y].maj || "").localeCompare(suivi[x].maj || ""));
+  for (const [statut, libelle, lot] of groupes) {
     if (!lot.length) continue;
     html += `<h2 class="section">${libelle} <span class="nb">${lot.length}</span></h2>`;
     for (const id of lot) {
@@ -3491,11 +3566,18 @@ function rendreSuivi() {
       const entete = a
         ? ligneCompacteHtml(a)
         : `<div class="ligne-compacte"><span class="mini-score" style="background:var(--gris-fond);color:var(--gris-texte)">—</span>
-             <span class="t"><a href="${ech(inst.url || "#")}" target="_blank" rel="noopener">${ech(inst.titre || "Annonce disparue")}</a></span>
+             <span class="t"><a href="${ech(urlReponse(inst.url))}" target="_blank" rel="noopener">${ech(inst.titre || "Annonce disparue")}</a></span>
              <span class="d">${ech(inst.ville || "")}${inst.prix ? " · " + fmtEuros(inst.prix) : ""}</span></div>`;
-      html += `<div class="suivi-item">
+      const rappel = SuiviMoteur.etatRappel(s);
+      html += `<div class="suivi-item" data-piste-suivi="${ech(id)}" tabindex="-1">
         ${entete}
         <div class="suivi-meta">${SUIVI_LIBELLES[s.statut]} depuis le ${fmtDate(s.maj)}${alerte}</div>
+        ${rappel!=="aucun"?`<span class="suivi-echeance ${rappel}">${rappel==="retard"?"Rappel en retard · ":rappel==="aujourdhui"?"À faire aujourd’hui · ":"Prochaine action · "}${SuiviMoteur.formatDate(s.rappel)}</span>`:""}
+        <div class="suivi-commandes"><label>Avancement<select class="suivi-select actif" data-suivi="${ech(id)}">${SUIVI_STATUTS.map(([v,t])=>`<option value="${v}"${v===s.statut?" selected":""}>${t}</option>`).join("")}</select></label>
+          <label>Prochaine action<input type="date" data-rappel="${ech(id)}" value="${SuiviMoteur.dateValide(s.rappel)?s.rappel:""}"></label>
+          ${a && !etatReponseVendeur(a) && s.statut!=="abandonnee"?`<button type="button" class="btn-outil" data-suivi-contact="${ech(id)}" data-mode="${s.statut==="contactee"?"relance":"court"}">${s.statut==="contactee"?"Préparer une relance":"Préparer le contact"}</button>`:""}
+          ${(a || dossiersReponses[id]) && s.statut!=="abandonnee"?`<button type="button" class="btn-outil" data-reponse-vendeur="${ech(id)}">${etatReponseVendeur(annonceReponse(id)||{id})?"Ouvrir sa réponse":"Analyser sa réponse"}</button>`:""}
+        </div>
         <textarea class="suivi-note" data-note="${ech(id)}" rows="2"
           placeholder="Vos notes : interlocuteur, ressenti de visite, points à vérifier… (mémorisées sur cet appareil)">${ech(s.note || "")}</textarea>
       </div>`;

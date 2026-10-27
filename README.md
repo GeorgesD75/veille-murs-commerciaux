@@ -89,6 +89,22 @@ Sur mobile, les données occupent toute la largeur sous le titre et la photo.
 Une réponse vendeur en attente de relecture masque les anciennes propositions
 de prix pour éviter de décider sur des chiffres dépassés.
 
+Si le plafond du modèle ne donne pas la marge souhaitée avec votre financement,
+la fiche calcule une **limite financière personnelle** pour viser +100 €/mois
+(ou l’objectif configuré), avec le cash-flow et le rendement brut à ce prix.
+Le repère d’équilibre sans marge est distinct. Apport fixe, apport en pourcentage,
+taux nul et achat comptant sont pris en charge. Ces seuils restent financiers :
+ils ne recalculent pas le score et ne suffisent pas à qualifier une pépite.
+Les prix sous les bornes de cohérence du bien ne deviennent pas des propositions.
+
+Le bouton **Suivre** garde une annonce en un clic. Dans **Mon suivi**, changez
+le statut, gardez vos notes et choisissez une date de prochaine action. Les
+rappels du jour ou dépassés remontent dans « À traiter », sans dupliquer la
+piste. Une annonce disparue reste conservée avec son instantané. Les rappels
+sont visibles dans l’application, sans notification ni envoi automatique.
+Une relance ouvre directement le bon brouillon ; si une réponse est déjà reçue,
+le dossier vendeur prend le relais pour éviter de répéter les mêmes questions.
+
 Le premier contact tient en cinq questions utiles : murs seuls, occupation et
 bail, loyer HT/HC, charges bailleur/taxe et impayés. Les demandes de pièces
 restent dans l’étape « Demander les pièces », pour ne pas charger le premier échange.

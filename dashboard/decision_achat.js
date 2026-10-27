@@ -1,5 +1,23 @@
 /* Lecture de décision : aucune mutation du score, des prix ou du dossier. */
 const DecisionAchat = (() => {
+  // Le cash-flow décroît avec le prix pour les financements pris en charge
+  // (apport en % ou en euros, taux nul compris). Ce repère est financier :
+  // il ne recalcule ni le score économique ni la qualification pépite.
+  function prixPourCashflow({maximum, objectif = 100, pas = 1000}, projeter) {
+    if (![maximum, objectif, pas].every(Number.isFinite) || maximum <= 0 || objectif < 0 || pas <= 0) return null;
+    const actuel = projeter(maximum);
+    if (!Number.isFinite(actuel)) return null;
+    if (actuel >= objectif) return maximum;
+    let debut = 1, fin = Math.floor(maximum / pas), meilleur = null;
+    while (debut <= fin) {
+      const milieu = Math.floor((debut + fin) / 2), prix = milieu * pas, cf = projeter(prix);
+      if (!Number.isFinite(cf)) return null;
+      if (cf >= objectif) { meilleur = prix; debut = milieu + 1; }
+      else fin = milieu - 1;
+    }
+    return meilleur;
+  }
+
   function analyser(a, contexte = {}) {
     const {projection, projectionCible, retour, prioritaire, pepite, potentiel} = contexte;
     const objectif = contexte.objectif ?? 100;
@@ -62,5 +80,5 @@ const DecisionAchat = (() => {
       return avis("negociation", "Cash-flow positif, marge limitée", "Le scénario prudent reste positif mais n’atteint pas votre objectif mensuel.", "Chercher une marge sur le prix ; vérifier les charges et le risque de vacance.");
     return avis("completer", "Chiffres à approfondir", "Le scénario prudent atteint l’objectif ; le dossier ne réunit pas tous les critères du signal pépite.", "Vérifier le bail, les encaissements et la facilité à relouer avant de se positionner.");
   }
-  return {analyser};
+  return {analyser, prixPourCashflow};
 })();

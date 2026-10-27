@@ -453,6 +453,91 @@ def verifier_retours_sur_annonces(browser):
     page.close()
 
 
+def verifier_suivi_et_seuils(browser):
+    """Prix personnel calculé et chemin complet du suivi, sans envoi de message."""
+    page = browser.new_page(viewport={"width":1440,"height":1000})
+    erreurs = []
+    page.on("pageerror",lambda e:erreurs.append(str(e)))
+    page.route("**/*",lambda r:r.abort() if r.request.resource_type=="image" else r.continue_())
+    page.goto((RACINE / "docs/index.html").as_uri(),wait_until="domcontentloaded")
+    page.evaluate("""()=>{
+      const a=structuredClone(D.retenues[0]);
+      Object.assign(a,{id:'suivi-prix',titre:'Murs du parcours suivi',prix:220000,honoraires:0,
+        loyer_mensuel:1800,loyer_estime:false,loyer_origine:'annonce',taxe_fonciere_annuelle:1200,
+        surface_m2:30,temps_trajet_min:15,score:70,pepite:false,est_nouvelle:false,
+        flags:[],peut_etre_retiree:false,type_murs:'murs_occupes'});
+      a.decision.loyer_estime=false;
+      a.decision.diagnostic={bloquant:false,occupation:'occupe',transaction:{nature:'murs'},alertes:[],preuves:{}};
+      a.decision.relocation={niveau:'a_verifier',favorables:[],vigilances:[],a_confirmer:[]};
+      a.negociation={selection:true,prix_plafond:180000,prix_ouverture:174000,prix_min_coherent:108000,
+        objectif_cashflow:100,cashflow_cible:130,score_cible:82,remise_pct:18,raisons:[]};
+      D.retenues=[a];D.encheres=[];
+      Object.assign(profil,{apportMode:'pct',apport:0,taux:8,duree:20});rendre();
+    }""")
+    avant = page.evaluate("JSON.stringify(D.retenues[0])")
+    seuil = page.locator('.seuil-personnel')
+    assert seuil.count()==1
+    prix = int(seuil.get_attribute('data-seuil-personnel'))
+    assert prix < 174000 and prix % 1000 == 0
+    assert page.evaluate("prix=>{const a=D.retenues[0];return cashflowAuPrix(a,prix)>=100 && cashflowAuPrix(a,prix+1000)<100}",prix)
+    assert seuil.locator('[data-seuil-cashflow]').evaluate("e=>e.textContent==='+'+fmtEuros(cashflowAuPrix(D.retenues[0],seuilPersonnel(D.retenues[0]).prix))+'/mois'")
+    assert 'Seuil financier seul' in seuil.inner_text()
+    seuil.locator('[data-sim]').click()
+    assert float(page.locator('[data-sim-champ="prix"]').input_value())==prix
+    page.keyboard.press('Escape')
+    assert page.evaluate("""()=>{
+      const a=D.retenues[0],ancien=a.negociation.prix_min_coherent;
+      a.negociation.prix_min_coherent=seuilPersonnel(a).prix+1000;
+      const refuse=seuilPersonnel(a);a.negociation.prix_min_coherent=ancien;
+      return refuse.prix===null && refuse.incoherent;
+    }""")
+    assert page.evaluate("JSON.stringify(D.retenues[0])")==avant
+    assert page.evaluate("""()=>{
+      const a=D.retenues[0],precedent=structuredClone(profil);
+      const profils=[{apportMode:'pct',apport:20,taux:4,duree:20},
+        {apportMode:'euros',apportEuros:40000,taux:0,duree:20},
+        {apportMode:'pct',apport:100,taux:4,duree:20}];
+      const valides=profils.every(p=>{
+        Object.assign(profil,p);
+        const s=seuilPersonnel(a);
+        return s?.prix>0 && s.projection.cashflow>=100 && (s.prix===a.prix || cashflowAuPrix(a,s.prix+1000)<100);
+      });
+      Object.assign(profil,precedent);return valides;
+    }""")
+    page.locator('[data-piste="suivi-prix"]').click()
+    assert page.evaluate("suivi['suivi-prix'].statut==='suivie'")
+    page.locator('[data-piste="suivi-prix"]').click()
+    item = page.locator('[data-piste-suivi="suivi-prix"]')
+    note = 'Visite à préparer <script>window.injecte=true</script>'
+    item.locator('[data-note]').fill(note)
+    item.locator('[data-rappel]').fill('2000-01-01')
+    item.locator('[data-rappel]').press('Tab')
+    assert 'À traiter' in page.locator('#suivi-contenu h2').first.inner_text()
+    assert page.locator('[data-piste-suivi="suivi-prix"]').count()==1
+    assert 'Rappel en retard' in item.locator('.suivi-echeance').inner_text()
+    assert item.locator('[data-note]').input_value()==note
+    assert page.evaluate('!window.injecte')
+    item.locator('select[data-suivi]').select_option('contactee')
+    item.locator('[data-suivi-contact]').click()
+    assert page.locator('[data-contact-mode="relance"]').get_attribute('aria-pressed')=='true'
+    assert page.locator('#contact-texte').get_attribute('data-mode')=='relance'
+    page.locator('#contact-texte').fill('Mon brouillon de relance')
+    page.keyboard.press('Escape')
+    page.reload(wait_until='domcontentloaded')
+    item = page.locator('[data-piste-suivi="suivi-prix"]')
+    assert item.locator('[data-note]').input_value()==note
+    assert item.locator('[data-rappel]').input_value()=='2000-01-01'
+    assert item.locator('select[data-suivi]').input_value()=='contactee'
+    # L'instantané survit au retrait du stock ; pas d'action de contact trompeuse.
+    assert 'n’apparaît' in item.inner_text().replace("n'apparaît","n’apparaît")
+    assert item.locator('[data-suivi-contact]').count()==0
+    for largeur in [320,390,768,1440]:
+        page.set_viewport_size({"width":largeur,"height":844})
+        assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),largeur
+    assert not erreurs,erreurs
+    page.close()
+
+
 def main():
     candidats = [shutil.which("google-chrome"), shutil.which("chromium"),
                  r"C:\Program Files\Google\Chrome\Application\chrome.exe"]
@@ -527,6 +612,7 @@ def main():
         verifier_financement_et_brouillons(browser)
         verifier_reponses_vendeur(browser)
         verifier_retours_sur_annonces(browser)
+        verifier_suivi_et_seuils(browser)
         browser.close()
     print("Interactions, persistance, simulateur et responsive 320–1440 px : OK")
 
