@@ -108,6 +108,8 @@ test('prix cible financier conservateur : cash-flow visé atteint au plafond',()
   assert.equal(r.finance.cashflowCible,cible.cashflow);
   assert.equal(r.finance.stressCible,cible.stress);
   assert.equal(r.finance.mensualiteCible,cible.mensualite);
+  assert.equal(r.finance.coutCible,cible.cout);
+  assert.equal(r.finance.apportCible,cible.apportEuros);
   assert.ok(r.finance.cashflowCible>r.finance.cashflow);
 });
 test('cash-flow au prix cible recalculé avec apport fixe, frais et taux zéro',()=>{

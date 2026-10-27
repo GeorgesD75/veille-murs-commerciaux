@@ -960,6 +960,19 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
 .offre-prix-cashflow b { display:block; font-size:20px; line-height:1.35; }
 .offre-prix-cashflow small { display:block; font-size:12px; margin-top:3px; }
 .offre-rendement { display:block; font-size:12px; margin:3px 0; }
+.budget-projet { margin:10px 0; font-size:13px; }
+.budget-projet summary { font-weight:600; cursor:pointer; }
+.budget-chiffres { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:14px 0; }
+.budget-chiffres span { display:block; color:var(--encre-2); font-size:12px; }
+.budget-chiffres b { display:block; font-size:17px; margin-top:3px; }
+.budget-flux { border-top:1px solid var(--filet); padding-top:8px; }
+.budget-flux > div { display:flex; gap:12px; justify-content:space-between; padding:4px 0; }
+.budget-flux b { white-space:nowrap; }
+.budget-reste { border-top:1px solid var(--filet); margin-top:4px; }
+.budget-alerte { padding:10px; border-left:3px solid var(--alerte-texte); background:var(--surface); }
+.retour-vendeur { padding:9px 12px; margin:8px 0; border-left:3px solid var(--or); background:var(--vert-fond); border-radius:0 8px 8px 0; font-size:13px; }
+.retour-vendeur.vigilance, .retour-vendeur.hors_cible { border-left-color:var(--alerte-texte); }
+.retour-vendeur button { background:none; border:0; padding:0; color:var(--marque); text-decoration:underline; cursor:pointer; font:inherit; text-align:left; }
 .offre-plafond { padding-top:8px; border-top:1px solid var(--filet); }
 .rep-prix-cible { padding:14px; background:var(--vert-fond); border-radius:8px; }
 .offre-cible p { margin:5px 0 0; }
@@ -1522,11 +1535,45 @@ function apportLibelle() {  // « 20 % apport » / « 80 000 € apport »
 }
 
 function cashflowMensuel(a) {
-  const e = exploitation(a);
-  if (e.revenu == null || a.prix == null || a.decision?.diagnostic?.bloquant) return null;
-  const cout = a.prix * 1.08 + (a.honoraires || 0);
-  const emprunt = cout - apportEurosPour(cout);
-  return Math.round(e.revenu - (emprunt > 0 ? mensualite(emprunt, profil.taux, profil.duree) : 0));
+  return projectionAchat(a)?.cashflow ?? null;
+}
+
+function projectionAchat(a, prix = a.prix, financement = profil, scenario = {}) {
+  if (!(prix > 0) || a.decision?.diagnostic?.bloquant) return null;
+  const e = exploitation(a, scenario), p = financement;
+  if (![prix,p.taux,p.duree].every(Number.isFinite) || p.taux < 0 || p.duree <= 0) return null;
+  const cout = prix * 1.08 + (a.honoraires || 0);
+  const apport = p.apportMode === "euros" ? Math.min(Math.max(0,p.apportEuros),cout) : cout * p.apport/100;
+  if (!Number.isFinite(apport) || apport < 0 || apport > cout) return null;
+  const emprunt = Math.max(0,cout-apport);
+  const mensualitePret = emprunt > 0 ? mensualite(emprunt,p.taux,p.duree) : 0;
+  return {prix,cout,apport,emprunt,mensualite:mensualitePret,loyer:e.loyer,
+    revenu:e.revenu, fraisMensuels:e.loyer == null ? null : e.loyer * e.charges/100 + e.taxe/12,
+    vacanceMensuelle:e.loyer == null ? null : e.loyer * e.vacance/100,
+    cashflow:e.revenu == null ? null : Math.round(e.revenu-mensualitePret),
+    stress:e.stress == null ? null : Math.round(e.stress-mensualitePret)};
+}
+
+function budgetProjetHtml(p, libelle = "Budget et résistance du projet") {
+  if (!p) return "";
+  const euros = v=>Number.isFinite(v) ? fmtEuros(Math.round(v)) : "À préciser";
+  const signe = v=>v == null ? "À préciser" : `${v>=0?"+":"−"}${euros(Math.abs(v))}`;
+  const net = p.revenu == null ? null : p.revenu*1200/p.cout;
+  return `<details class="budget-projet"><summary>${ech(libelle)}</summary>
+    <p class="offre-note">Au prix de ${euros(p.prix)} · votre financement · avant impôt, assurance emprunteur et travaux exceptionnels.</p>
+    <div class="budget-chiffres"><div><span>Coût d’acquisition estimé</span><b data-budget="cout">${euros(p.cout)}</b></div>
+      <div><span>Apport à mobiliser</span><b data-budget="apport">${euros(p.apport)}</b></div>
+      <div><span>Capital à emprunter</span><b data-budget="emprunt">${euros(p.emprunt)}</b></div>
+      <div><span>Mensualité du prêt</span><b data-budget="mensualite">${euros(p.mensualite)}/mois</b></div></div>
+    <div class="budget-flux"><div><span>Loyer HT/HC retenu</span><b>${euros(p.loyer)}/mois</b></div>
+      <div><span>Provision de vacance</span><b>−${euros(p.vacanceMensuelle)}/mois</b></div>
+      <div><span>Charges et taxe retenues</span><b>−${euros(p.fraisMensuels)}/mois</b></div>
+      <div><span>Crédit</span><b>−${euros(p.mensualite)}/mois</b></div>
+      <div class="budget-reste"><span>Reste prudent</span><b data-budget="cashflow">${signe(p.cashflow)}/mois</b></div></div>
+    ${net == null ? "" : `<p>Rendement après provisions, frais d’acquisition inclus : <b>${fmtPct(net)}/an</b>, avant crédit et impôt.</p>`}
+    ${p.stress == null ? "" : `<p class="${p.stress<0?"budget-alerte":"budget-resistance"}" data-budget="stress">Si le loyer baisse de 10 % avec au moins deux mois sans loyer par an : <b>${signe(p.stress)}/mois</b>. ${p.stress<0?`Cela représente ${euros(-p.stress*12)} d’effort d’épargne annuel dans ce scénario.`:"Le scénario reste à l’équilibre ou positif, sans garantir l’absence de risque."}</p>`}
+    <p class="offre-note">Coût : prix + 8 % de frais d’acquisition + honoraires séparés connus. Travaux, frais bancaires, garantie et assurance ne sont pas chiffrés ici. L’apport indiqué ne constitue pas tout le budget d’épargne nécessaire. Les loyers restent à justifier.</p>
+  </details>`;
 }
 
 function apportMinimalCashflowPositif(a) {
@@ -1616,7 +1663,10 @@ function questionsReponsesHtml(a) {
     a.lecture_prix || "Pas assez de données de marché sur ce secteur pour se prononcer."]);
 
   const n = a.negociation;
-  const negociation = n?.prix_plafond != null
+  const vendeur = etatReponseVendeur(a);
+  const negociation = vendeur?.confirme && !vendeur.aRelire
+    ? "Une réponse vendeur a été analysée sur cet appareil : utilisez les chiffres du dossier vendeur, affichés sur la fiche, pour étudier le prix. Le score de l’annonce reste distinct."
+    : n?.prix_plafond != null
     ? `Plafond simulé : ${fmtEuros(n.prix_plafond)} (${fmtPct(n.remise_pct)} sous le prix affiché), pour un score de ${n.score_cible}/100 et une trésorerie prudente à l’équilibre. Le vendeur peut refuser ; les pièces restent à vérifier.`
     : (n?.raisons || ["Pas assez de données pour chiffrer une proposition."]).join(" ");
   lignes.push(["À quel prix le dossier devient-il intéressant ?", negociation]);
@@ -1764,6 +1814,7 @@ function ouvrirProposition(id) {
     ${prixCashflowHtml(a, a.prix, "Prix demandé")}
     ${prixCashflowHtml(a, n.prix_ouverture ?? n.prix_plafond, "Prix à tenter · proposition de départ")}
     ${prixCashflowHtml(a, n.prix_plafond, "Plafond du modèle · maximum")}
+    ${budgetProjetHtml(projectionAchat(a, n.prix_ouverture ?? n.prix_plafond), "Budget au prix à tenter et risque de vacance")}
     <p class="offre-note">Ces trois cash-flows utilisent votre financement : ${finTxt()}, avec les mêmes provisions de vacance, charges et taxe. Avant impôt, assurance emprunteur et travaux exceptionnels.</p>
     <p>${n.remise_pct > 0 ? `Le plafond demande une baisse de ${fmtEuros(n.remise_euros)} (−${fmtPct(n.remise_pct)}). ${n.remise_pct > remiseMax ? "Écart très important : ce scénario n’est pas promu dans la sélection." : n.remise_pct > 15 ? "Baisse importante à obtenir et à argumenter." : "Écart à discuter avec le vendeur."}` : "Le prix affiché remplit déjà les conditions du modèle."}
       L’acceptation du vendeur reste inconnue.</p>
@@ -1937,7 +1988,7 @@ function pourquoiHtml(a) {
 function decisionHtml(a) {
   const d = a.decision, r = a.recherche;
   if (!d || !r) return "";
-  const cf = d.cashflow_prudent;
+  const projection = projectionAchat(a), cf = projection?.cashflow ?? null;
   const diagnostic = d.diagnostic || {alertes:[], preuves:{}};
   const action = diagnostic.transaction && diagnostic.transaction.nature !== "murs" ? "Faire confirmer la vente des murs seuls" : diagnostic.bloquant ? "Vérifier les chiffres avant d’avancer" :
     d.loyer_estime ? "Confirmer le revenu locatif" : cf != null && cf < 0 ? "Étudier le prix et l’effort d’épargne" : "Demander les pièces pour qualifier le dossier";
@@ -1955,12 +2006,12 @@ function decisionHtml(a) {
       Données renseignées : ${d.documentation} % des 5 repères (aucun document vérifié).</p>
     ${diagnostic.alertes.slice(0,2).map(e => `<p class="alerte-donnee ${e.niveau}">${ech(e.texte)}</p>`).join("")}
     ${cf == null ? `<p>${diagnostic.bloquant ? "Simulation suspendue : résoudre les contradictions de données." : "Scénario prudent indisponible : prix ou loyer manquant."}</p>` :
-      `<div class="decision-chiffres"><div><span>Prudent · avant impôt</span><b>${montant(cf)}/mois</b></div>
-       <div><span>Scénario dégradé</span><b>${montant(d.cashflow_stress)}/mois</b></div>
+      `<div class="decision-chiffres"><div><span>Prudent · votre financement</span><b>${montant(cf)}/mois</b></div>
+       <div><span>Dégradé · votre financement</span><b>${montant(projection.stress)}/mois</b></div>
        <div><span>Rendement net prudent*</span><b>${fmtPct(d.rendement_net_prudent)}</b></div></div>
        <details><summary>Hypothèses, risque et prix d’équilibre</summary>
-       <p>Prix d’équilibre simulé : <b>${fmtEuros(d.prix_equilibre)}</b> ; couverture de la dette : ${d.couverture_dette ?? "—"}× (1× = revenus nets égaux au crédit).
-       Scénario dégradé : loyer −10 %, deux mois sans loyer par an ; effort d’épargne : ${fmtEuros(d.effort_annuel_stress)}/an.</p>
+       <p>Les deux cash-flows ci-dessus utilisent votre financement : ${finTxt()}. Scénario dégradé : loyer −10 %, au moins deux mois sans loyer par an ; effort d’épargne : ${fmtEuros(Math.max(0,-projection.stress)*12)}/an.</p>
+       <p>Repères du modèle de référence utilisé pour le score : prix d’équilibre simulé <b>${fmtEuros(d.prix_equilibre)}</b> ; couverture de la dette ${d.couverture_dette ?? "—"}× (1× = revenus nets égaux au crédit).</p>
        <small>Référence fixe : ${d.apport_pct} % d’apport, ${d.duree_ans} ans à ${d.taux_pct} %, frais d’achat 8 %, plus honoraires séparés renseignés.
        Provisions : vacance ${d.vacance_pct} % et charges ${d.charges_pct} % du loyer ; ${ech(taxeFonciereTexte(a))}, déduite.
        Avant impôt, assurance emprunteur et travaux exceptionnels.
@@ -2011,6 +2062,8 @@ function relocationHtml(a) {
 }
 
 function prixCibleHtml(a) {
+  const vendeur = etatReponseVendeur(a);
+  if (vendeur?.confirme && !vendeur.aRelire) return prixConfirmeVendeurHtml(a,vendeur);
   const n = a.negociation;
   if (n?.prix_plafond == null) {
     if (n?.prix_seuil_financier != null) {
@@ -2018,6 +2071,7 @@ function prixCibleHtml(a) {
         <div class="offre-entete"><strong>Prix à obtenir · seuil financier du modèle</strong>
           <button type="button" class="btn-outil" data-sim="${ech(a.id)}" data-sim-prix="${n.prix_seuil_financier}">Tester ce prix</button></div>
         ${prixCashflowHtml(a, n.prix_seuil_financier, "Prix maximum du modèle")}
+        ${budgetProjetHtml(projectionAchat(a, n.prix_seuil_financier))}
         <p><b>Critères pépite non réunis.</b> Score ${n.score_seuil_financier}/100 simulés à ce prix (actuel : ${a.score ?? "—"}/100).</p>
         <p class="offre-note">Cash-flow avec votre financement : ${finTxt()}. Vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt et assurance. Ce prix ne valide ni le loyer, ni l’emplacement, ni l’accord du vendeur.</p>
       </div>`;
@@ -2035,6 +2089,7 @@ function prixCibleHtml(a) {
       <button type="button" data-offre="${ech(a.id)}">Étudier la proposition</button></div>
     ${prixCashflowHtml(a, n.prix_ouverture ?? n.prix_plafond, "Proposition de départ")}
     <p class="offre-plafond">Plafond du modèle : <b>${fmtEuros(n.prix_plafond)} maximum</b> → <b>${signe(cf)}</b> à ce prix.${rendementAuPrixHtml(a.loyer_mensuel, n.prix_plafond)}</p>
+    ${budgetProjetHtml(projectionAchat(a, n.prix_ouverture ?? n.prix_plafond), "Budget au prix à tenter et risque de vacance")}
     <p class="offre-note">Cash-flows avec votre financement : ${finTxt()}. Vacance, charges et taxe ${n.taxe_estimee ? "provisionnée" : "annoncée"} déduites · avant impôt, assurance et travaux exceptionnels.</p>
     <details><summary>Objectif et score au plafond</summary><p>Objectif : +${fmtEuros(objectif)}/mois · <b>${n.score_cible}/100 simulés</b> (actuel : ${a.score ?? "—"}/100)${n.remise_pct > 0 ? ` · baisse de ${fmtPct(n.remise_pct)} à obtenir au plafond` : " · au prix affiché"}. Le prix de départ ménage une marge de discussion sous le plafond du modèle ; l’accord du vendeur reste à obtenir.</p></details>
     ${!adapte ? `<p class="alerte-donnee fort">Avec votre financement à ce prix : ${signe(cf)}. Ce plafond ne suffit pas à votre objectif ; ajustez le prix ou le financement dans le simulateur.</p>` : ""}
@@ -2177,11 +2232,11 @@ function carteHtml(a, options) {
   // cash-flow), ceux qui situent le bien (prix, surface, loyer), puis le
   // détail qu'on ne consulte qu'une fois intéressé.
   const metriques = [
-    ["Prix", fmtEuros(a.prix), ""],
+    ["Prix · annonce", fmtEuros(a.prix), ""],
     ["Surface", a.surface_m2 == null ? "—" : new Intl.NumberFormat("fr-FR").format(a.surface_m2) + " m²", ""],
-    ["Loyer/mois", loyer == null ? "—" : fmtEuros(loyer) + est + loyerInfo, ""],
+    ["Loyer · annonce", loyer == null ? "—" : fmtEuros(loyer) + est + loyerInfo, ""],
     ["Rdt brut", fmtPct(a.rendement_brut_pct) + (a.rendement_brut_pct != null ? est : "") + rdtBrutInfo, "cle"],
-    ["Prudent · mon profil", cf == null ? "—" :
+    ["Prudent · annonce", cf == null ? "—" :
       `${cf >= 0 ? "+" : "−"}${fmtEuros(Math.abs(cf))}/mois`, "cle"],
     ["Trajet", a.temps_trajet_min == null ? "—" : "≈ " + a.temps_trajet_min + " min", ""],
   ].map(([l, v, rang]) =>
@@ -2207,6 +2262,7 @@ function carteHtml(a, options) {
         <span class="badges">${pepite ? '<span class="badge badge-pepite" title="Signal économique fondé sur les données de l’annonce. Bail, charges et disponibilité à vérifier.">Pépite à étudier</span>' : estPotentiel(a) ? '<span class="badge badge-pepite">Potentiel à négocier</span>' : ""}${badges[0] || ""}${a.decision?.diagnostic?.bloquant ? '<span class="badge badge-alerte">Chiffres à vérifier</span>' : ""}</span></div>
       ${exceptions.length ? `<div class="exception-recherche">Hors de vos préférences : ${exceptions.map(ech).join(" · ")}</div>` : ""}
       <div class="metriques">${metriques}</div>
+      ${reponseVendeurHtml(a)}
       ${prixCibleHtml(a)}
       ${relocationHtml(a)}
       <details class="analyse-annonce"${prioriteContact ? " open" : ""}><summary>${prioriteContact ? "Contact prioritaire · analyse et vérifications" : "Voir l’analyse et les informations à vérifier"} <span aria-hidden="true">⌄</span></summary>
@@ -2255,6 +2311,9 @@ function carteHtml(a, options) {
 
 function ligneCompacteHtml(a) {
   const cls = classeScore(a.score);
+  const vendeur = etatReponseVendeur(a);
+  const retour = vendeur ? (vendeur.aRelire || !vendeur.confirme ? "retour vendeur à relire" :
+    {interessant:"retour vendeur intéressant",a_negocier:"retour vendeur : à négocier",a_clarifier:"retour vendeur incomplet",vigilance:"retour vendeur : vigilance",hors_cible:"retour vendeur : hors cible"}[vendeur.resultat?.niveau]) : "";
   const fonds = {vert: "var(--vert-fond)", orange: "var(--orange-fond)", gris: "var(--gris-fond)"}[cls];
   const encres = {vert: "var(--vert-texte)", orange: "var(--orange-texte)", gris: "var(--gris-texte)"}[cls];
   // Ligne compacte dépliable : la carte complète (mêmes infos qu'« à étudier »)
@@ -2264,7 +2323,7 @@ function ligneCompacteHtml(a) {
       <span class="chevron">▸</span>
       <span class="mini-score" style="background:${fonds};color:${encres}">${a.score ?? "—"}</span>
       <span class="t">${ech(a.titre)}</span>
-      <span class="d">${ech(a.ville)} · ${fmtEuros(a.prix)} · rdt ${fmtPct(a.rendement_brut_pct)}${a.peut_etre_retiree ? ` · <span style="color:var(--alerte-texte)">${disponibiliteTexte(a)}</span>` : ""}</span>
+      <span class="d">${ech(a.ville)} · ${fmtEuros(a.prix)} · rdt ${fmtPct(a.rendement_brut_pct)}${retour?` · ${retour}`:""}${a.peut_etre_retiree ? ` · <span style="color:var(--alerte-texte)">${disponibiliteTexte(a)}</span>` : ""}</span>
     </div></summary>
     <div class="corps-depliable"></div>
   </details>`;
@@ -2396,7 +2455,7 @@ function filtres() {
 }
 
 function estPepite(a) {
-  return a.pepite === true && !a.peut_etre_retiree && !a.decision?.diagnostic?.bloquant;
+  return a.pepite === true && !a.peut_etre_retiree && !a.decision?.diagnostic?.bloquant && !reponseSuspendSelection(a);
 }
 
 function contactPrioritaire(a) {
@@ -2405,6 +2464,7 @@ function contactPrioritaire(a) {
   // n'a plus besoin d'une invitation au premier contact.
   const statut = (suivi[a.id] || {}).statut;
   return estPepite(a) && estOpportunitePrioritaire(a) && a.est_nouvelle === true && !estAbandonnee(a.id)
+    && !etatReponseVendeur(a)
     && (!statut || statut === "suivie")
     && !(a.flags || []).includes("rendement_anormalement_eleve");
 }
@@ -2413,12 +2473,15 @@ function estPotentiel(a) {
   return a.negociation?.selection === true && (a.negociation.cashflow_cible ?? 0)
       >= (a.negociation.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100)
     && (a.decision?.relocation || a.negociation.relocation)?.niveau !== "vigilance"
-    && !a.peut_etre_retiree && !a.decision?.diagnostic?.bloquant;
+    && !a.peut_etre_retiree && !a.decision?.diagnostic?.bloquant && !reponseSuspendSelection(a);
 }
 
 function estOpportunitePrioritaire(a) {
   if (a.decision?.relocation?.niveau === "vigilance") return false;
   const objectif = a.negociation?.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100;
+  const vendeur = etatReponseVendeur(a);
+  if (vendeur?.confirme && !vendeur.aRelire) return !reponseSuspendSelection(a)
+    && (estPepite(a) || estPotentiel(a)) && (vendeur.resultat?.finance?.cashflow ?? -Infinity) >= objectif;
   if (estPepite(a)) return (cashflowMensuel(a) ?? 0) >= objectif;
   return estPotentiel(a) && (cashflowAuPrix(a, a.negociation.prix_plafond) ?? 0) >= objectif;
 }
@@ -2442,7 +2505,7 @@ function appliquer(a, f) {
   }
   if (f.signal === "completer" && (a.decision?.documentation ?? 0) >= 80) return false;
   if (f.signal === "coherent" && a.decision?.diagnostic?.bloquant) return false;
-  if (f.signal === "prudent" && !(a.decision?.cashflow_prudent != null && a.decision.cashflow_prudent >= 0)) return false;
+  if (f.signal === "prudent" && !((cashflowMensuel(a) ?? -Infinity) >= 0)) return false;
   if (f.signal === "negociation" && !estPotentiel(a)) return false;
   if (!f.archives && a.peut_etre_retiree) return false;
   const exception = f.pepites && (estPepite(a) || estPotentiel(a)) && !estAbandonnee(a.id);
@@ -2489,7 +2552,11 @@ function rendre() {
   // Une annonce écartée à la main OU plus revue en ligne depuis longtemps
   // (probablement vendue/retirée) descend dans le reste du tableau de chasse.
   const relegue = a => estAbandonnee(a.id) || a.peut_etre_retiree;
-  const incoherente = a => !!a.decision?.diagnostic?.bloquant;
+  const incoherente = a => {
+    if (a.decision?.diagnostic?.bloquant) return true;
+    const vendeur = etatReponseVendeur(a);
+    return vendeur?.confirme && !vendeur.aRelire && ["hors_cible","vigilance"].includes(vendeur.resultat?.niveau);
+  };
   const verifier = visibles.filter(a => incoherente(a) && !relegue(a));
   // Une opportunité négociée peut remonter, avec prix, score simulé et
   // cash-flow affichés. L'objectif doit aussi fonctionner au profil personnel.
@@ -3274,6 +3341,7 @@ function basculerVue(vue) {
   if (vue === "marche") construireMarche();
   if (vue === "suivi") rendreSuivi();
   if (vue === "reponses") rendreReponses();
+  if (vue === "chasse") rendre();
 }
 
 /* ---- Onglet « Mon suivi » : le carnet de chasse ----

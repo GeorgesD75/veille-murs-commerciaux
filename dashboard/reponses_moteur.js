@@ -191,6 +191,7 @@ const ReponsesVendeur = (() => {
         cashflowCible: mensualiteCible == null ? null : Math.round(revenu-mensualiteCible),
         stressCible: mensualiteCible == null ? null : Math.round(revenuStress-mensualiteCible),
         mensualiteCible,
+        coutCible, apportCible,
         taux, duree, revenuNetMensuel:revenu, vacancePct: vacance*100, chargesPct: provisionCharges*100};
       if (revenu < objectif) risques.push("Les revenus après charges et provisions ne permettent pas la marge visée, même sans crédit. Une baisse de prix ne suffit pas à elle seule.");
       if (c.occupation !== "loue") points.push("Simulation de relocation : aucun revenu en place garanti pour un local libre ou d’occupation inconnue.");

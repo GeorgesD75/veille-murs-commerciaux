@@ -145,6 +145,54 @@ function calculerDossierReponse(r, a) {
   }
   return resultat;
 }
+
+function etatReponseVendeur(a) {
+  const r = dossiersReponses[a.id];
+  if (!r || (!r.lecture && !r.texte?.trim())) return null;
+  return {confirme:!!r.confirme,aRelire:!!r.aRelire,maj:r.maj,
+    resultat:r.lecture && !r.aRelire ? calculerDossierReponse(r,a) : null};
+}
+
+function reponseSuspendSelection(a) {
+  const e = etatReponseVendeur(a);
+  return !!(e && (!e.confirme || e.aRelire || e.resultat?.niveau !== "interessant"));
+}
+
+function reponseVendeurHtml(a) {
+  const e = etatReponseVendeur(a);
+  if (!e || (e.confirme && !e.aRelire)) return "";
+  return `<div class="retour-vendeur"><button type="button" data-reponse-vendeur="${ech(a.id)}">${e.aRelire?"Réponse modifiée : actualiser l’analyse":"Réponse reçue : vérifier et valider les chiffres"}</button><p class="rep-note">Les chiffres ci-dessus restent ceux de l’annonce. Recommandation en attente de relecture.</p></div>`;
+}
+
+function budgetReponseVendeur(f, cible = false) {
+  if (!f || (cible && f.prixCible == null)) return null;
+  const cout = cible ? f.coutCible : f.cout;
+  const apport = cible ? f.apportCible : f.apportEuros;
+  return {prix:cible?f.prixCible:f.prix,cout,apport,emprunt:Math.max(0,cout-apport),
+    mensualite:cible?f.mensualiteCible:f.mensualite,loyer:f.loyer,revenu:f.revenuNetMensuel,
+    fraisMensuels:f.fraisMensuels,vacanceMensuelle:f.loyer*f.vacancePct/100,
+    cashflow:cible?f.cashflowCible:f.cashflow,stress:cible?f.stressCible:f.stress};
+}
+
+function prixConfirmeVendeurHtml(a, e) {
+  const r = e.resultat;
+  if (!r) return "";
+  const titres = {interessant:"Retour vendeur : chiffres intéressants",a_negocier:"Retour vendeur : prix à négocier",
+    a_clarifier:"Retour vendeur : dossier à compléter",vigilance:"Retour vendeur : risques à clarifier",hors_cible:"Retour vendeur : ce ne sont pas les murs seuls"};
+  const f = r.finance, fiable = ["interessant","a_negocier"].includes(r.niveau) && !r.manquants.length;
+  const signe = v=>`${v>=0?"+":"−"}${fmtEuros(Math.abs(v))}/mois`;
+  return `<section class="retour-vendeur ${r.niveau}"><div class="offre-entete"><strong>${titres[r.niveau]||r.titre}</strong>
+    <button type="button" data-reponse-vendeur="${ech(a.id)}">Ouvrir le dossier vendeur</button></div>
+    <p class="rep-note">Dernier dossier relu le ${ech(fmtDate(e.maj))} · déclarations du vendeur, pièces non vérifiées. Les métriques de l’annonce restent affichées au-dessus.</p>
+    ${fiable && f?`<p>Prix retenu : ${fmtEuros(f.prix)} → ${signe(f.cashflow)} prudent. Loyer retenu : ${fmtEuros(f.loyer)}/mois HT/HC.</p>
+      ${f.prixCible?`<div class="offre-prix-cashflow" data-prix-vendeur="${f.prixCible}"><div><span>Prix à obtenir · maximum</span><b>${fmtEuros(f.prixCible)}</b>${rendementAuPrixHtml(f.loyer,f.prixCible)}</div>
+        <div><span>Cash-flow prudent à ce prix</span><b data-cashflow-vendeur>${signe(f.cashflowCible)}</b></div></div>
+      ${budgetProjetHtml(budgetReponseVendeur(f,true),"Budget au prix cible avec les chiffres du vendeur")}`:""}`:""}
+    ${[...r.risques,...r.manquants.map(m=>m.texte)].slice(0,2).map(t=>`<p>${ech(t)}</p>`).join("")}
+    <p class="rep-note">${fiable?"Votre financement et les provisions prudentes sont appliqués ; avant impôt, assurance et travaux exceptionnels.":"La recommandation est suspendue sur cet appareil tant que le dossier reste à clarifier."} Le score publié de l’annonce reste inchangé.</p>
+  </section>`;
+}
+
 function rendreAnalyseReponse() {
   const r = dossiersReponses[reponseSelectionnee], a = annonceReponse(reponseSelectionnee), cible = document.getElementById("rep-analyse");
   if (!r || !a || !cible) return;
@@ -162,6 +210,7 @@ function rendreAnalyseReponse() {
       ${financierFiable && f.prixCible?`<div class="offre-prix-cashflow rep-prix rep-prix-cible"><div><span>Prix à obtenir · maximum</span><b>${fmtEuros(f.prixCible)}</b>${rendementAuPrixHtml(f.loyer, f.prixCible)}</div><div><span>Cash-flow prudent à ce prix</span><b>${signe(f.cashflowCible)}/mois</b></div></div>
         <p class="rep-note">Avec votre financement, pour viser au moins +${fmtEuros(f.objectif)}/mois. Scénario dégradé à ce même prix : ${signe(f.stressCible)}/mois. ${f.prixCible===f.prix?"Le prix demandé atteint déjà la marge visée.":`Baisse de ${fmtEuros(f.prix-f.prixCible)} à obtenir (${fmtPct((1-f.prixCible/f.prix)*100)}).`}</p>
         <p class="rep-note">Seuil financier, sans nouveau score pépite. Demande locative, bail, pièces et accord du vendeur restent à qualifier.</p>`:""}
+      ${budgetProjetHtml(budgetReponseVendeur(f,!!(financierFiable && f.prixCible)),financierFiable && f.prixCible?"Budget au prix cible et risque de vacance":"Budget de la simulation indicative")}
       <details class="rep-calcul"><summary>Hypothèses et comparaison avec l’annonce</summary>
         <p>Prix retenu ${fmtEuros(f.prix)} (${f.prixVendeur?"réponse du vendeur":"annonce"}), plus ${fmtEuros(f.honoraires)} d’honoraires séparés connus et 8 % de frais d’acquisition.
         Apport ${fmtEuros(f.apportEuros)}, prêt sur ${f.duree} ans à ${fmtPct(f.taux)}, mensualité ${fmtEuros(Math.round(f.mensualite))}.</p>

@@ -42,6 +42,12 @@ et charges et de tester directement un prix plafond, sans modifier l’annonce.
 Vos brouillons de contact sont conservés sur votre appareil, par annonce et par
 étape, y compris après fermeture ou rechargement ; aucun message n’est envoyé.
 
+Sous le prix cible, **Budget et résistance du projet** détaille le coût d’achat,
+l’apport à mobiliser, le prêt et la mensualité, puis explique le cash-flow et
+l’effort d’épargne en scénario dégradé. Le rendement après provisions inclut
+les frais d’achat et reste avant crédit et impôt. Travaux, assurance et frais
+bancaires non chiffrés ne sont pas ajoutés artificiellement au budget.
+
 Le premier contact tient en cinq questions utiles : murs seuls, occupation et
 bail, loyer HT/HC, charges bailleur/taxe et impayés. Les demandes de pièces
 restent dans l’étape « Demander les pièces », pour ne pas charger le premier échange.
@@ -56,6 +62,14 @@ publiées avec le site et ne remplacent pas automatiquement le score de la chass
 « Ajouter une réponse » complète le dossier avec l’échange suivant, sans
 redemander les informations déjà reçues ; les dix derniers échanges restent
 consultables et les corrections du vendeur remplacent les anciennes valeurs.
+
+Le retour vendeur apparaît aussi sur la fiche de la chasse et dans les lignes
+du suivi. Une fois validé, son prix cible et ses chiffres remplacent l’encart
+de négociation de l’annonce sur cet appareil. Les métriques du stock restent
+identifiées comme telles. Une réponse à relire, incomplète, risquée ou à
+négocier suspend la recommandation locale ; un fonds confirmé rejoint les
+dossiers hors recommandations. Le score publié reste inchangé. Une réponse
+déjà reçue évite de proposer à nouveau un premier contact urgent.
 
 La facilité à relouer est évaluée séparément : indices de rue favorables,
 à vérifier ou points de vigilance. Une bonne commune ou un métro proche ne

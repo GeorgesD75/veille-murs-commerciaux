@@ -196,6 +196,15 @@ def verifier_financement_et_brouillons(browser):
       ouvrirSimulateur(a.id);
     }""")
     assert page.evaluate("cashflowMensuel(D.retenues[0])") == 352
+    assert page.evaluate("""()=>{const a=D.retenues[0],p=projectionAchat(a);
+      const fixe=projectionAchat(a,200000,{...profil,apportMode:'euros',apportEuros:40000});
+      const comptant=projectionAchat(a,200000,{...profil,apport:100});
+      const inconnu=projectionAchat({...a,loyer_mensuel:null,loyer_mensuel_estime:null});
+      return p.cout===226000 && p.apport===45200 && p.emprunt===180800 && p.cashflow===352
+        && fixe.apport===40000 && fixe.emprunt===186000 && fixe.cashflow===330
+        && comptant.mensualite===0 && comptant.cashflow===1105 && inconnu.cashflow===null
+        && projectionAchat({...a,decision:{diagnostic:{bloquant:true}}})===null;
+    }""")
     assert "352" in page.locator(".sim-bilan").inner_text()
     assert "NaN" not in page.locator("#outil-contenu").inner_text()
     page.locator("#sim-hypotheses > summary").click()
@@ -355,6 +364,81 @@ def verifier_reponses_vendeur(browser):
     autre.close()
 
 
+def verifier_retours_sur_annonces(browser):
+    """Un retour privé doit pouvoir contredire le signal du stock publié."""
+    page=browser.new_page(viewport={"width":1440,"height":1000})
+    erreurs=[]
+    page.on("pageerror",lambda e:erreurs.append(str(e)))
+    page.route("**/*",lambda r:r.abort() if r.request.resource_type=="image" else r.continue_())
+    page.goto((RACINE / "docs/index.html").as_uri(),wait_until="domcontentloaded")
+    page.evaluate("""()=>{
+      const a=structuredClone(D.retenues[0]);
+      Object.assign(a,{id:'retour-test',titre:'Murs du test vendeur',prix:180000,honoraires:10000,
+        loyer_mensuel:1800,loyer_mensuel_estime:null,loyer_estime:false,taxe_fonciere_annuelle:1200,
+        surface_m2:30,temps_trajet_min:15,score:90,pepite:true,est_nouvelle:true,peut_etre_retiree:false,
+        flags:[],negociation:null,type_murs:'murs_occupes'});
+      a.decision.diagnostic={bloquant:false,occupation:'occupe',transaction:{nature:'murs'},alertes:[],preuves:{}};
+      a.decision.relocation={niveau:'favorable',favorables:[],vigilances:[],a_confirmer:[]};
+      D.retenues=[a]; D.encheres=[];
+      Object.assign(profil,{apportMode:'pct',apport:20,taux:4,duree:20}); rendre();
+    }""")
+    avant=page.evaluate("JSON.stringify(D.retenues[0])")
+    assert page.evaluate("contactPrioritaire(D.retenues[0])")
+    assert page.locator('.analyse-annonce').evaluate("e=>e.open")
+    page.locator('[data-contact="retour-test"]').click()
+    page.locator('#outil-contenu [data-reponse-vendeur="retour-test"]').click()
+    page.locator('#rep-texte').fill("Vente du fonds de commerce, murs non compris.")
+    page.locator('[data-rep-action="extraire"]').click()
+    page.locator('[data-rep-action="valider"]').click()
+    page.locator('[data-vue="chasse"]').click()
+    assert page.locator('#bloc-prio .carte').count()==0
+    assert page.locator('#bloc-etudier .carte').count()==0
+    page.locator('#bloc-verifier > summary').click()
+    page.locator('#verifier-liste .ligne-depliable > summary').click()
+    page.locator('.retour-vendeur.hors_cible').wait_for(state="visible")
+    assert page.locator('.retour-vendeur.hors_cible').count()==1
+    assert page.locator('.badge-pepite').count()==0
+    assert page.evaluate("!estPepite(D.retenues[0]) && !estOpportunitePrioritaire(D.retenues[0])")
+    assert not page.locator('.analyse-annonce').evaluate("e=>e.open")
+    page.locator('.retour-vendeur [data-reponse-vendeur]').click()
+    assert page.locator('#rep-texte').input_value().startswith('Vente du fonds')
+    texte=("Vente des murs seuls hors fonds de commerce. Le local est actuellement loué. "
+           "Bail signé en 2022 pour 9 ans. Loyer 1800 €/mois HT HC. "
+           "Charges du propriétaire : 600 €/an, hors taxe foncière. "
+           "Taxe foncière annuelle : 1200 €. Aucun impayé. Prix : 300 000 € honoraires inclus.")
+    page.locator('#rep-texte').fill(texte)
+    page.locator('[data-vue="chasse"]').click()
+    assert page.evaluate("!estPepite(D.retenues[0]) && !estOpportunitePrioritaire(D.retenues[0])")
+    assert 'en attente de relecture' in page.locator('.retour-vendeur').inner_text()
+    page.locator('.retour-vendeur [data-reponse-vendeur]').click()
+    page.locator('[data-rep-action="extraire"]').click()
+    page.locator('[data-rep-action="valider"]').click()
+    page.locator('[data-vue="chasse"]').click()
+    assert 'prix à négocier' in page.locator('.retour-vendeur').inner_text()
+    assert page.evaluate("!estOpportunitePrioritaire(D.retenues[0])")
+    assert page.locator('[data-prix-vendeur]').count()==1
+    assert page.locator('.offre-indisponible').count()==0  # remplace la vieille conclusion du stock
+    page.locator('.retour-vendeur [data-reponse-vendeur]').click()
+    page.locator('#rep-texte').fill(texte.replace('300 000','180 000'))
+    page.locator('[data-rep-action="extraire"]').click()
+    page.locator('[data-rep-action="valider"]').click()
+    page.locator('[data-vue="chasse"]').click()
+    assert page.locator('.retour-vendeur.interessant').count()==1
+    assert page.evaluate("estOpportunitePrioritaire(D.retenues[0]) && !contactPrioritaire(D.retenues[0])")
+    budget=page.locator('.retour-vendeur .budget-projet')
+    budget.locator('summary').click()
+    assert budget.locator('[data-budget="cout"]').evaluate("e=>e.textContent===fmtEuros(194400)")
+    assert budget.locator('[data-budget="apport"]').evaluate("e=>e.textContent===fmtEuros(38880)")
+    assert budget.locator('[data-budget="emprunt"]').evaluate("e=>e.textContent===fmtEuros(155520)")
+    assert 'hors_cible' not in page.locator('.retour-vendeur').get_attribute('class')
+    for largeur in [320,390,768,1440]:
+        page.set_viewport_size({"width":largeur,"height":844})
+        assert not page.evaluate("document.documentElement.scrollWidth>innerWidth"),largeur
+    assert page.evaluate("JSON.stringify(D.retenues[0])")==avant
+    assert not erreurs,erreurs
+    page.close()
+
+
 def main():
     candidats = [shutil.which("google-chrome"), shutil.which("chromium"),
                  r"C:\Program Files\Google\Chrome\Application\chrome.exe"]
@@ -428,6 +512,7 @@ def main():
         verifier_exceptions_pepites(browser)
         verifier_financement_et_brouillons(browser)
         verifier_reponses_vendeur(browser)
+        verifier_retours_sur_annonces(browser)
         browser.close()
     print("Interactions, persistance, simulateur et responsive 320–1440 px : OK")
 

@@ -1,5 +1,29 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Budget réel du projet et prise en compte du retour vendeur (27 octobre)
+
+- Volet replié sous le prix cible : coût d’acquisition estimé, apport en euros,
+  capital emprunté et mensualité. Ventilation du loyer entre vacance, charges et
+  taxe, crédit et reste prudent ; rendement après provisions et frais d’achat.
+- Scénario dégradé au prix étudié, avec le financement personnel : baisse du
+  loyer de 10 %, au moins deux mois de vacance et effort d’épargne annuel.
+  Travaux et frais de financement non chiffrés signalés séparément.
+- Un même calcul de projection sert au cash-flow des cartes et au budget.
+  Les chiffres de l’analyse détaillée et le filtre « prudent » utilisent aussi
+  le profil personnel ; les repères du barème restent explicitement distincts.
+- Les fiches et les lignes du suivi indiquent la présence d’un retour vendeur.
+  Après validation, le dossier privé remplace l’ancien encart de prix cible
+  avec le loyer, les charges et le prix reçus, sans modifier le stock publié.
+- Recommandation locale suspendue tant que la réponse est à relire, incomplète,
+  à négocier ou risquée. Un fonds ou risque confirmé rejoint les dossiers hors
+  recommandations. Les dossiers intéressants conservent les critères du score
+  source : la réponse ne crée pas artificiellement une pépite.
+- Un retour déjà reçu coupe l’invitation au premier contact urgent. Les données
+  et scores du stock restent inchangés ; aucune réponse privée n’est publiée.
+- Vérifications : apports en pourcentage/fixes/comptant, taux zéro, frais inclus
+  sans double comptage, inconnues, fonds confirmé, dossier négociable puis
+  intéressant, données sources intactes et affichage de 320 à 1 440 px.
+
 ## Rendement à chaque prix proposé (27 octobre)
 
 - Rendement brut annuel affiché avec le prix à tenter et le plafond sur les
