@@ -177,8 +177,8 @@
   {
    "jour": "2026-10-29",
    "statut": "ok",
-   "annonces": 996,
-   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1; https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
+   "annonces": 546,
+   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1; https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/1/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -905,7 +905,7 @@
   {
    "jour": "2026-10-29",
    "statut": "ok",
-   "annonces": 84,
+   "annonces": 83,
    "message": "Limite de 10 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-29",
    "statut": "ok",
-   "annonces": 107,
+   "annonces": 109,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-10-29",
    "statut": "ok",
-   "annonces": 508,
+   "annonces": 509,
    "message": "Limite de 20 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-10-29",
    "statut": "ok",
-   "annonces": 752,
+   "annonces": 748,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-29",
    "statut": "ok",
-   "annonces": 48,
-   "message": "budget de redirection : 328 liens résolus en 153 s sur 240 s (316 aboutis, 0 en échec, 0.5 s/lien)"
+   "annonces": 40,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 386 liens résolus en 115 s sur 240 s (382 aboutis, 0 en échec, 0.3 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2361,8 +2361,8 @@
   {
    "jour": "2026-10-29",
    "statut": "ok",
-   "annonces": 80,
-   "message": "/annonces/page/3/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 100,
+   "message": null
   }
  ],
  "latourimmo": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-29",
    "statut": "ok",
-   "annonces": 130,
+   "annonces": 101,
    "message": null
   }
  ],
