@@ -37,7 +37,7 @@ def verifier_exceptions_pepites(browser):
       D.retenues.find(a=>a.id==='contradictoire').decision.diagnostic.bloquant=true;
       const potentiel=creer('potentiel',65,55,45,false);
       potentiel.negociation={statut:'a_negocier',selection:true,prix_plafond:180000,prix_ouverture:174000,
-        remise_pct:20,remise_euros:45000,score_cible:82,rendement_cible_pct:8,cashflow_cible:130,stress_cible:-150,
+        remise_pct:20,remise_euros:45000,score_cible:82,score_ouverture:84,rendement_cible_pct:8,cashflow_cible:130,stress_cible:-150,
         taxe_estimee:true,taxe_annuelle_retenue:1200,cout_total:194400,apport_reference:38880,pas_euros:1000,
         marge_ouverture_pct:3,hypotheses:{apport_pct:20,taux_pct:3.9,duree_ans:20,vacance_pct:8,charges_pct:10},
         message:'Bonjour, seriez-vous ouverts à une discussion autour de 174 000 € ?'};
@@ -61,6 +61,13 @@ def verifier_exceptions_pepites(browser):
     assert "180 000" in texte_cible and "maximum" in texte_cible
     assert "82/100 simulés" in cible.text_content() and "actuel : 65/100" in cible.text_content()
     assert "174 000" in texte_cible and "Prix à tenter" in texte_cible
+    score_negocie = cible.locator('[data-score-prix="174000"]')
+    assert score_negocie.is_visible()
+    assert "84/100 simulés" in score_negocie.inner_text() and "actuel : 65/100" in score_negocie.inner_text()
+    assert "174 000" in score_negocie.inner_text().replace("\u202f", " ").replace("\u00a0", " ")
+    page.evaluate("delete D.retenues.find(a=>a.id==='potentiel').negociation.score_ouverture; rendre()")
+    assert cible.locator('.offre-score').count() == 0  # Le score du plafond ne décrit pas un autre prix.
+    page.evaluate("D.retenues.find(a=>a.id==='potentiel').negociation.score_ouverture=84; rendre()")
     assert cible.locator('[data-prix-propose="174000"] [data-cashflow-prix]').evaluate("e=>e.textContent==='+'+fmtEuros(cashflowAuPrix(D.retenues.find(a=>a.id==='potentiel'),174000))+'/mois'")
     assert cible.locator('[data-prix-propose="174000"] [data-rendement-prix]').evaluate("e=>e.textContent===fmtPct(1800*1200/174000)")
     assert cible.locator('.offre-plafond [data-rendement-prix]').evaluate("e=>e.textContent===fmtPct(1800*1200/180000)")
@@ -110,6 +117,8 @@ def verifier_exceptions_pepites(browser):
     assert "65 m²" in page.locator(".exception-recherche").first.inner_text()
     assert "45 min" in page.locator(".exception-recherche").first.inner_text()
     page.locator('[data-offre="potentiel"]').click()
+    assert page.locator('#outil-contenu [data-score-prix="174000"]').is_visible()
+    assert "84/100 simulés" in page.locator('#outil-contenu .offre-score').inner_text()
     assert page.locator('#outil-contenu [data-prix-propose]').count()==3
     assert page.locator('#outil-contenu [data-prix-propose="200000"] [data-rendement-prix]').evaluate("e=>e.textContent===fmtPct(1800*1200/200000)")
     assert page.locator('#outil-contenu [data-prix-propose="174000"] [data-cashflow-prix]').evaluate("e=>e.textContent==='+'+fmtEuros(cashflowAuPrix(D.retenues.find(a=>a.id==='potentiel'),174000))+'/mois'")

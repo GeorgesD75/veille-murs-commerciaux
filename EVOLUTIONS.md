@@ -2,6 +2,9 @@
 
 ## Qualification des biens et ordre d’étude (29 octobre)
 
+- Score simulé directement visible dans « Prix à tenter en négociation »,
+  calculé au prix de départ exact, avec rappel du score actuel. Le score du
+  plafond reste distinct ; même repère visible dans l’étude de proposition.
 - Extraction conservatrice du RDC, de la surface de vente, du sous-sol, de la
   réserve, de la vitrine, de l’extraction et des activités annoncées. Aucune
   surface de RDC déduite d’une soustraction. Extraits, origines et dates

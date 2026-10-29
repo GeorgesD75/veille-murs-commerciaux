@@ -34,6 +34,8 @@ def test_plafond_et_ouverture_satisfont_score_et_equilibre_sans_muter_le_stock(c
     assert 0 < n["prix_ouverture"] <= n["prix_plafond"] < a.prix
     assert n["prix_plafond"] % 1000 == 0
     assert 0 < n["prix_min_coherent"] <= n["prix_ouverture"]
+    assert n["score_ouverture"] == simuler_prix(a, n["prix_ouverture"], config).score
+    assert n["score_cible"] == simuler_prix(a, n["prix_plafond"], config).score
     base = deepcopy(a)
     base.taxe_fonciere_annuelle = n["taxe_annuelle_retenue"]
     for prix in [n["prix_plafond"], n["prix_ouverture"]]:

@@ -121,13 +121,16 @@ def plan_negociation(a: Annonce, config: Config, maintenant: datetime) -> dict:
     plafond, simulee, decision = retenue
     ouverture = max(minimum, math.floor(plafond * (1 - cfg.get("marge_ouverture_pct", 3) / 100) / pas) * pas)
     ouverture = min(plafond, ouverture)
-    if not evaluer(ouverture)[2]:
+    simulee_ouverture, _, ouverture_valide = evaluer(ouverture)
+    if not ouverture_valide:
         ouverture = plafond
+        simulee_ouverture = simulee
     remise = round((1 - plafond / a.prix) * 100, 1)
     resultat.update({"statut": "deja_cible" if plafond == a.prix else "a_negocier",
                      "raisons": [], "prix_plafond": plafond, "prix_ouverture": ouverture,
                      "remise_pct": remise, "remise_euros": a.prix - plafond,
-                     "score_cible": simulee.score, "rendement_cible_pct": simulee.rendement_brut_pct,
+                     "score_cible": simulee.score, "score_ouverture": simulee_ouverture.score,
+                     "rendement_cible_pct": simulee.rendement_brut_pct,
                      "rendement_simule_eleve": "rendement_eleve_si_negocie" in simulee.flags,
                      "cashflow_cible": decision["cashflow_prudent"], "stress_cible": decision["cashflow_stress"],
                      "cout_total": round(plafond * 1.08 + (a.honoraires or 0)),

@@ -976,6 +976,9 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
 .offre-cible.financiere-seule { background:var(--surface); border-left-color:var(--filet); }
 .offre-entete { display:flex; align-items:baseline; flex-wrap:wrap; gap:5px 12px; justify-content:space-between; }
 .offre-entete strong { font-size:14px; }
+.offre-score { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; }
+.offre-score strong { font-size:16px; color:var(--orange-texte); white-space:nowrap; }
+.offre-score small { color:var(--encre-2); }
 .offre-prix-cashflow { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px 18px; margin:14px 0; }
 .offre-prix-cashflow span { display:block; color:var(--encre-2); font-size:12px; }
 .offre-prix-cashflow b { display:block; font-size:23px; line-height:1.4; font-variant-numeric:tabular-nums; }
@@ -1880,6 +1883,7 @@ function ouvrirProposition(id) {
     <h3>Étudier une proposition — ${ech(a.titre)}</h3>
     ${prixCashflowHtml(a, a.prix, "Prix demandé")}
     ${prixCashflowHtml(a, n.prix_ouverture ?? n.prix_plafond, "Prix à tenter · proposition de départ")}
+    ${scoreNegocieHtml(a)}
     ${prixCashflowHtml(a, n.prix_plafond, "Plafond du modèle · maximum")}
     ${ecartNegociationHtml(a,n.prix_ouverture ?? n.prix_plafond)}
     ${resistancePrixHtml(projectionAchat(a,n.prix_ouverture ?? n.prix_plafond))}
@@ -2200,6 +2204,17 @@ function relocationHtml(a) {
   </details>`;
 }
 
+function scoreNegocieHtml(a) {
+  const n = a.negociation;
+  if (!n) return "";
+  const prix = n.prix_ouverture ?? n.prix_plafond;
+  const score = n.score_ouverture ?? (prix === n.prix_plafond ? n.score_cible : null);
+  if (!(prix > 0) || !Number.isFinite(score)) return "";
+  return `<p class="offre-score" data-score-prix="${prix}">
+    <span>Score si négocié à ${fmtEuros(prix)} :</span> <strong>${score}/100 simulés</strong>
+    <small>(actuel : ${a.score ?? "—"}/100)</small></p>`;
+}
+
 function prixCibleHtml(a) {
   const vendeur = etatReponseVendeur(a);
   if (vendeur?.confirme && !vendeur.aRelire) return prixConfirmeVendeurHtml(a,vendeur);
@@ -2231,6 +2246,7 @@ function prixCibleHtml(a) {
     <div class="offre-entete"><strong>Prix à tenter en négociation</strong>
       <button type="button" data-offre="${ech(a.id)}">Étudier la proposition</button></div>
     ${prixCashflowHtml(a, n.prix_ouverture ?? n.prix_plafond, "Proposition de départ")}
+    ${scoreNegocieHtml(a)}
     ${ecartNegociationHtml(a,n.prix_ouverture ?? n.prix_plafond)}
     <p class="offre-plafond">Plafond du modèle : <b>${fmtEuros(n.prix_plafond)} maximum</b> → <b>${signe(cf)}</b> à ce prix.${rendementAuPrixHtml(a.loyer_mensuel, n.prix_plafond)}</p>
     ${resistancePrixHtml(projectionAchat(a,n.prix_ouverture ?? n.prix_plafond))}
