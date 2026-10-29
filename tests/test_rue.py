@@ -4,7 +4,8 @@ from __future__ import annotations
 import pytest
 
 from pipeline.config import Config
-from pipeline.rue import ClientGeo, Coordonnees, DensiteRue, evaluer_annonces, evaluer_rue, extraire_voie
+from pipeline.rue import (BAN_URL, OVERPASS_URL, OVERPASS_SECOURS, ClientGeo,
+                          Coordonnees, DensiteRue, evaluer_annonces, evaluer_rue, extraire_voie)
 from tests.fabriques import faire_annonce
 
 
@@ -54,6 +55,10 @@ class FakeSession:
 
 
 class TestExtraireVoie:
+    @pytest.mark.parametrize("texte", ["Rue commerçante", "Rue très passante", "rue piétonne", "Rue avec du passage"])
+    def test_qualificatif_seul_ne_fabrique_pas_une_adresse(self, texte):
+        assert extraire_voie(texte) is None
+
     def test_rue_simple(self):
         assert extraire_voie("Un local situé rue Godefroy Cavaignac à Paris") == \
             "rue Godefroy Cavaignac à Paris"
@@ -75,6 +80,19 @@ class TestExtraireVoie:
 
 
 class TestGeocoder:
+    def test_service_public_actuel_et_cache(self, monkeypatch):
+        client = ClientGeo(delai_s=0)
+        appels = []
+        def get(url, **kwargs):
+            appels.append((url,kwargs))
+            return FakeReponse({"features":[{"properties":{"score":.95,"citycode":"75118"},
+                                            "geometry":{"coordinates":[2.34,48.89]}}]})
+        monkeypatch.setattr(client.session, "get", get)
+        assert client.geocoder("rue Francoeur","Paris","75") == Coordonnees(48.89,2.34)
+        assert client.geocoder("RUE FRANCOEUR","PARIS","75") == Coordonnees(48.89,2.34)
+        assert len(appels) == 1 and appels[0][0] == BAN_URL
+        assert "data.geopf.fr" in appels[0][0]
+
     def _client(self, **kwargs):
         client = ClientGeo(delai_s=0)
         client.session = FakeSession(**kwargs)
@@ -122,6 +140,39 @@ class TestGeocoder:
 
 
 class TestDensiteCommerces:
+    def test_secours_sur_panne_puis_cache_et_reutilisation_du_service(self,monkeypatch):
+        client = ClientGeo(delai_s=0)
+        appels = []
+        def post(url, **kwargs):
+            appels.append((url,kwargs))
+            return FakeReponse({},503) if len(appels)==1 else FakeReponse({"elements":[{"tags":{"shop":"bakery"}}]})
+        monkeypatch.setattr(client.session,"post",post)
+        coord = Coordonnees(48.89,2.34)
+        assert client.densite_commerces(coord) == DensiteRue(1,0)
+        assert client.densite_commerces(coord) == DensiteRue(1,0)
+        assert len(appels) == 2
+        assert client.densite_commerces(Coordonnees(48.9,2.34)) == DensiteRue(1,0)
+        assert [a[0] for a in appels] == [OVERPASS_URL,OVERPASS_SECOURS,OVERPASS_SECOURS]
+        assert "out body center" in appels[0][1]["data"]["data"]
+
+    @pytest.mark.parametrize("statut",[403,429])
+    def test_refus_et_limitation_sans_service_de_secours(self,monkeypatch,statut):
+        client = ClientGeo(delai_s=0)
+        appels = []
+        def post(url, **kwargs):
+            appels.append(url)
+            return FakeReponse({},statut)
+        monkeypatch.setattr(client.session,"post",post)
+        assert client.densite_commerces(Coordonnees(48.89,2.34)) is None
+        assert appels == [OVERPASS_URL]
+
+    @pytest.mark.parametrize("payload",[{}, {"remark":"runtime error: timeout","elements":[]}])
+    def test_reponse_incomplete_ne_devient_pas_un_comptage_nul(self,payload):
+        client = ClientGeo(delai_s=0)
+        client.session = FakeSession(reponse_post=FakeReponse(payload))
+        assert client.densite_commerces(Coordonnees(48.89,2.34)) is None
+        assert client._cache_densite == {}
+
     def test_compte_actifs_et_vacants(self):
         client = ClientGeo(delai_s=0)
         client.session = FakeSession(reponse_post=FakeReponse({"elements": [
@@ -187,6 +238,14 @@ class TestCategorieDensite:
 
 
 class TestEvaluerAnnonces:
+    def test_adresse_decouverte_apres_un_premier_passage_et_sans_faux_budget(self,monkeypatch):
+        sans=faire_annonce(id="sans",titre="Local sans adresse",description="",score=99)
+        avec=faire_annonce(id="avec",titre="Local rue Francoeur",description="",score=80,rue_evaluee=True)
+        appels=[]
+        monkeypatch.setattr("pipeline.rue.evaluer_rue",lambda *args:appels.append(args[0]) or DensiteRue(nb_commerces=12,nb_vacants=0))
+        evaluer_annonces({"sans":sans,"avec":avec},_config_rue(1))
+        assert appels==["rue Francoeur"] and avec.rue_categorie=="commercante"
+
     def test_plafond_et_priorite_par_score(self):
         # 3 annonces sans voie détectable (chemin le plus simple à vérifier) :
         # seules les 2 meilleures scores doivent être traitées si le plafond est 2.

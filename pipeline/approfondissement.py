@@ -43,6 +43,7 @@ from pipeline.fiabilite import noter_preuve
 from pipeline.normalisation import maintenant_iso
 from pipeline.texte import normaliser_texte
 from pipeline.transaction import qualifier_transaction
+from pipeline.dossier_locatif import analyser_dossier
 
 if TYPE_CHECKING:
     from pipeline.config import Config
@@ -111,6 +112,10 @@ def approfondir(annonce: "Annonce", texte: str, quand: str | None = None) -> lis
     appris: list[str] = []
     quand = quand or maintenant_iso()
     annonce.texte_detail = texte[:TAILLE_TEXTE_DETAIL]
+    # Une première passe sans adresse ne doit pas bloquer la géolocalisation
+    # après la découverte d'une rue dans la fiche.
+    if not annonce.rue_categorie:
+        annonce.rue_evaluee = False
     if annonce.loyer_mensuel is None or annonce.loyer_origine == "rendement":
         loyer = loyer_mensuel_depuis_texte(texte, annonce.prix, annonce.surface_m2)
         if loyer:
@@ -148,12 +153,23 @@ def approfondir_annonces(annonces: dict[str, "Annonce"], config: "Config") -> di
     quand = maintenant_iso()
     maintenant = datetime.fromisoformat(quand)
 
+    dossiers = {}
+    def dossier(a):
+        if a.id not in dossiers:
+            dossiers[a.id] = analyser_dossier(a)
+        return dossiers[a.id]
+
     def eligible(a):
         age_max = cfg.get("age_max_jours")
         if age_max and datetime.fromisoformat(a.date_derniere_vue) < maintenant - timedelta(days=int(age_max)):
             return False
         if a.date_detail_tentative:
             delai = 30 if a.etat_detail == "refuse" else 14 if a.etat_detail == "retiree" else 7 if a.etat_detail in {"lu", "redirection_liste"} else 1
+            if a.etat_detail == "lu":
+                # Une relecture doit répondre à une question utile, pas absorber
+                # les créneaux des fiches encore jamais lues.
+                incomplet = not a.loyer_mensuel or a.loyer_origine == "rendement" or not dossier(a)["champs"].get("rdc_m2")
+                delai = int(cfg.get("relecture_incomplete_jours",3)) if incomplet else 14
             if datetime.fromisoformat(a.date_detail_tentative) > maintenant - timedelta(days=delai):
                 return False
         return not a.approfondie or bool(a.texte_detail) or bool(a.date_detail_tentative)
@@ -162,16 +178,23 @@ def approfondir_annonces(annonces: dict[str, "Annonce"], config: "Config") -> di
     def petite(a):
         return bool(a.surface_m2 and 0 < a.surface_m2 < limite_surface)
 
+    def utilite(a):
+        connu = dossier(a)
+        champs = connu["champs"]
+        manques = sum([not a.loyer_mensuel or a.loyer_origine == "rendement",
+                       not champs.get("taxe_annuelle"), not champs.get("rdc_m2"), not a.rue_voie])
+        rendement = a.loyer_mensuel*1200/a.prix if a.prix and a.loyer_mensuel and not a.loyer_estime else 0
+        prometteur = (a.score or 0) >= 65 or 7 <= rendement <= 10
+        return (prometteur, a.etat_detail != "lu", bool(connu["alertes"]),
+                a.score or 0, manques, a.date_derniere_vue)
+
     candidats = sorted(
         (a for a in annonces.values()
          if (not a.exclue or a.raison_exclusion in {"prix non renseigné", "hors Île-de-France (département inconnu)"}
              or (a.raison_exclusion or "").startswith("suspect_fonds"))
          and qualifier_transaction(a)["nature"] not in {"fonds", "bail", "mixte", "location"}
          and eligible(a) and a.url.startswith("http")),
-        key=lambda a: (
-            petite(a),
-            a.etat_detail != "lu",
-            a.code_postal == "75018", a.date_derniere_vue, (a.score or 50), a.loyer_mensuel is None),
+        key=utilite,
         reverse=True,
     )
     if not candidats:
@@ -205,8 +228,7 @@ def approfondir_annonces(annonces: dict[str, "Annonce"], config: "Config") -> di
         return resultat
 
     petites = deque(repartir(a for a in candidats if petite(a)))
-    opportunites = deque(repartir(sorted((a for a in candidats if not petite(a) and prometteuse(a)),
-                                key=lambda a: (a.score or 50, a.date_derniere_vue), reverse=True)))
+    opportunites = deque(repartir(a for a in candidats if not petite(a) and prometteuse(a)))
     autres = repartir(a for a in candidats if not petite(a) and not prometteuse(a))
     candidats = []
     # Un tiers des créneaux disponibles, tant que les deux files sont pleines.

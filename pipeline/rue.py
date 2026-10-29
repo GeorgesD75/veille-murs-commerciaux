@@ -10,7 +10,7 @@ rue morte. Ce module ajoute un signal mesuré, gratuit et sans clé :
    on ne devine jamais une adresse à partir d'un simple point de repère
    (« proche métro Nation ») pour ne pas fabriquer une fausse précision ;
 2. `geocoder` retrouve ses coordonnées via la Base Adresse Nationale
-   (api-adresse.data.gouv.fr, service public gratuit, sans clé) ;
+   (géocodage Géoplateforme, service public gratuit, sans clé) ;
 3. `densite_commerces` interroge Overpass (données OpenStreetMap, gratuites,
    sans clé) EN UNE SEULE requête pour compter les commerces actifs et les
    locaux vacants dans un rayon de 150 m (la « vitalité » réelle de la rue)
@@ -42,8 +42,9 @@ if TYPE_CHECKING:
 
 log = logging.getLogger("collecteur.rue")
 
-BAN_URL = "https://api-adresse.data.gouv.fr/search/"
+BAN_URL = "https://data.geopf.fr/geocodage/search"
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+OVERPASS_SECOURS = "https://overpass.private.coffee/api/interpreter"
 RAYON_M = 150
 RAYON_METRO_M = 800
 SCORE_BAN_MIN = 0.5      # confiance minimale du géocodeur pour retenir un résultat
@@ -80,6 +81,8 @@ def extraire_voie(texte: str) -> str | None:
     if not m:
         return None
     voie = f"{m.group(1)} {m.group(2)}"
+    if re.match(r"(?:tr[eè]s\s+)?(?:commer[cç]ante|passante|pi[eé]tonne|calme|principale|avec|sans|proche|anim[eé]e)\b",m.group(2),re.I):
+        return None
     voie = re.split(r"\s+-\s+|,", voie)[0].strip()
     return voie if len(voie) >= 6 else None
 
@@ -99,6 +102,9 @@ class ClientGeo:
         self.session.headers["User-Agent"] = USER_AGENT
         self.delai_s = delai_s
         self._derniere_requete = 0.0
+        self._cache_geo = {}
+        self._cache_densite = {}
+        self._overpass = OVERPASS_URL
 
     def _attendre(self) -> None:
         ecoule = time.monotonic() - self._derniere_requete
@@ -107,6 +113,9 @@ class ClientGeo:
 
     def geocoder(self, voie: str, ville: str, departement: str) -> Coordonnees | None:
         """Coordonnées de la voie via la Base Adresse Nationale, ou None."""
+        cle = (voie.lower(),ville.lower(),departement)
+        if cle in self._cache_geo:
+            return self._cache_geo[cle]
         self._attendre()
         try:
             reponse = self.session.get(
@@ -129,11 +138,16 @@ class ClientGeo:
         if str(proprietes.get("citycode", ""))[:2] != departement:
             return None
         lon, lat = features[0]["geometry"]["coordinates"]
-        return Coordonnees(lat=lat, lon=lon)
+        resultat = Coordonnees(lat=lat, lon=lon)
+        self._cache_geo[cle] = resultat
+        return resultat
 
     def densite_commerces(self, coord: Coordonnees) -> "DensiteRue | None":
         """Commerces actifs/vacants à 150 m + distance à la station la plus
         proche à 800 m (OSM) — une seule requête Overpass pour les deux."""
+        cle = (round(coord.lat,5),round(coord.lon,5))
+        if cle in self._cache_densite:
+            return self._cache_densite[cle]
         self._attendre()
         requete = (
             "[out:json][timeout:20];"
@@ -144,17 +158,29 @@ class ClientGeo:
             f'node["railway"="subway_entrance"](around:{RAYON_METRO_M},{coord.lat},{coord.lon});'
             f'node["railway"="station"](around:{RAYON_METRO_M},{coord.lat},{coord.lon});'
             f'node["public_transport"="station"](around:{RAYON_METRO_M},{coord.lat},{coord.lon}););'
-            "out tags center;"
+            "out body center;"
         )
-        try:
-            reponse = self.session.post(
-                OVERPASS_URL, data={"data": requete}, timeout=25,
-            )
-            self._derniere_requete = time.monotonic()
-            reponse.raise_for_status()
-            elements = reponse.json().get("elements", [])
-        except Exception as exc:  # noqa: BLE001 — service public, parfois saturé
-            log.info("Overpass indisponible : %s", exc)
+        elements = None
+        urls = [self._overpass] if self._overpass == OVERPASS_SECOURS else [OVERPASS_URL,OVERPASS_SECOURS]
+        for url in urls:
+            try:
+                self._attendre()
+                reponse = self.session.post(url,data={"data":requete},timeout=25)
+                self._derniere_requete = time.monotonic()
+                if getattr(reponse,"status_code",200) in {403,429}:
+                    return None  # un refus ou une limitation n'est pas contourné
+                reponse.raise_for_status()
+                contenu = reponse.json()
+                if contenu.get("remark") or not isinstance(contenu.get("elements"),list):
+                    log.info("Réponse Overpass incomplète, aucun comptage retenu")
+                    continue
+                elements = contenu["elements"]
+                self._overpass = url
+                break
+            except Exception as exc:  # noqa: BLE001 — un seul secours public en cas de panne
+                self._derniere_requete = time.monotonic()
+                log.info("Overpass indisponible (%s) : %s",url,exc)
+        if elements is None:
             return None
         actifs = 0
         vacants = 0
@@ -175,7 +201,9 @@ class ClientGeo:
             elif tags.get("shop"):
                 actifs += 1
         distance_metro = round(min(distances_stations)) if distances_stations else None
-        return DensiteRue(nb_commerces=actifs, nb_vacants=vacants, distance_metro_m=distance_metro)
+        resultat = DensiteRue(nb_commerces=actifs, nb_vacants=vacants, distance_metro_m=distance_metro)
+        self._cache_densite[cle] = resultat
+        return resultat
 
 
 @dataclass(frozen=True)
@@ -226,21 +254,28 @@ def evaluer_annonces(annonces: dict[str, "Annonce"], config: "Config") -> None:
     if max_par_run <= 0 or budget_s <= 0:
         return
     candidats = sorted(
-        (a for a in annonces.values() if not a.exclue and not a.rue_evaluee),
+        (a for a in annonces.values() if not a.exclue and (not a.rue_evaluee or
+          (not a.rue_categorie and extraire_voie(a.texte_complet())))),
         key=lambda a: a.score or 0, reverse=True,
-    )[:max_par_run]
+    )
     if not candidats:
         return
     client = ClientGeo()
     debut = time.monotonic()
+    appels, sans_voie = 0, 0
     for a in candidats:
         if time.monotonic() - debut > budget_s:
             log.info("budget de temps rue (%.0f s) atteint, arrêt pour ce run", budget_s)
             break
         voie = extraire_voie(a.texte_complet())
         if voie is None:
-            a.rue_evaluee = True   # rien à extraire dans le texte : inutile de retenter
+            if sans_voie < max_par_run:
+                a.rue_evaluee = True
+                sans_voie += 1
             continue
+        if appels >= max_par_run:
+            break
+        appels += 1
         try:
             densite = evaluer_rue(voie, a.ville, a.departement, client)
         except Exception:  # noqa: BLE001 — jamais bloquant pour le run

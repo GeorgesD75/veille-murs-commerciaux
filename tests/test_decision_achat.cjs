@@ -101,3 +101,38 @@ test('prix personnel : aucun nombre inventé si revenu ou financement invalide',
   for (const options of [{maximum:NaN},{maximum:-1},{maximum:100000,objectif:-1},{maximum:100000,pas:0}])
     assert.equal(contexte.moteur.prixPourCashflow(options,()=>1000),null);
 });
+
+test('classement : prix actuel puis effort de négociation, sans modifier le score',()=>{
+  const a=annonce();a.score=69;a.negociation={prix_plafond:170000,remise_pct:15};
+  const courant=contexte.moteur.priorite(a,{pepite:true,cf:120,objectif:100});
+  const negociable=contexte.moteur.priorite(a,{potentiel:true,cf:-100,cfCible:120,objectif:100});
+  a.negociation.remise_pct=33;
+  const exigeant=contexte.moteur.priorite(a,{potentiel:true,cfCible:120});
+  assert.ok(courant.rang<negociable.rang && negociable.rang<exigeant.rang);
+  assert.equal(a.score,69);assert.match(exigeant.libelle,/exigeante/);
+  assert.equal(contexte.moteur.priorite(a,{potentiel:true,cfCible:99}).prioritaire,false);
+});
+
+test('classement vendeur : dossier relu et négociation modérée, pas les risques',()=>{
+  const a=annonce();
+  const vendeur=niveau=>({confirme:true,resultat:{niveau,manquants:[],finance:{prix:220000,prixCible:200000,cashflow:120,cashflowCible:130}}});
+  assert.equal(contexte.moteur.priorite(a,{vendeur:vendeur('interessant')}).rang,0);
+  assert.equal(contexte.moteur.priorite(a,{vendeur:vendeur('a_negocier')}).prioritaire,true);
+  assert.equal(contexte.moteur.priorite(a,{vendeur:vendeur('vigilance')}).prioritaire,false);
+  const incomplet=vendeur('a_negocier');delete incomplet.resultat.finance.cashflowCible;
+  assert.equal(contexte.moteur.priorite(a,{vendeur:incomplet}).prioritaire,false);
+  const v=vendeur('a_negocier');v.resultat.finance.prixCible=140000;
+  assert.equal(contexte.moteur.priorite(a,{vendeur:v}).prioritaire,false);
+});
+
+test('une réponse complète peut qualifier la nature inconnue, sans lever une contradiction de surface',()=>{
+  const a=annonce();a.decision.diagnostic={bloquant:true,transaction:{nature:'a_confirmer'},alertes:[{code:'nature_transaction_a_confirmer',niveau:'fort'}]};
+  const vendeur={confirme:true,resultat:{niveau:'interessant',manquants:[],finance:{prix:200000,cashflow:150}}};
+  assert.equal(contexte.moteur.priorite(a,{vendeur}).prioritaire,true);
+  a.decision.diagnostic.alertes.push({code:'conflit_surface_m2',niveau:'fort'});
+  assert.equal(contexte.moteur.priorite(a,{vendeur}).prioritaire,false);
+  a.decision.diagnostic={bloquant:true,transaction:{nature:'murs'},alertes:[{code:'conflit_charges_bailleur_annuelles',niveau:'fort'}]};
+  assert.equal(contexte.moteur.priorite(a,{vendeur}).prioritaire,false);
+  vendeur.resultat.finance.chargesDeclarees=0;
+  assert.equal(contexte.moteur.priorite(a,{vendeur}).prioritaire,true);
+});

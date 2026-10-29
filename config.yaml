@@ -345,6 +345,7 @@ analyse:
     repartir_sources: true
     max_par_hote: 18
     age_max_jours: 30
+    relecture_incomplete_jours: 3
   dvf:                        # ventes réelles de locaux commerciaux (pipeline/dvf.py) : la
                               # fourchette de prix d'un secteur vient des prix PAYÉS chez le
                               # notaire quand la commune compte assez de ventes

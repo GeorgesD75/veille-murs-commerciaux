@@ -111,6 +111,7 @@ def preparer_payload(
                 "surface_m2": a.surface_m2,
                 "prix_m2": a.prix_m2,
                 "loyer_mensuel": a.loyer_mensuel,
+                "loyer_origine": a.loyer_origine,
                 "honoraires": a.honoraires,
                 "loyer_mensuel_estime": a.loyer_mensuel_estime,
                 "loyer_estime": a.loyer_estime,
@@ -247,7 +248,7 @@ def preparer_payload(
 def generer_html(payload: dict[str, Any]) -> str:
     donnees = json.dumps(payload, ensure_ascii=False).replace("</", "<\\/")
     scripts = "\n".join((Path(__file__).parent / nom).read_text(encoding="utf-8")
-                        for nom in ["decision_achat.js", "suivi_moteur.js", "reponses_moteur.js", "reponses_interface.js"])
+                        for nom in ["decision_achat.js", "suivi_moteur.js", "reponses_moteur.js", "impact_reponse.js", "reponses_interface.js"])
     return _GABARIT.replace("__REPONSES_VENDEUR__", scripts).replace("__DONNEES__", donnees)
 
 
@@ -993,6 +994,14 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
 .seuil-personnel p { margin:5px 0; }
 .seuil-personnel strong { font-size:16px; }
 .seuil-personnel small { display:block; color:var(--encre-2); margin-top:7px; }
+.priorite-dossier { margin:0 0 10px; color:var(--encre-2); font-size:12px; }
+.faits-locatifs { padding:8px 0; }
+.faits-locatifs > details { padding:7px 0; border-bottom:1px solid var(--filet); }
+.faits-locatifs summary { cursor:pointer; }
+.impact-reponse { padding:10px 12px; border:1px solid var(--filet); border-radius:7px; margin:12px 0; background:var(--surface); color:var(--encre-1); }
+.impact-reponse summary { cursor:pointer; font-weight:600; }
+.impact-reponse table { border-collapse:collapse; width:100%; font-size:12px; margin:10px 0; }
+.impact-reponse td,.impact-reponse th { padding:6px 4px; border-bottom:1px solid var(--filet); text-align:left; overflow-wrap:anywhere; }
 .offre-prix-cashflow small { display:block; font-size:12px; margin-top:3px; }
 .offre-rendement { display:block; font-size:12px; margin:3px 0; }
 .budget-projet { margin:10px 0; font-size:13px; }
@@ -1066,7 +1075,7 @@ h2.section { font-family:Fraunces, Georgia, serif; font-size:22px; font-weight:6
   .carte-contenu > .carte-titre { grid-column:2; grid-row:1; margin:0; }
   .carte-contenu > .carte-lieu { grid-column:2; grid-row:2; margin:0; }
   .carte .exception-recherche,.carte .metriques,.carte .avis-achat,.carte .offre-cible,
-  .carte .retour-vendeur,.carte .offre-indisponible,.carte .relocation-annonce,.carte .analyse-annonce { grid-column:1 / -1; margin-bottom:0; }
+  .carte .retour-vendeur,.carte .offre-indisponible,.carte .relocation-annonce,.carte .analyse-annonce,.carte .priorite-dossier { grid-column:1 / -1; margin-bottom:0; }
   .carte .exception-recherche { margin-top:0; }
   .carte-lieu .badges { display:flex; margin:5px 0 0; }
   .metriques { gap:10px 16px; }
@@ -2079,6 +2088,7 @@ function decisionHtml(a) {
        *Net des provisions, avant financement et impôt. ${d.loyer_estime ? "Loyer estimé" : "Loyer annoncé"}, à justifier.
        Hypothèses de prudence, à remplacer par les montants réels ; ce prix n’est pas une estimation de valeur.</small></details>`}
     <details><summary>Origine des chiffres et points de vigilance</summary>
+      ${d.a_obtenir?.length ? `<p><b>À clarifier en priorité dans l’annonce :</b> ${d.a_obtenir.slice(0,3).map(ech).join(" · ")}.</p>` : ""}
       ${diagnostic.transaction ? `<p><b>Nature de l’offre :</b> ${ech(diagnostic.transaction.motif)}${diagnostic.transaction.extrait ? ` — ${ech(diagnostic.transaction.origine)} : « ${ech(diagnostic.transaction.extrait)} »` : ""}</p>` : ""}
       ${diagnostic.alertes.map(e => `<p class="alerte-donnee ${e.niveau}">${ech(e.texte)}</p>`).join("")}
       <p>Fiche : ${a.etat_detail === "lu" ? "lue le " + fmtDate(a.date_detail_vue) : a.etat_detail === "retiree" ? "retirée ou introuvable" : a.etat_detail === "refuse" ? "accès refusé par le site" : a.etat_detail === "temporaire" ? "temporairement indisponible" : a.etat_detail === "pauvre" ? "contenu insuffisant" : "pas de lecture complète tracée"}.</p>
@@ -2176,11 +2186,17 @@ function relocationHtml(a) {
   const r = a.decision?.relocation || a.negociation?.relocation;
   const niveau = r?.niveau || "a_verifier";
   const libelle = {favorable:"indices de rue favorables", vigilance:"points de vigilance", a_verifier:"à vérifier"}[niveau];
-  return `<details class="relocation-annonce ${niveau}"><summary>Relocation : ${libelle}</summary>
+  const local = r?.local, champs = local?.champs || {}, comp = r?.comparables;
+  const noms = {rdc_m2:"RDC",vente_m2:"Vente",sous_sol_m2:"Sous-sol",reserve_m2:"Réserve",vitrine_m:"Vitrine"};
+  const reperes = Object.entries(noms).filter(([k])=>Number.isFinite(champs[k]?.valeur))
+    .map(([k,t])=>`${t} ${champs[k].valeur} ${k==="vitrine_m"?"m":"m²"}`).join(" · ");
+  return `<details class="relocation-annonce ${niveau}"><summary>Relocation : ${libelle}${reperes?` · ${ech(reperes)}`:""}</summary>
     ${r?.favorables?.length ? `<ul>${r.favorables.map(t=>`<li>${ech(t)}</li>`).join("")}</ul>` : ""}
     ${r?.vigilances?.length ? `<ul>${r.vigilances.map(t=>`<li>${ech(t)}</li>`).join("")}</ul>` : ""}
+    ${Object.keys(champs).length?`<div class="faits-locatifs">${Object.entries(champs).map(([k,c])=>`<details><summary><b>${ech(c.libelle)}</b> : ${c.statut==="contradictoire"?"valeurs contradictoires":ech(String(c.valeur))+(k.endsWith("_m2")?" m²":k==="vitrine_m"?" m":["taxe_annuelle","charges_bailleur_annuelles"].includes(k)?" €/an":"")}</summary>${c.preuves.map(p=>`<p class="offre-note">${ech(p.origine)} · ${ech(fmtDate(p.observe_le))} : « ${ech(p.extrait)} »</p>`).join("")}</details>`).join("")}</div>`:""}
+    ${comp?.exploitable?`<p><b>Loyers de comparaison :</b> ${comp.nombre} autres annonces de murs occupés, même code postal et surfaces voisines. Médiane ${fmtEuros(comp.mediane_m2_an)}/m²/an ; plage observée ${fmtEuros(comp.bas_m2_an)}–${fmtEuros(comp.haut_m2_an)}/m²/an.${comp.ecart_pct!=null?` Loyer de ce bien : ${comp.ecart_pct>=0?"+":""}${fmtPct(comp.ecart_pct)} face à la médiane.`:""}</p><details><summary>Voir les références déclaratives</summary><ul>${comp.references.map(o=>`<li><a href="${ech(urlReponse(o.url))}" target="_blank" rel="noopener">${o.surface} m² · ${fmtEuros(o.taux)}/m²/an</a> · revu le ${ech(fmtDate(o.vu_le))}</li>`).join("")}</ul><small>Surfaces totales annoncées ; aucun bail consulté. Ces loyers ne sont ni des loyers de relocation prouvés ni une mesure de la demande.</small></details>`:'<p>Loyers comparables : échantillon local insuffisant pour conclure.</p>'}
     <p>À confirmer : ${ech((r?.a_confirmer || ["Adresse exacte, passage, activités autorisées et loyer de relocation"]).join(" ; "))}.</p>
-    <small>Les recensements de commerces et de locaux vacants peuvent être incomplets. Ces indices ne prouvent ni la demande locative, ni le délai pour trouver un locataire.</small>
+    <small>${r?.precision==="rue"?"Comptages autour de la voie géocodée, pas d’un emplacement de boutique certifié. ":"Adresse exacte non qualifiée. "}Les recensements de commerces et de locaux vacants peuvent être incomplets. Ces indices ne prouvent ni la demande locative, ni le délai pour trouver un locataire.</small>
   </details>`;
 }
 
@@ -2392,6 +2408,7 @@ function carteHtml(a, options) {
         <span class="badges">${pepite ? '<span class="badge badge-pepite" title="Signal économique fondé sur les données de l’annonce. Bail, charges et disponibilité à vérifier.">Pépite à étudier</span>' : estPotentiel(a) ? '<span class="badge badge-pepite">Potentiel à négocier</span>' : ""}${badges[0] || ""}${a.decision?.diagnostic?.bloquant ? '<span class="badge badge-alerte">Chiffres à vérifier</span>' : ""}</span></div>
       ${exceptions.length ? `<div class="exception-recherche">Hors de vos préférences : ${exceptions.map(ech).join(" · ")}</div>` : ""}
       <div class="metriques">${metriques}</div>
+      ${options.prio?`<p class="priorite-dossier">${ech(prioriteDossier(a).libelle)} · classement par action, puis qualité des données et score actuel.</p>`:""}
       ${avisAchatHtml(a)}
       ${reponseVendeurHtml(a)}
       ${prixCibleHtml(a)}
@@ -2609,13 +2626,19 @@ function estPotentiel(a) {
 }
 
 function estOpportunitePrioritaire(a) {
-  if (a.decision?.relocation?.niveau === "vigilance") return false;
-  const objectif = a.negociation?.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100;
-  const vendeur = etatReponseVendeur(a);
-  if (vendeur?.confirme && !vendeur.aRelire) return !reponseSuspendSelection(a)
-    && (estPepite(a) || estPotentiel(a)) && (vendeur.resultat?.finance?.cashflow ?? -Infinity) >= objectif;
-  if (estPepite(a)) return (cashflowMensuel(a) ?? 0) >= objectif;
-  return estPotentiel(a) && (cashflowAuPrix(a, a.negociation.prix_plafond) ?? 0) >= objectif;
+  return prioriteDossier(a).prioritaire;
+}
+
+function prioriteDossier(a) {
+  return DecisionAchat.priorite(a,{objectif:a.negociation?.objectif_cashflow ?? D.analyse.negociation?.cashflow_cible_mensuel ?? 100,
+    vendeur:etatReponseVendeur(a),pepite:estPepite(a),potentiel:estPotentiel(a),cf:cashflowMensuel(a),
+    cfCible:a.negociation?.prix_plafond?cashflowAuPrix(a,a.negociation.prix_plafond):null});
+}
+
+function comparerPriorites(a,b) {
+  return prioriteDossier(a).rang-prioriteDossier(b).rang
+    || (b.decision?.documentation??0)-(a.decision?.documentation??0)
+    || (b.score??0)-(a.score??0);
 }
 
 function ecartsPreferences(a, f) {
@@ -2640,7 +2663,7 @@ function appliquer(a, f) {
   if (f.signal === "prudent" && !((cashflowMensuel(a) ?? -Infinity) >= 0)) return false;
   if (f.signal === "negociation" && !estPotentiel(a)) return false;
   if (!f.archives && a.peut_etre_retiree) return false;
-  const exception = f.pepites && (estPepite(a) || estPotentiel(a)) && !estAbandonnee(a.id);
+  const exception = f.pepites && (estPepite(a) || estPotentiel(a) || estOpportunitePrioritaire(a)) && !estAbandonnee(a.id);
   if (!exception && ecartsPreferences(a, f).length) return false;
   if (f.type !== "tous" && a.type_murs !== f.type) return false;
   // secteurs cochés : union — le bien passe s'il est dans L'UN d'eux
@@ -2685,24 +2708,24 @@ function rendre() {
   // (probablement vendue/retirée) descend dans le reste du tableau de chasse.
   const relegue = a => estAbandonnee(a.id) || a.peut_etre_retiree;
   const incoherente = a => {
-    if (a.decision?.diagnostic?.bloquant) return true;
     const vendeur = etatReponseVendeur(a);
+    if (DecisionAchat.blocage(a,vendeur)) return true;
     return vendeur?.confirme && !vendeur.aRelire && ["hors_cible","vigilance"].includes(vendeur.resultat?.niveau);
   };
   const verifier = visibles.filter(a => incoherente(a) && !relegue(a));
   // Une opportunité négociée peut remonter, avec prix, score simulé et
   // cash-flow affichés. L'objectif doit aussi fonctionner au profil personnel.
   const prioritaire = a => f.tri === "recherche" && estOpportunitePrioritaire(a) && !relegue(a) && !incoherente(a);
-  const prio = visibles.filter(prioritaire);
+  const prio = visibles.filter(prioritaire).sort(comparerPriorites);
   const etudier = visibles.filter(a =>
     ((a.score ?? 0) >= D.seuils.affichage || estPotentiel(a)) && !prioritaire(a) && !relegue(a) && !incoherente(a));
-  const reste = visibles.filter(a => ((a.score ?? 0) < D.seuils.affichage && !incoherente(a) && !estPotentiel(a)) || relegue(a));
+  const reste = visibles.filter(a => ((a.score ?? 0) < D.seuils.affichage && !incoherente(a) && !estPotentiel(a) && !prioritaire(a)) || relegue(a));
 
   const podium = [...prio, ...etudier].slice(0, 3).map(a => a.id);
   const opts = a => ({
     prio: prioritaire(a),
     medaille: podium.indexOf(a.id) >= 0 ? podium.indexOf(a.id) : null,
-    exceptions: f.pepites && (estPepite(a) || estPotentiel(a)) ? ecartsPreferences(a, f) : [],
+    exceptions: f.pepites && (estPepite(a) || estPotentiel(a) || estOpportunitePrioritaire(a)) ? ecartsPreferences(a, f) : [],
   });
 
   let index = 0;

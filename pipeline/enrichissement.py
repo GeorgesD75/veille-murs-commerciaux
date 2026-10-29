@@ -11,6 +11,7 @@ from pipeline.geo import GRANDE_COURONNE
 from pipeline.modeles import Annonce, TypeMurs
 from pipeline.texte import normaliser_texte
 from sources.extraction import extraire_nombre
+from pipeline.dossier_locatif import analyser_dossier
 
 # Frais d'acquisition (notaire, enregistrement…) retenus pour le rendement « acte en main ».
 TAUX_FRAIS_ACQUISITION = 1.08
@@ -276,6 +277,8 @@ def enrichir(
     annonce.loyer_mensuel_estime = round(loyer, 2) if (estime and loyer) else None
     annonce.loyer_confiance = confiance
     annonce.loyer_nb_comparables = nb_comparables
+    annonce.dossier_locatif = analyser_dossier(annonce)
+    annonce.loyer_comparaison = comparables.diagnostic(annonce) if comparables else {}
     if loyer and annonce.prix:
         loyer_annuel = loyer * 12
         annonce.rendement_brut_pct = round(loyer_annuel / annonce.prix * 100, 2)
@@ -289,6 +292,9 @@ def enrichir(
     annonce.bail_echeance_annee = annee_fin_bail(annonce.texte_complet())
     annonce.emplacement_numero = emplacement_numero_depuis_texte(annonce.texte_complet())
     annonce.taxe_fonciere_annuelle = taxe_fonciere_annuelle_depuis_texte(annonce.texte_complet())
+    taxe = annonce.dossier_locatif["champs"].get("taxe_annuelle")
+    if taxe:
+        annonce.taxe_fonciere_annuelle = taxe["valeur"]
 
     # Fourchette de prix du secteur : les VENTES RÉELLES enregistrées (DVF)
     # priment quand la commune en compte assez — un prix effectivement payé

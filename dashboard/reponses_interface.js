@@ -143,6 +143,12 @@ function calculerDossierReponse(r, a) {
     resultat.titre = "Plusieurs valeurs à départager dans la réponse";
     resultat.risques.push(...conflits.map(c=>`${LIBELLES_REPONSE[c.champ]||c.champ} : ${c.propositions.map(v=>v.valeur).join(" / ")}. Choisissez la bonne valeur dans les champs.`));
   }
+  if (r.confirme && ["interessant","a_negocier"].includes(resultat.niveau)
+      && DecisionAchat.blocage(a,{confirme:true,resultat})) {
+    resultat.niveau="vigilance";
+    resultat.titre="Contradictions de l’annonce encore à lever";
+    resultat.risques.push(...(a.decision?.diagnostic?.alertes||[]).filter(e=>e.niveau==="fort").map(e=>e.texte));
+  }
   return resultat;
 }
 
@@ -174,6 +180,42 @@ function budgetReponseVendeur(f, cible = false) {
     cashflow:cible?f.cashflowCible:f.cashflow,stress:cible?f.stressCible:f.stress};
 }
 
+function instantaneValide(r) {
+  return {champs:structuredClone(r.champs),lecture:{conflits:structuredClone(r.lecture?.conflits||[])},
+    corrections:structuredClone(r.corrections||{}),confirme:true,maj:r.maj};
+}
+
+function impactReponseHtml(a,r,resultat,compact=false) {
+  if (!r || !r.confirme || r.aRelire) return "";
+  const precedent=r.precedent_valide;
+  let avant=precedent?calculerDossierReponse(precedent,a):null;
+  if (!precedent && !a.decision?.diagnostic?.bloquant && !a.loyer_estime && a.loyer_mensuel>0 && a.loyer_origine!=="rendement") {
+    const p=projectionAchat(a),objectif=resultat.finance?.objectif??100;
+    if (p?.cashflow!=null) avant={niveau:"annonce",titre:"Hypothèses de l’annonce",manquants:[],finance:{prix:a.prix,cashflow:p.cashflow,
+      prixCible:DecisionAchat.prixPourCashflow({maximum:a.prix,objectif},prix=>projectionAchat(a,prix)?.cashflow)}};
+  }
+  const e=ImpactReponse.comparer(avant,resultat);
+  const delta=e.plafondAvant!=null && e.plafondApres!=null?e.plafondApres-e.plafondAvant:null;
+  const titre=e.financier && e.prixAvant!==e.prixApres?`Prix vendeur mis à jour : ${fmtEuros(e.prixApres)}`:
+    delta==null?"Ce que ce retour change":delta<0?`Ce retour abaisse la limite financière de ${fmtEuros(-delta)}`:
+    delta>0?`Ce retour relève la limite financière de ${fmtEuros(delta)}`:"Ce retour confirme la limite financière";
+  const euros=v=>v==null?"À préciser":fmtEuros(v);
+  const cf=v=>v==null?"À préciser":`${v>=0?"+":"−"}${fmtEuros(Math.abs(v))}/mois`;
+  const champs=[...CHAMPS_REPONSE,...COMPLEMENTS_REPONSE];
+  const changements=precedent?champs.filter(c=>String(precedent.champs?.[c.cle]??"")!==String(r.champs?.[c.cle]??"")).slice(0,4):[];
+  const valeur=(c,v)=>c.choix?(c.choix.find(([cle])=>cle===v)?.[1]||"Non précisé"):v==null||v===""?"Non précisé":c.nombre?fmtEuros(Number(v)):String(v);
+  return `<details class="impact-reponse"${compact?"":" open"}><summary>${ech(titre)}</summary>
+    <p class="rep-note">${precedent?"Précédent dossier relu":"Annonce avec ses provisions"} → retour actuel. Comparaison recalculée avec le même financement et la même annonce de référence.</p>
+    <p><b>${ech(e.etatAvant)}</b> → <b>${ech(e.etatApres)}</b></p>
+    ${e.financier?`<table><thead><tr><th>Repère</th><th>Avant</th><th>Avec ce retour</th></tr></thead><tbody>
+      <tr><th>Prix retenu</th><td>${euros(e.prixAvant)}</td><td>${euros(e.prixApres)}</td></tr>
+      <tr><th>Cash-flow prudent</th><td>${cf(e.cashflowAvant)}</td><td>${cf(e.cashflowApres)}</td></tr>
+      <tr><th>Limite financière</th><td>${euros(e.plafondAvant)}</td><td data-impact-plafond>${euros(e.plafondApres)}</td></tr></tbody></table>`:
+      '<p class="rep-note">Comparaison financière suspendue tant que les informations ou risques ne permettent pas de retenir les chiffres.</p>'}
+    ${changements.length?`<ul>${changements.map(c=>`<li>${ech(c.label)} : ${ech(valeur(c,precedent.champs?.[c.cle]))} → ${ech(valeur(c,r.champs?.[c.cle]))}</li>`).join("")}</ul>`:""}
+    <small>Déclarations à justifier, avant impôt, assurance et travaux. Le score publié ne change pas.</small></details>`;
+}
+
 function prixConfirmeVendeurHtml(a, e) {
   const r = e.resultat;
   if (!r) return "";
@@ -184,6 +226,7 @@ function prixConfirmeVendeurHtml(a, e) {
   return `<section class="retour-vendeur ${r.niveau}"><div class="offre-entete"><strong>${titres[r.niveau]||r.titre}</strong>
     <button type="button" data-reponse-vendeur="${ech(a.id)}">Ouvrir le dossier vendeur</button></div>
     <p class="rep-note">Dernier dossier relu le ${ech(fmtDate(e.maj))} · déclarations du vendeur, pièces non vérifiées. Les métriques de l’annonce restent affichées au-dessus.</p>
+    ${impactReponseHtml(a,dossiersReponses[a.id],r,true)}
     ${fiable && f?`<p>Prix retenu : ${fmtEuros(f.prix)} → ${signe(f.cashflow)} prudent. Loyer retenu : ${fmtEuros(f.loyer)}/mois HT/HC.</p>
       ${f.prixCible?`<div class="offre-prix-cashflow" data-prix-vendeur="${f.prixCible}"><div><span>Prix à obtenir · maximum</span><b>${fmtEuros(f.prixCible)}</b></div>
         <div><span>Cash-flow prudent à ce prix</span><b data-cashflow-vendeur>${signe(f.cashflowCible)}</b></div>
@@ -206,6 +249,7 @@ function rendreAnalyseReponse() {
   cible.innerHTML = `<section class="rep-resultat ${r.confirme?resultat.niveau:"provisoire"}">
     <p class="rep-etat">${r.confirme?"Données relues par vous · déclarations du vendeur, pièces non vérifiées":"Lecture provisoire · vérifiez les champs avant de retenir le résultat"}</p>
     <h3>${ech(resultat.titre)}</h3>
+    ${impactReponseHtml(a,r,resultat)}
     ${[...(r.lecture.alertes||[]),...resultat.risques].map(t=>`<p class="alerte-donnee fort">${ech(t)}</p>`).join("")}
     ${f?`<div class="rep-bilan"><div><span>Prudent · votre financement</span><b>${signe(f.cashflow)}/mois</b></div><div><span>Scénario dégradé</span><b>${signe(f.stress)}/mois</b></div></div>
       <p class="rep-note">Au prix retenu de ${fmtEuros(f.prix)}.${rendementAuPrixHtml(f.loyer, f.prix)} ${financierFiable?"Calcul sur les chiffres retenus":"Simulation indicative : les inconnues ou risques empêchent de conclure"}. Avant impôt, assurance emprunteur et travaux exceptionnels.</p>
@@ -236,8 +280,10 @@ document.addEventListener("input", ev=>{
     statutSauvegardeReponse(sauvegarderReponses()); return;
   }
   if (ev.target.id === "rep-texte") {
+    if (r.confirme && !r.dernier_valide) r.dernier_valide=instantaneValide(r);
     r.texte = ev.target.value; r.aRelire = !!r.lecture; r.confirme = false;
   } else if (ev.target.matches("[data-rep-champ]")) {
+    if (r.confirme && !r.dernier_valide) r.dernier_valide=instantaneValide(r);
     const cle = ev.target.dataset.repChamp;
     r.champs[cle] = ev.target.value; (r.corrections ||= {})[cle] = true; r.confirme = false;
   } else return;
@@ -294,6 +340,7 @@ document.addEventListener("click", async ev=>{
   if (!r) return;
   if (action === "ajouter") {
     if (!r.lecture || r.aRelire || !r.texte.trim()) return;
+    if (r.confirme && !r.dernier_valide) r.dernier_valide=instantaneValide(r);
     r.historique=[...(r.historique||[]),{texte:r.texte,maj:r.maj}].slice(-10);
     r.base={champs:{...r.champs},extraits:{...r.lecture.extraits},conflits:(r.lecture.conflits||[]).filter(c=>!r.corrections?.[c.champ]),corrections:{...r.corrections}};
     r.texte=""; r.aRelire=true; r.confirme=false; r.maj=new Date().toISOString();
@@ -323,7 +370,10 @@ document.addEventListener("click", async ev=>{
     if (r.aRelire) { rendreAnalyseReponse(); document.getElementById("rep-texte").focus(); return; }
     const invalide = [...document.querySelectorAll("[data-rep-champ]")].find(e=>!e.checkValidity());
     if (invalide) { invalide.reportValidity(); return; }
+    if (r.dernier_valide && JSON.stringify(r.dernier_valide.champs)!==JSON.stringify(r.champs))
+      r.precedent_valide=structuredClone(r.dernier_valide);
     r.confirme=true; r.maj=new Date().toISOString();
+    r.dernier_valide=instantaneValide(r);
     statutSauvegardeReponse(sauvegarderReponses()); rendreAnalyseReponse();
     document.getElementById("rep-analyse").scrollIntoView({behavior:"smooth",block:"start"}); return;
   }

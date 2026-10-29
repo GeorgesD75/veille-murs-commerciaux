@@ -11,6 +11,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from urllib.parse import urlsplit, urlunsplit
 
 from pipeline.modeles import Annonce, TypeMurs
 from pipeline.transaction import qualifier_transaction
@@ -24,11 +25,13 @@ class LoyersComparables:
 
     par_code_postal: dict[str, list[float]]
     par_surface: dict[str, list[tuple[float, float]]] = field(default_factory=dict)
+    observations: list[dict] = field(default_factory=list)
 
     @classmethod
     def depuis(cls, annonces: Iterable[Annonce], maintenant: datetime | None = None) -> "LoyersComparables":
         groupes: dict[str, list[float]] = defaultdict(list)
         surfaces: dict[str, list[tuple[float, float]]] = defaultdict(list)
+        observations = []
         for a in annonces:
             if maintenant is not None and datetime.fromisoformat(a.date_derniere_vue) < maintenant - timedelta(days=30):
                 continue
@@ -48,7 +51,35 @@ class LoyersComparables:
                 taux = a.loyer_mensuel * 12 / a.surface_m2
                 groupes[a.code_postal].append(taux)
                 surfaces[a.code_postal].append((a.surface_m2, taux))
-        return cls(dict(groupes), dict(surfaces))
+                observations.append({"id":a.id,"url":a.url,"code_postal":a.code_postal,
+                                     "surface":a.surface_m2,"taux":taux,"vu_le":a.date_derniere_vue})
+        return cls(dict(groupes), dict(surfaces), observations)
+
+    def diagnostic(self, annonce: Annonce) -> dict:
+        """Compare au stock récent sans compter le bien lui-même ou son URL."""
+        def canonique(url):
+            u = urlsplit(url)
+            return urlunsplit((u.scheme,u.netloc,u.path.rstrip('/'),'', ''))
+        exclues = {canonique(u) for u in [annonce.url,*annonce.urls_multiples]}
+        deja, lot = set(), []
+        for o in self.observations:
+            url = canonique(o["url"])
+            if o["id"] == annonce.id or url in exclues or url in deja or o["code_postal"] != annonce.code_postal:
+                continue
+            if not annonce.surface_m2 or not annonce.surface_m2/2 <= o["surface"] <= annonce.surface_m2*2:
+                continue
+            deja.add(url)
+            lot.append(o)
+        if len(lot) < MIN_COMPARABLES:
+            return {"nombre":len(lot),"exploitable":False}
+        taux = [o["taux"] for o in lot]
+        mediane = statistics.median(taux)
+        reel = annonce.loyer_mensuel and not annonce.loyer_estime and annonce.loyer_origine != "rendement"
+        ecart = (annonce.loyer_mensuel*12/annonce.surface_m2/mediane-1)*100 if reel else None
+        return {"nombre":len(lot),"exploitable":True,"mediane_m2_an":round(mediane,1),
+                "bas_m2_an":round(min(taux),1),"haut_m2_an":round(max(taux),1),
+                "ecart_pct":round(ecart,1) if ecart is not None else None,
+                "references":lot[:5]}
 
     def pour(self, code_postal: str, surface_m2: float | None = None) -> tuple[float, int] | None:
         """(médiane €/m²/an, nombre d'annonces) si au moins deux, sinon None."""

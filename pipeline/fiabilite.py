@@ -32,6 +32,11 @@ def diagnostiquer(a: Annonce) -> dict:
     texte = normaliser_texte(a.texte_complet())
     alertes = []
     transaction = qualifier_transaction(a)
+    for cle in ["taxe_annuelle", "charges_bailleur_annuelles"]:
+        champ = a.dossier_locatif.get("champs",{}).get(cle,{})
+        if champ.get("statut") == "contradictoire":
+            alertes.append({"code":"conflit_"+cle,"niveau":"fort",
+                            "texte":champ["libelle"]+" : plusieurs montants annoncés, simulation suspendue."})
     if transaction["nature"] != "murs":
         alertes.append({"code": "nature_transaction_a_confirmer", "niveau": "fort", "texte": transaction["motif"]})
     if a.loyer_origine == "rendement":

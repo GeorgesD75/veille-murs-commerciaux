@@ -1,5 +1,46 @@
 # Refonte de la recherche — 25 octobre 2026
 
+## Qualification des biens et ordre d’étude (29 octobre)
+
+- Extraction conservatrice du RDC, de la surface de vente, du sous-sol, de la
+  réserve, de la vitrine, de l’extraction et des activités annoncées. Aucune
+  surface de RDC déduite d’une soustraction. Extraits, origines et dates
+  consultables dans les détails de relocation ; contradictions conservées.
+- Taxe mensuelle convertie en montant annuel, séparateurs de milliers français
+  préservés (`1.200 €` = 1 200 €) ; seules les charges explicitement
+  attribuées au bailleur sont identifiées comme telles. Un conflit de taxe ou
+  de charges suspend la simulation. Le sous-sol majoritaire et les contradictions
+  de répartition deviennent des points de vigilance pour la relocation.
+- Comparaison avec les loyers déclarés de murs occupés récents : même code
+  postal, surfaces voisines, exclusion du bien et des URL dupliquées, au moins
+  deux autres annonces, médiane et références datées. Ces déclarations ne
+  prouvent ni le loyer de relocation, ni la demande locative.
+- Lecture de détail priorisant les biens prometteurs et les informations utiles
+  manquantes, en conservant la répartition entre sources et deux petites
+  surfaces pour une opportunité plus grande. Relecture des dossiers incomplets
+  après trois jours ; délais de refus et limites de collecte conservés.
+- Géocodage migré vers le service Géoplateforme ; une adresse trouvée sur une
+  fiche peut relancer une qualification auparavant impossible. Cache par voie
+  et coordonnées, coordonnées des stations conservées dans la réponse OSM,
+  un seul service public de secours sur panne Overpass. Aucun secours sur
+  HTTP 403/429 et aucun comptage nul fabriqué depuis une réponse incomplète.
+- Ordre des meilleures pistes explicite : retour vendeur favorable et relu,
+  objectif atteint au prix demandé, puis négociation modérée ou exigeante.
+  Le financement personnel et les risques restent pris en compte, les tris
+  manuels restent disponibles. Les notes actuelles et hypothétiques ne changent
+  pas ; un retour à négocier ne devient pas une pépite urgente.
+- Dans Réponses, comparaison du précédent dossier relu avec le nouveau :
+  verdict, cash-flow, limite financière et champs modifiés. Les deux scénarios
+  utilisent le même financement courant. Les inconnues et risques suspendent
+  la comparaison financière. Historique conservé sur l’appareil uniquement.
+- Passe ciblée sans email : 24 fiches tentées, 20 lues, dont 16 annonçant des
+  murs seuls ; trois refus respectés, une page de liste rejetée. Aucune nouvelle
+  rue qualifiée pendant cette passe : les services OSM ont échoué. Les rues
+  concernées restent à vérifier, sans précision inventée.
+- Validation : 565 tests automatiques et parcours Chrome (classement,
+  comparaison vendeur à financement identique, échappement des extraits,
+  persistance et affichage de 320 à 1440 px).
+
 ## Prix personnel et suivi des démarches (27 octobre)
 
 - Recherche du prix maximal compatible avec l’objectif mensuel et le financement

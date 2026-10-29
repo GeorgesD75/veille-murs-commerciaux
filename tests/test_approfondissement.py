@@ -134,3 +134,18 @@ def test_creneaux_inutilises_reviennent_aux_petites_surfaces(monkeypatch):
     rapport = approfondir_annonces(annonces, _config(max_par_run=4))
     assert rapport["tentees"] == 4
     assert len(set(client.urls)) == 4
+
+
+def test_annonce_prometteuse_prime_sur_date_recente_a_surface_egale(monkeypatch):
+    client=ClientFactice()
+    monkeypatch.setattr("pipeline.approfondissement.ClientPoli",lambda:client)
+    a=faire_annonce(id="a",surface_m2=25,score=80,url="https://exemple.fr/a",date_derniere_vue="2026-10-25T12:00:00+01:00")
+    b=faire_annonce(id="b",surface_m2=25,score=40,loyer_mensuel=300,url="https://exemple.fr/b",date_derniere_vue="2026-10-29T12:00:00+01:00")
+    approfondir_annonces({"a":a,"b":b},_config(max_par_run=1))
+    assert client.urls==[a.url]
+
+
+def test_nouveau_detail_reouvre_la_recherche_de_rue():
+    a=faire_annonce(rue_evaluee=True,rue_categorie=None)
+    approfondir(a,"Vente des murs occupés rue Francoeur à Paris, local de 25 m².")
+    assert not a.rue_evaluee

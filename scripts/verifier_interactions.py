@@ -428,7 +428,8 @@ def verifier_retours_sur_annonces(browser):
     page.locator('[data-vue="chasse"]').click()
     assert 'prix à négocier' in page.locator('.retour-vendeur').inner_text()
     assert page.locator('.avis-achat').get_attribute('data-decision')=='negociation'
-    assert page.evaluate("!estOpportunitePrioritaire(D.retenues[0])")
+    assert page.evaluate("estOpportunitePrioritaire(D.retenues[0]) && !estPepite(D.retenues[0]) && !contactPrioritaire(D.retenues[0])")
+    assert 'Retour vendeur' in page.locator('.priorite-dossier').inner_text()
     assert page.locator('[data-prix-vendeur]').count()==1
     assert page.locator('.offre-indisponible').count()==0  # remplace la vieille conclusion du stock
     page.locator('.retour-vendeur [data-reponse-vendeur]').click()
@@ -538,6 +539,66 @@ def verifier_suivi_et_seuils(browser):
     page.close()
 
 
+def verifier_qualification_et_impact(browser):
+    page=browser.new_page(viewport={"width":1440,"height":1000})
+    erreurs=[]
+    page.on('pageerror',lambda e:erreurs.append(str(e)))
+    page.route('**/*',lambda r:r.abort() if r.request.resource_type=='image' else r.continue_())
+    page.goto((RACINE / "docs/index.html").as_uri(),wait_until='domcontentloaded')
+    page.evaluate("""()=>{
+      const base=structuredClone(D.retenues[0]);
+      const creer=(id,score,prix,pepite,remise)=>{
+        const a={...structuredClone(base),id,titre:id,prix,honoraires:0,surface_m2:30,temps_trajet_min:15,
+          loyer_mensuel:1800,loyer_estime:false,loyer_origine:'annonce',taxe_fonciere_annuelle:1200,
+          flags:[],score,pepite,est_nouvelle:false,peut_etre_retiree:false,type_murs:'murs_occupes'};
+        a.decision={...structuredClone(base.decision),loyer_estime:false,documentation:60,
+          diagnostic:{bloquant:false,occupation:'occupe',transaction:{nature:'murs'},alertes:[],preuves:{}},
+          relocation:{niveau:'a_verifier',favorables:[],vigilances:[],a_confirmer:['Adresse exacte'],
+            local:{champs:{rdc_m2:{libelle:'Surface en rez-de-chaussée',valeur:25,statut:'annonce',preuves:[{origine:'fiche détaillée',extrait:'RDC de 25 m² <img src=x onerror=window.injecte=true>',observe_le:'2026-10-29'}]},
+              sous_sol_m2:{libelle:'Sous-sol',valeur:5,statut:'annonce',preuves:[]}},alertes:[]}}};
+        a.negociation=remise?{selection:true,prix_plafond:200000,prix_ouverture:194000,
+          remise_pct:remise,score_cible:85,cashflow_cible:150,objectif_cashflow:100,raisons:[]}:null;
+        return a;
+      };
+      D.retenues=[creer('exigeante',90,300000,false,33),creer('moderee',78,230000,false,13),creer('courant',82,220000,true,0)];
+      D.encheres=[];Object.assign(profil,{apportMode:'pct',apport:20,taux:4,duree:20});rendre();
+    }""")
+    assert page.locator('#bloc-prio .carte-img').evaluate_all('els=>els.map(e=>e.dataset.id)')==['courant','moderee','exigeante']
+    assert 'Objectif atteint au prix demandé' in page.locator('.priorite-dossier').first.inner_text()
+    assert 'exigeante' in page.locator('.priorite-dossier').last.inner_text()
+    loc=page.locator('#bloc-prio .relocation-annonce').first
+    assert 'RDC 25 m²' in loc.locator('summary').first.inner_text()
+    loc.locator('summary').first.click()
+    loc.locator('.faits-locatifs details').first.locator('summary').click()
+    assert '<img' in loc.inner_text() and page.evaluate('!window.injecte')
+    page.evaluate("ouvrirReponse('courant')")
+    texte=("Vente des murs seuls hors fonds de commerce. Le local est actuellement loué. "
+           "Bail signé en 2022 pour 9 ans. Loyer 1800 €/mois HT HC. Charges du propriétaire : 600 €/an, hors taxe foncière. "
+           "Taxe foncière annuelle : 1200 €. Aucun impayé. Prix : 220 000 € honoraires inclus.")
+    page.locator('#rep-texte').fill(texte)
+    page.locator('[data-rep-action="extraire"]').click()
+    page.locator('[data-rep-action="valider"]').click()
+    page.locator('#rep-texte').fill(texte.replace('600 €/an','6000 €/an'))
+    assert page.locator('.impact-reponse').count()==0
+    page.locator('[data-rep-action="extraire"]').click()
+    page.locator('[data-rep-action="valider"]').click()
+    impact=page.locator('.impact-reponse')
+    assert 'abaisse la limite financière' in impact.locator('summary').inner_text()
+    assert '6000' in page.evaluate("String(dossiersReponses.courant.champs.charges)")
+    assert page.evaluate("Number(dossiersReponses.courant.precedent_valide.champs.charges)===600")
+    assert impact.locator('[data-impact-plafond]').evaluate("e=>e.textContent===fmtEuros(calculerDossierReponse(dossiersReponses.courant,D.retenues.find(a=>a.id==='courant')).finance.prixCible)")
+    page.evaluate("profil.taux=5;rendreAnalyseReponse()")
+    assert impact.locator('[data-impact-plafond]').evaluate("e=>e.textContent===fmtEuros(calculerDossierReponse(dossiersReponses.courant,D.retenues.find(a=>a.id==='courant')).finance.prixCible)")
+    page.locator('[data-vue="chasse"]').click()
+    assert not page.evaluate("estPepite(D.retenues.find(a=>a.id==='courant'))")
+    assert page.locator('.retour-vendeur .impact-reponse').count()==1
+    for largeur in [320,390,768,1440]:
+        page.set_viewport_size({"width":largeur,"height":844})
+        assert not page.evaluate('document.documentElement.scrollWidth>innerWidth'),largeur
+    assert not erreurs,erreurs
+    page.close()
+
+
 def main():
     candidats = [shutil.which("google-chrome"), shutil.which("chromium"),
                  r"C:\Program Files\Google\Chrome\Application\chrome.exe"]
@@ -613,6 +674,7 @@ def main():
         verifier_reponses_vendeur(browser)
         verifier_retours_sur_annonces(browser)
         verifier_suivi_et_seuils(browser)
+        verifier_qualification_et_impact(browser)
         browser.close()
     print("Interactions, persistance, simulateur et responsive 320–1440 px : OK")
 

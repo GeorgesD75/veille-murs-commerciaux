@@ -26,6 +26,7 @@ from sources.pointdevente import SourcePointDeVente
 from sources.cessionpme import SourceCessionPme
 from sources.papcommerces import SourcePapCommerces
 from pipeline.transaction import qualifier_transaction
+from pipeline.rue import evaluer_annonces
 from scripts.regenerer_dashboard import main as regenerer
 
 
@@ -34,6 +35,8 @@ def main():
     parser.add_argument("--pages", type=int, default=1, choices=range(1, 21))
     parser.add_argument("--details", type=int, default=8, choices=range(0, 121))
     parser.add_argument("--budget-details", type=int, default=150, choices=range(30, 901))
+    parser.add_argument("--sans-listes", action="store_true", help="Lire les dossiers du stock sans refaire les listes")
+    parser.add_argument("--rues", type=int, default=0, choices=range(0,26), help="Nombre maximal de voies à qualifier")
     parser.add_argument("--sources", nargs="+", choices=["pointdevente","bureauxlocaux","bienici","cessionpme","papcommerces"],
                         default=["pointdevente","bureauxlocaux","bienici"])
     args = parser.parse_args()
@@ -49,7 +52,7 @@ def main():
                  "bienici": lambda: SourceBienici(max_pages=args.pages),
                  "cessionpme": lambda: SourceCessionPme(max_pages=args.pages),
                  "papcommerces": lambda: SourcePapCommerces(max_pages=args.pages)}
-    sources = [fabriques[nom]() for nom in dict.fromkeys(args.sources)]
+    sources = [] if args.sans_listes else [fabriques[nom]() for nom in dict.fromkeys(args.sources)]
     for source in sources:
         try:
             brutes = source.collecter()
@@ -68,6 +71,11 @@ def main():
         a.exclue = a.raison_exclusion is not None
     config.donnees["analyse"]["approfondissement"].update(max_par_run=args.details, budget_secondes=args.budget_details)
     rapport["details"] = approfondir_annonces(annonces, config)
+    if args.rues:
+        avant = sum(bool(a.rue_categorie) for a in annonces.values())
+        config.donnees["scoring"]["rue"].update(max_par_run=args.rues,budget_secondes=90)
+        evaluer_annonces(annonces,config)
+        rapport["rues_qualifiees"] = sum(bool(a.rue_categorie) for a in annonces.values())-avant
     rapport["natures_stock"] = {}
     for a in annonces.values():
         a.raison_exclusion = raison_exclusion(a, config, trajets)

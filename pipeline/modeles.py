@@ -88,6 +88,8 @@ class Annonce:
     prix_cible_rendement: float | None = None  # prix à offrir pour viser le rendement cible
     loyer_confiance: str | None = None    # "comparables" (baux voisins réels) ou "benchmark" (zone)
     loyer_nb_comparables: int | None = None
+    dossier_locatif: dict[str, Any] = field(default_factory=dict)
+    loyer_comparaison: dict[str, Any] = field(default_factory=dict)
 
     # Emplacement rue par rue (Base Adresse Nationale + OpenStreetMap), quand disponible
     rue_evaluee: bool = False    # tentative faite (succès ou échec définitif) — évite de reboucler

@@ -300,7 +300,7 @@ dashboard/generer.py    Le site « Les Murs. » (1 fichier autonome, non référ
 data/annonces.json      La mémoire (committée à chaque tournée = historique gratuit)
 data/marche.json        Le paysage du marché (ILC, prix logements, taux OAT,
                         défaillances IdF — INSEE/Eurostat, rafraîchi ~1×/mois)
-tests/                  309 tests automatiques, joués avant chaque tournée
+tests/                  Tests automatiques, joués avant chaque tournée
 .github/workflows/      Le réveil (cron 7 h/15 h/23 h Paris + bouton manuel)
 ```
 

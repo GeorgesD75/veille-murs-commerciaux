@@ -1,5 +1,42 @@
 /* Lecture de décision : aucune mutation du score, des prix ou du dossier. */
 const DecisionAchat = (() => {
+  function blocage(a,v) {
+    const d=a.decision?.diagnostic;
+    const r=v?.confirme && !v.aRelire?v.resultat:null;
+    const recu=r && ["interessant","a_negocier"].includes(r.niveau) && !r.manquants?.length;
+    const nature=d?.transaction?.nature;
+    if (nature && !["murs","a_confirmer"].includes(nature)) return true;
+    if (!d?.bloquant) return nature==="a_confirmer" && !recu;
+    const forts=(d.alertes||[]).filter(e=>e.niveau==="fort");
+    return !recu || !forts.length || forts.some(e=>
+      !(e.code==="nature_transaction_a_confirmer" && nature==="a_confirmer")
+      && !(e.code==="conflit_taxe_annuelle" && r.finance && !r.finance.taxeEstimee)
+      && !(e.code==="conflit_charges_bailleur_annuelles" && Number.isFinite(r.finance?.chargesDeclarees)));
+  }
+
+  function priorite(a, c = {}) {
+    const aucun = {rang:9,libelle:"",prioritaire:false};
+    if (a.peut_etre_retiree || blocage(a,c.vendeur)
+        || a.decision?.relocation?.niveau==="vigilance") return aucun;
+    const objectif = c.objectif ?? 100, v = c.vendeur;
+    if (v) {
+      if (!v.confirme || v.aRelire || !v.resultat || v.resultat.manquants?.length) return aucun;
+      const r=v.resultat,f=r.finance;
+      if (r.niveau==="interessant" && f?.cashflow>=objectif)
+        return {rang:0,libelle:"Dossier vendeur favorable · chiffres relus",prioritaire:true};
+      if (r.niveau!=="a_negocier" || !(f?.prixCible>0) || !(f.prix>0) || !(f.cashflowCible>=objectif)) return aucun;
+      const remise=(1-f.prixCible/f.prix)*100;
+      if (remise>25) return {...aucun,libelle:"Retour vendeur · forte baisse nécessaire"};
+      return {rang:remise<=15?2:3,libelle:`Retour vendeur · négocier ${Math.round(remise)} %`,prioritaire:true};
+    }
+    if (c.pepite && c.cf>=objectif) return {rang:1,libelle:"Objectif atteint au prix demandé",prioritaire:true};
+    if (!c.potentiel || !(c.cfCible>=objectif)) return aucun;
+    const remise=a.negociation?.remise_pct ?? (1-a.negociation?.prix_plafond/a.prix)*100;
+    return {rang:remise<=15?2:remise<=25?3:4,
+      libelle:remise<=15?"Potentiel · négociation modérée":remise<=25?"Potentiel · baisse importante":"Potentiel · négociation exigeante",
+      prioritaire:true};
+  }
+
   // Le cash-flow décroît avec le prix pour les financements pris en charge
   // (apport en % ou en euros, taux nul compris). Ce repère est financier :
   // il ne recalcule ni le score économique ni la qualification pépite.
@@ -80,5 +117,5 @@ const DecisionAchat = (() => {
       return avis("negociation", "Cash-flow positif, marge limitée", "Le scénario prudent reste positif mais n’atteint pas votre objectif mensuel.", "Chercher une marge sur le prix ; vérifier les charges et le risque de vacance.");
     return avis("completer", "Chiffres à approfondir", "Le scénario prudent atteint l’objectif ; le dossier ne réunit pas tous les critères du signal pépite.", "Vérifier le bail, les encaissements et la facilité à relouer avant de se positionner.");
   }
-  return {analyser, prixPourCashflow};
+  return {analyser, prixPourCashflow, priorite, blocage};
 })();

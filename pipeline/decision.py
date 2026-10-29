@@ -5,6 +5,7 @@ from pipeline.config import Config
 from pipeline.modeles import Annonce, TypeMurs
 from pipeline.fiabilite import diagnostiquer
 from pipeline.financement import hypotheses_exploitation, mensualite_credit
+from pipeline.dossier_locatif import analyser_dossier
 
 
 def analyser_relocation(a: Annonce) -> dict:
@@ -14,6 +15,10 @@ def analyser_relocation(a: Annonce) -> dict:
     risque, et des commerces voisins ne prouvent aucun délai de relocation.
     """
     favorables, vigilances = [], []
+    dossier = a.dossier_locatif or analyser_dossier(a)
+    if dossier["sous_sol_majoritaire"]:
+        vigilances.append("La surface en sous-sol annoncée dépasse celle du rez-de-chaussée : vérifier la surface commerciale réellement exploitable")
+    vigilances.extend(dossier["alertes"])
     if a.rue_categorie in {"commercante", "tres_commercante"}:
         favorables.append("Rue commerçante d’après les commerces recensés à proximité")
     elif a.rue_categorie == "peu_commercante":
@@ -27,7 +32,8 @@ def analyser_relocation(a: Annonce) -> dict:
     if a.rue_distance_metro_m is not None and a.rue_distance_metro_m <= 600:
         favorables.append(f"Station recensée à environ {a.rue_distance_metro_m} m à vol d’oiseau")
     niveau = "vigilance" if vigilances else "favorable" if a.rue_categorie in {"commercante", "tres_commercante"} else "a_verifier"
-    return {"niveau": niveau,
+    return {"niveau": niveau, "local": dossier, "comparables":a.loyer_comparaison,
+            "precision": "rue" if a.rue_voie and a.rue_categorie else "non_localisee",
             "libelle": {"vigilance": "Vigilance sur la relocation", "favorable": "Signaux de rue favorables",
                         "a_verifier": "Facilité à relouer à vérifier"}[niveau],
             "favorables": favorables, "vigilances": vigilances,
@@ -112,6 +118,20 @@ def analyser_decision(a: Annonce, config: Config) -> dict:
                 "risques": risques, "loyer_estime": bool(a.loyer_estime or not a.loyer_mensuel),
                 "cashflow_prudent": None, "prix_equilibre": None,
                 "relocation": analyser_relocation(a)}
+    resultat["a_obtenir"] = []
+    if diagnostic["transaction"]["nature"] != "murs":
+        resultat["a_obtenir"].append("Confirmation de la vente des murs seuls")
+    if not a.loyer_mensuel or a.loyer_estime or a.loyer_origine == "rendement":
+        resultat["a_obtenir"].append("Loyer réellement encaissé HT/HC")
+    if diagnostic["occupation"] != "occupe":
+        resultat["a_obtenir"].append("Occupation et bail en place")
+    dossier = resultat["relocation"]["local"]
+    if a.taxe_fonciere_annuelle is None or not dossier["champs"].get("charges_bailleur_annuelles",{}).get("statut") == "annonce":
+        resultat["a_obtenir"].append("Taxe foncière et charges restant au bailleur")
+    if not a.rue_voie:
+        resultat["a_obtenir"].append("Adresse exacte pour qualifier la rue")
+    if not dossier["champs"].get("rdc_m2",{}).get("valeur"):
+        resultat["a_obtenir"].append("Surface en rez-de-chaussée réellement exploitable")
     exploitation = hypotheses_exploitation(a, config)
     resultat.update(exploitation)
     if diagnostic["bloquant"] or not loyer or not a.prix:
