@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-10-30",
    "statut": "ok",
-   "annonces": 107,
+   "annonces": 102,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-10-30",
    "statut": "ok",
-   "annonces": 509,
+   "annonces": 507,
    "message": "Limite de 20 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-10-30",
    "statut": "ok",
-   "annonces": 751,
+   "annonces": 752,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-30",
    "statut": "ok",
-   "annonces": 49,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); seloger_bureaux : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); logic_immo : 14 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 168 s sur 240 s (398 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 45,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 28 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 2 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 166 s sur 240 s (398 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2361,8 +2361,8 @@
   {
    "jour": "2026-10-30",
    "statut": "ok",
-   "annonces": 100,
-   "message": null
+   "annonces": 80,
+   "message": "/annonces/page/3/ : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "latourimmo": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-30",
    "statut": "ok",
-   "annonces": 131,
+   "annonces": 120,
    "message": null
   }
  ],
