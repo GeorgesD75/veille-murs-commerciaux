@@ -177,8 +177,8 @@
   {
    "jour": "2026-10-31",
    "statut": "ok",
-   "annonces": 996,
-   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1; https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
+   "annonces": 846,
+   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/7/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
   }
  ],
  "murscommerciaux": [
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-10-31",
    "statut": "ok",
-   "annonces": 506,
+   "annonces": 511,
    "message": "Limite de 20 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-10-31",
    "statut": "ok",
-   "annonces": 753,
+   "annonces": 754,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-10-31",
    "statut": "ok",
-   "annonces": 32,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 252 liens résolus en 73 s sur 240 s (252 aboutis, 0 en échec, 0.3 s/lien)"
+   "annonces": 40,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 343 liens résolus en 100 s sur 240 s (343 aboutis, 0 en échec, 0.3 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-10-31",
    "statut": "ok",
-   "annonces": 130,
+   "annonces": 124,
    "message": null
   }
  ],
