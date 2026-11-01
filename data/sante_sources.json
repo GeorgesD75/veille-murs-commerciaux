@@ -177,8 +177,8 @@
   {
    "jour": "2026-11-01",
    "statut": "ok",
-   "annonces": 996,
-   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1; https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
+   "annonces": 648,
+   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/3/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
   }
  ],
  "murscommerciaux": [
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-11-01",
    "statut": "ok",
-   "annonces": 87,
+   "annonces": 84,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-11-01",
    "statut": "ok",
-   "annonces": 507,
+   "annonces": 508,
    "message": "Limite de 20 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-11-01",
    "statut": "ok",
-   "annonces": 227,
+   "annonces": 226,
    "message": null
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-11-01",
    "statut": "ok",
-   "annonces": 754,
+   "annonces": 722,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-11-01",
    "statut": "ok",
-   "annonces": 20,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 164 liens résolus en 48 s sur 240 s (164 aboutis, 0 en échec, 0.3 s/lien)"
+   "annonces": 44,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 303 liens résolus en 124 s sur 240 s (301 aboutis, 0 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2361,8 +2361,8 @@
   {
    "jour": "2026-11-01",
    "statut": "ok",
-   "annonces": 40,
-   "message": "/annonces/page/2/ : HTTPSConnectionPool(host='www.iccinvest.com', port=443): Read timed out. (read timeout=30); /annonces/page/3/ : HTTPSConnectionPool(host='www.iccinvest.com', port=443): Read timed out. (read timeout=30); /annonces/page/5/ : HTTPSConnectionPool(host='www.iccinvest.com', port=443): Read timed out. (read timeout=30)"
+   "annonces": 100,
+   "message": null
   }
  ],
  "latourimmo": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-11-01",
    "statut": "ok",
-   "annonces": 130,
+   "annonces": 119,
    "message": null
   }
  ],
