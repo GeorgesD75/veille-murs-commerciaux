@@ -177,8 +177,8 @@
   {
    "jour": "2026-11-03",
    "statut": "ok",
-   "annonces": 796,
-   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/6/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
+   "annonces": 648,
+   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/3/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
   }
  ],
  "murscommerciaux": [
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-11-03",
    "statut": "ok",
-   "annonces": 88,
+   "annonces": 85,
    "message": null
   }
  ],
@@ -1269,8 +1269,8 @@
   {
    "jour": "2026-11-03",
    "statut": "ok",
-   "annonces": 510,
-   "message": "Limite de 20 pages atteinte : d’autres résultats restent disponibles."
+   "annonces": 414,
+   "message": "https://www.cessionpme.com/annonces,vente-immobilier-entreprise-locaux-commerciaux-boutiques-ile-de-france,54,8,V,10,offres.html?page=17 : HTTPSConnectionPool(host='www.cessionpme.com', port=443): Read timed out. (read timeout=30)"
   }
  ],
  "geolocaux": [
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-11-03",
    "statut": "ok",
-   "annonces": 723,
+   "annonces": 722,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-11-03",
    "statut": "ok",
-   "annonces": 43,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 366 liens résolus en 153 s sur 240 s (354 aboutis, 0 en échec, 0.4 s/lien)"
+   "annonces": 34,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 332 liens résolus en 139 s sur 240 s (322 aboutis, 0 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-11-03",
    "statut": "ok",
-   "annonces": 110,
+   "annonces": 95,
    "message": null
   }
  ],
