@@ -178,7 +178,7 @@
    "jour": "2026-11-03",
    "statut": "ok",
    "annonces": 796,
-   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1; https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/6/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/6/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
   }
  ],
  "murscommerciaux": [
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-11-03",
    "statut": "ok",
-   "annonces": 87,
+   "annonces": 88,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-11-03",
    "statut": "ok",
-   "annonces": 506,
+   "annonces": 510,
    "message": "Limite de 20 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-11-03",
    "statut": "ok",
-   "annonces": 232,
+   "annonces": 236,
    "message": null
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-11-03",
    "statut": "ok",
-   "annonces": 720,
+   "annonces": 723,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-11-03",
    "statut": "ok",
-   "annonces": 47,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 11 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 2 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 171 s sur 240 s (400 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 43,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 366 liens résolus en 153 s sur 240 s (354 aboutis, 0 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2724,9 +2724,9 @@
   },
   {
    "jour": "2026-11-03",
-   "statut": "erreur",
-   "annonces": 0,
-   "message": "HTTP 403 sur https://www.orpi.com/commerces-entreprises/annonces-immobilieres-ile-de-france/vente-local-commercial/ — arrêt propre"
+   "statut": "ok",
+   "annonces": 110,
+   "message": null
   }
  ],
  "arthurloyd": [
