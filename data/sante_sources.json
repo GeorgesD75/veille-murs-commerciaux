@@ -177,8 +177,8 @@
   {
    "jour": "2026-11-06",
    "statut": "ok",
-   "annonces": 399,
-   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/2/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/6/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 996,
+   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1; https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
   }
  ],
  "murscommerciaux": [
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-11-06",
    "statut": "ok",
-   "annonces": 72,
+   "annonces": 67,
    "message": null
   }
  ],
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-11-06",
    "statut": "ok",
-   "annonces": 237,
+   "annonces": 238,
    "message": null
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-11-06",
    "statut": "ok",
-   "annonces": 727,
+   "annonces": 720,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-11-06",
    "statut": "ok",
-   "annonces": 54,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 16 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 150 s sur 240 s (398 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 45,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 30 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 5 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 169 s sur 240 s (400 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-11-06",
    "statut": "ok",
-   "annonces": 121,
+   "annonces": 109,
    "message": null
   }
  ],
