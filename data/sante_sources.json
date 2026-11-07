@@ -177,8 +177,8 @@
   {
    "jour": "2026-11-07",
    "statut": "ok",
-   "annonces": 599,
-   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/2/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
+   "annonces": 796,
+   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/6/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
   }
  ],
  "murscommerciaux": [
@@ -905,7 +905,7 @@
   {
    "jour": "2026-11-07",
    "statut": "ok",
-   "annonces": 80,
+   "annonces": 79,
    "message": "Limite de 10 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-11-07",
    "statut": "ok",
-   "annonces": 68,
+   "annonces": 66,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-11-07",
    "statut": "ok",
-   "annonces": 47,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 347 liens résolus en 163 s sur 240 s (345 aboutis, 0 en échec, 0.5 s/lien)"
+   "annonces": 31,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 277 liens résolus en 131 s sur 240 s (277 aboutis, 0 en échec, 0.5 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-11-07",
    "statut": "ok",
-   "annonces": 99,
+   "annonces": 94,
    "message": null
   }
  ],
