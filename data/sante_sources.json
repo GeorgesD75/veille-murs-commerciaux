@@ -1,12 +1,6 @@
 {
  "pointdevente": [
   {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 43,
-   "message": null
-  },
-  {
    "jour": "2026-10-10",
    "statut": "ok",
    "annonces": 41,
@@ -179,15 +173,15 @@
    "statut": "ok",
    "annonces": 796,
    "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/6/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "ok",
+   "annonces": 896,
+   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/8/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
   }
  ],
  "murscommerciaux": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 16,
-   "message": null
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -361,15 +355,15 @@
    "statut": "ok",
    "annonces": 16,
    "message": null
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "ok",
+   "annonces": 16,
+   "message": null
   }
  ],
  "iburoshop": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 8,
-   "message": null
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -540,6 +534,12 @@
   },
   {
    "jour": "2026-11-07",
+   "statut": "ok",
+   "annonces": 7,
+   "message": null
+  },
+  {
+   "jour": "2026-11-08",
    "statut": "ok",
    "annonces": 7,
    "message": null
@@ -547,12 +547,6 @@
  ],
  "flagship": [
   {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 0,
-   "message": null
-  },
-  {
    "jour": "2026-10-10",
    "statut": "ok",
    "annonces": 0,
@@ -725,15 +719,15 @@
    "statut": "ok",
    "annonces": 0,
    "message": null
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "ok",
+   "annonces": 0,
+   "message": null
   }
  ],
  "papcommerces": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 10,
-   "message": null
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -907,15 +901,15 @@
    "statut": "ok",
    "annonces": 79,
    "message": "Limite de 10 pages atteinte : d’autres résultats restent disponibles."
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "ok",
+   "annonces": 79,
+   "message": "Limite de 10 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
  "bienici": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 37,
-   "message": null
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -1089,15 +1083,15 @@
    "statut": "ok",
    "annonces": 66,
    "message": null
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "ok",
+   "annonces": 67,
+   "message": null
   }
  ],
  "cessionpme": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 17,
-   "message": null
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -1271,15 +1265,15 @@
    "statut": "ok",
    "annonces": 507,
    "message": "Limite de 20 pages atteinte : d’autres résultats restent disponibles."
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "ok",
+   "annonces": 507,
+   "message": "Limite de 20 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
  "geolocaux": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 200,
-   "message": "garde-fou de 90 requêtes atteint : collecte partielle"
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -1453,15 +1447,15 @@
    "statut": "ok",
    "annonces": 243,
    "message": null
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "ok",
+   "annonces": 243,
+   "message": null
   }
  ],
  "bureauxlocaux": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 642,
-   "message": null
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -1635,15 +1629,15 @@
    "statut": "ok",
    "annonces": 725,
    "message": null
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "ok",
+   "annonces": 725,
+   "message": null
   }
  ],
  "notaires": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 2,
-   "message": null
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -1817,15 +1811,15 @@
    "statut": "ok",
    "annonces": 3,
    "message": null
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "ok",
+   "annonces": 3,
+   "message": null
   }
  ],
  "imap": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 21,
-   "message": "seloger_bureaux : 2 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir) — liens vus : click.by.seloger.com ×7; budget de redirection : 221 liens résolus en 65 s sur 240 s (221 aboutis, 0 en échec, 0.3 s/lien)"
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -1999,15 +1993,15 @@
    "statut": "ok",
    "annonces": 31,
    "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 277 liens résolus en 131 s sur 240 s (277 aboutis, 0 en échec, 0.5 s/lien)"
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "ok",
+   "annonces": 9,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 64 liens résolus en 30 s sur 240 s (59 aboutis, 0 en échec, 0.5 s/lien)"
   }
  ],
  "encheres_publiques": [
-  {
-   "jour": "2026-10-09",
-   "statut": "erreur",
-   "annonces": 0,
-   "message": "HTTP 403 sur https://www.encheres-publiques.com/ventes/immobilier/locaux-commerciaux/ile-de-france — arrêt propre"
-  },
   {
    "jour": "2026-10-10",
    "statut": "erreur",
@@ -2181,15 +2175,15 @@
    "statut": "erreur",
    "annonces": 0,
    "message": "HTTP 403 sur https://www.encheres-publiques.com/ventes/immobilier/locaux-commerciaux/ile-de-france — arrêt propre"
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "HTTP 403 sur https://www.encheres-publiques.com/ventes/immobilier/locaux-commerciaux/ile-de-france — arrêt propre"
   }
  ],
  "iccinvest": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 100,
-   "message": null
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -2363,15 +2357,15 @@
    "statut": "erreur",
    "annonces": 0,
    "message": "robots.txt indisponible : HTTP 520 sur https://www.iccinvest.com"
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "robots.txt indisponible : HTTP 520 sur https://www.iccinvest.com"
   }
  ],
  "latourimmo": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 11,
-   "message": null
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -2545,15 +2539,15 @@
    "statut": "ok",
    "annonces": 11,
    "message": null
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "ok",
+   "annonces": 11,
+   "message": null
   }
  ],
  "orpi": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 104,
-   "message": null
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -2727,15 +2721,15 @@
    "statut": "ok",
    "annonces": 94,
    "message": null
+  },
+  {
+   "jour": "2026-11-08",
+   "statut": "ok",
+   "annonces": 117,
+   "message": null
   }
  ],
  "arthurloyd": [
-  {
-   "jour": "2026-10-09",
-   "statut": "ok",
-   "annonces": 18,
-   "message": null
-  },
   {
    "jour": "2026-10-10",
    "statut": "ok",
@@ -2906,6 +2900,12 @@
   },
   {
    "jour": "2026-11-07",
+   "statut": "ok",
+   "annonces": 18,
+   "message": null
+  },
+  {
+   "jour": "2026-11-08",
    "statut": "ok",
    "annonces": 18,
    "message": null
