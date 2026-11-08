@@ -177,8 +177,8 @@
   {
    "jour": "2026-11-08",
    "statut": "ok",
-   "annonces": 896,
-   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/8/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
+   "annonces": 599,
+   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/2/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
   }
  ],
  "murscommerciaux": [
@@ -905,7 +905,7 @@
   {
    "jour": "2026-11-08",
    "statut": "ok",
-   "annonces": 79,
+   "annonces": 80,
    "message": "Limite de 10 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-11-08",
    "statut": "ok",
-   "annonces": 507,
+   "annonces": 511,
    "message": "Limite de 20 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-11-08",
    "statut": "ok",
-   "annonces": 9,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 64 liens résolus en 30 s sur 240 s (59 aboutis, 0 en échec, 0.5 s/lien)"
+   "annonces": 31,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); budget de redirection : 239 liens résolus en 99 s sur 240 s (237 aboutis, 0 en échec, 0.4 s/lien)"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-11-08",
    "statut": "ok",
-   "annonces": 117,
+   "annonces": 126,
    "message": null
   }
  ],
