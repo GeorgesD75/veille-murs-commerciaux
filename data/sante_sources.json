@@ -176,9 +176,9 @@
   },
   {
    "jour": "2026-11-10",
-   "statut": "ok",
-   "annonces": 596,
-   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1; https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/2/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -359,8 +359,8 @@
   {
    "jour": "2026-11-10",
    "statut": "ok",
-   "annonces": 16,
-   "message": null
+   "annonces": 8,
+   "message": "/recherche-murs-commerciaux-libres : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "iburoshop": [
@@ -905,7 +905,7 @@
   {
    "jour": "2026-11-10",
    "statut": "ok",
-   "annonces": 81,
+   "annonces": 82,
    "message": "Limite de 10 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-11-10",
    "statut": "ok",
-   "annonces": 76,
+   "annonces": 70,
    "message": null
   }
  ],
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-11-10",
    "statut": "ok",
-   "annonces": 243,
+   "annonces": 244,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-11-10",
    "statut": "ok",
-   "annonces": 48,
-   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); seloger_bureaux : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); logic_immo : 23 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 168 s sur 240 s (400 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 47,
+   "message": "seloger_bureaux : 1 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 33 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 189 s sur 240 s (398 aboutis, 0 en échec, 0.5 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-11-10",
    "statut": "ok",
-   "annonces": 129,
+   "annonces": 114,
    "message": null
   }
  ],
