@@ -177,8 +177,8 @@
   {
    "jour": "2026-11-14",
    "statut": "ok",
-   "annonces": 946,
-   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1; https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/9/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 746,
+   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1; https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/5/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-11-14",
    "statut": "ok",
-   "annonces": 83,
+   "annonces": 84,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-11-14",
    "statut": "ok",
-   "annonces": 510,
+   "annonces": 509,
    "message": "Limite de 20 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-11-14",
    "statut": "ok",
-   "annonces": 241,
+   "annonces": 242,
    "message": null
   }
  ],
@@ -1998,7 +1998,7 @@
    "jour": "2026-11-14",
    "statut": "ok",
    "annonces": 51,
-   "message": "bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 76 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 143 s sur 240 s (400 aboutis, 0 en échec, 0.4 s/lien) — plafond atteint : nombre de liens"
+   "message": "bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 71 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 188 s sur 240 s (398 aboutis, 0 en échec, 0.5 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-11-14",
    "statut": "ok",
-   "annonces": 121,
+   "annonces": 102,
    "message": null
   }
  ],
