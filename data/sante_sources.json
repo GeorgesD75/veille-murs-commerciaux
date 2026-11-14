@@ -177,8 +177,8 @@
   {
    "jour": "2026-11-14",
    "statut": "ok",
-   "annonces": 746,
-   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1; https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/5/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "annonces": 596,
+   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/10/1; https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/2/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -904,9 +904,9 @@
   },
   {
    "jour": "2026-11-14",
-   "statut": "ok",
-   "annonces": 84,
-   "message": "Limite de 10 pages atteinte : d’autres résultats restent disponibles."
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "HTTP 403 sur https://www.papcommerces.fr/commerce/vente-local-commercial-ile-de-france-g471 — arrêt propre"
   }
  ],
  "bienici": [
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-11-14",
    "statut": "ok",
-   "annonces": 84,
+   "annonces": 85,
    "message": null
   }
  ],
@@ -1269,7 +1269,7 @@
   {
    "jour": "2026-11-14",
    "statut": "ok",
-   "annonces": 509,
+   "annonces": 507,
    "message": "Limite de 20 pages atteinte : d’autres résultats restent disponibles."
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-11-14",
    "statut": "ok",
-   "annonces": 51,
-   "message": "bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 71 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 188 s sur 240 s (398 aboutis, 0 en échec, 0.5 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 48,
+   "message": "bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 66 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 4 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 110 s sur 240 s (400 aboutis, 0 en échec, 0.3 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-11-14",
    "statut": "ok",
-   "annonces": 102,
+   "annonces": 124,
    "message": null
   }
  ],
