@@ -176,9 +176,9 @@
   },
   {
    "jour": "2026-11-18",
-   "statut": "ok",
-   "annonces": 846,
-   "message": "https://www.pointdevente.fr/fr/murs-de-boutique-libres/murs-de-boutique/lf9/50/7/1 : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')); https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1 : robots.txt interdit https://www.pointdevente.fr/fr/murs-de-boutique-occupes/murs-de-boutique/lf10/50/10/1"
+   "statut": "erreur",
+   "annonces": 0,
+   "message": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "murscommerciaux": [
@@ -359,8 +359,8 @@
   {
    "jour": "2026-11-18",
    "statut": "ok",
-   "annonces": 16,
-   "message": null
+   "annonces": 8,
+   "message": "/recherche-murs-commerciaux-libres : ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
   }
  ],
  "iburoshop": [
@@ -1087,7 +1087,7 @@
   {
    "jour": "2026-11-18",
    "statut": "ok",
-   "annonces": 85,
+   "annonces": 87,
    "message": null
   }
  ],
@@ -1451,7 +1451,7 @@
   {
    "jour": "2026-11-18",
    "statut": "ok",
-   "annonces": 239,
+   "annonces": 242,
    "message": null
   }
  ],
@@ -1633,7 +1633,7 @@
   {
    "jour": "2026-11-18",
    "statut": "ok",
-   "annonces": 725,
+   "annonces": 720,
    "message": null
   }
  ],
@@ -1997,8 +1997,8 @@
   {
    "jour": "2026-11-18",
    "statut": "ok",
-   "annonces": 45,
-   "message": "bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); logic_immo : 29 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 184 s sur 240 s (400 aboutis, 0 en échec, 0.5 s/lien) — plafond atteint : nombre de liens"
+   "annonces": 64,
+   "message": "bienici_alerte : 4 email(s) lu(s) mais aucune annonce reconnue (motif de lien à revoir); seloger_bureaux : 10 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); logic_immo : 52 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); iad : 1 email(s) reportés au run suivant (budget de redirection épuisé ce run-ci, rien à corriger); budget de redirection : 400 liens résolus en 115 s sur 240 s (398 aboutis, 0 en échec, 0.3 s/lien) — plafond atteint : nombre de liens"
   }
  ],
  "encheres_publiques": [
@@ -2180,7 +2180,7 @@
    "jour": "2026-11-18",
    "statut": "erreur",
    "annonces": 0,
-   "message": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+   "message": "HTTP 403 sur https://www.encheres-publiques.com/ventes/immobilier/locaux-commerciaux/ile-de-france — arrêt propre"
   }
  ],
  "iccinvest": [
@@ -2725,7 +2725,7 @@
   {
    "jour": "2026-11-18",
    "statut": "ok",
-   "annonces": 107,
+   "annonces": 106,
    "message": null
   }
  ],
